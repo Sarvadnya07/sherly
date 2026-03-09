@@ -1,0 +1,1 @@
+Store your .ppn files and Whisper model folders here.
