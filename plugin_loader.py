@@ -4,6 +4,9 @@ import importlib
 def load_plugins():
 
     plugins = {}
+    
+    if not os.path.exists("plugins"):
+        return plugins
 
     for file in os.listdir("plugins"):
 

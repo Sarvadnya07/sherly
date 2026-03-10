@@ -5,16 +5,9 @@ def route_intent(text):
 
     text = text.lower()
 
-    if "open chrome" in text:
-        return run_system_command("chrome")
-
-    if "open vscode" in text:
-        return run_system_command("vscode")
-
-    if "shutdown computer" in text:
-        return run_system_command("shutdown")
-
-    if "visit chatgpt" in text:
-        return run_system_command("chatgpt")
+    # Pass the full text to system command handler which has its own routing logic
+    result = run_system_command(text)
+    if result:
+        return result
 
     return ask_llm(text)

@@ -1,17 +1,22 @@
 import pvporcupine
 import pyaudio
+import struct
 
-class SherlyWakeListener:
+ACCESS_KEY = "Zz/U5F+h4KHgbupOmaDU8qGYLnK8HWU20+8s8IJCrGwrnaRav9Qsqg=="
+
+
+class WakeWordDetector:
 
     def __init__(self):
 
         self.porcupine = pvporcupine.create(
+            access_key=ACCESS_KEY,
             keywords=["jarvis"]
         )
 
-        self.pa = pyaudio.PyAudio()
+        self.audio = pyaudio.PyAudio()
 
-        self.stream = self.pa.open(
+        self.stream = self.audio.open(
             rate=self.porcupine.sample_rate,
             channels=1,
             format=pyaudio.paInt16,
@@ -24,10 +29,14 @@ class SherlyWakeListener:
         while True:
 
             pcm = self.stream.read(self.porcupine.frame_length)
-            pcm = memoryview(pcm).cast("h")
+
+            pcm = struct.unpack_from(
+                "h" * self.porcupine.frame_length,
+                pcm
+            )
 
             result = self.porcupine.process(pcm)
 
             if result >= 0:
-                print("Sherly Wake Word Detected")
+                print("Wake word detected")
                 return True

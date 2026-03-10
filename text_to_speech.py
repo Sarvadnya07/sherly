@@ -5,7 +5,6 @@ def speak(text):
     if not text:
         return
 
-    text = text[:200]
     engine = pyttsx3.init()
     engine.setProperty("rate", 170)
 

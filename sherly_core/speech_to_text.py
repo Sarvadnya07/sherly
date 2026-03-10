@@ -1,15 +1,16 @@
 from scipy.signal import butter, lfilter
 from faster_whisper import WhisperModel
 import numpy as np
+from typing import Any
 
 # 'Base' handles fan noise without being too heavy on CPU.
 model = WhisperModel("base", device="cpu", compute_type="float32")
 
-def highpass_filter(data, cutoff=300, fs=16000, order=5):
+def highpass_filter(data: Any, cutoff: int = 300, fs: int = 16000, order: int = 5) -> Any:
     """Remove low-frequency fan hum before Whisper sees the audio."""
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype="high", analog=False)
+    b, a = butter(order, normal_cutoff, btype="high", analog=False)  # type: ignore
     return lfilter(b, a, data)
 
 def transcribe(audio_data):
@@ -35,9 +36,6 @@ def transcribe(audio_data):
         )
 
         text = "".join(segment.text for segment in segments)
-
-        if info.language != "en" and info.language_probability > 0.5:
-            return ""
 
         return text.strip()
     except Exception as exc:

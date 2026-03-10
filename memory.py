@@ -1,11 +1,13 @@
 import sqlite3
 
 conn = sqlite3.connect("sherly_memory.db")
+conn.execute("CREATE TABLE IF NOT EXISTS memory (key TEXT UNIQUE, value TEXT)")
+conn.commit()
 
 def save_memory(key, value):
 
     conn.execute(
-        "INSERT INTO memory VALUES (?, ?)",
+        "INSERT OR REPLACE INTO memory (key, value) VALUES (?, ?)",
         (key, value)
     )
 
