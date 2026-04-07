@@ -3,6 +3,25 @@
 ## Overview
 Sherly is a desktop-native AI assistant that listens, thinks, executes, and notifies in real time. It blends local speech/LLM workflows with a remote web/PWA control surface, agent routing, and background task automation—optimized for low RAM and responsive UX.
 
+## ⚙️ How It Works
+Voice → STT → Intent Router → Agent Selection → Execution → Response → TTS → Notification
+
+## 🧠 Why Sherly?
+- Works offline (local-first)
+- Faster than cloud assistants
+- Fully extensible via agents
+- Remote control from phone
+
+## 💬 Example
+User: "open chrome"  
+Sherly: Opening Chrome...
+
+User: "summarize this log file"  
+Sherly: This log indicates...
+
+## 📸 UI
+*Add a screenshot of the PySide6 panel or PWA here for quick visual context.*
+
 ## Features
 - **Voice + UI**
   - Fast STT (Whisper tiny int8), debounce logic, short responses for snappy TTS.
