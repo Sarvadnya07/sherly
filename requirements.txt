@@ -10,3 +10,6 @@ duckduckgo-search
 pyautogui
 pyperclip
 mss
+PySide6
+fastapi
+uvicorn

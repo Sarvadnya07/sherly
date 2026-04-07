@@ -1,105 +1,106 @@
-# 👩‍💻 Sherly AI - Desktop Assistant
+# Sherly AI – Local-First Voice + Remote-Control Assistant
 
-Sherly is a powerful, desktop-native AI assistant designed to integrate seamlessly into your workflow. It combines voice-first interaction with local-first AI processing to provide a secure, fast, and feature-rich assistant experience.
+## Overview
+Sherly is a desktop-native AI assistant that listens, thinks, executes, and notifies in real time. It blends local speech/LLM workflows with a remote web/PWA control surface, agent routing, and background task automation—optimized for low RAM and responsive UX.
 
-Sherly is built for developers and power users who want an assistant that can control their system, answer complex questions, and even explain code—all from a simple tray icon and voice commands.
+## Features
+- **Voice + UI**
+  - Fast STT (Whisper tiny int8), debounce logic, short responses for snappy TTS.
+  - PySide6 floating panel with status states (Idle/Listening/Thinking/Executing/Speaking).
+- **Smart Routing**
+  - LLM-based agent selection (coder/browser/system) for better intent mapping.
+  - Plugin registry + tool routing for extensibility.
+- **Remote Control**
+  - FastAPI remote agent + public API gateway, PWA UI with mic and uploads, ntfy push notifications.
+  - File upload endpoint auto-processes code/logs and pushes explanations to phone.
+- **Automation & Tasks**
+  - Background task scheduler, task queue, async worker helper to prevent UI blocking.
+  - System automation via pyautogui, terminal commands, screen analysis.
+- **Memory**
+  - Dual memory: chat DB plus `memory_brain` key-value “personal brain” injected into prompts.
+  - Prompt builder includes user context; DEV_MODE adds developer-style reasoning.
+- **Notifications**
+  - ntfy push after command/processing and uploads.
+- **Safety & Performance**
+  - Response/length caps, idle model unload, safe wrappers, controlled step executor (max 3 steps).
 
----
-
-## 🚀 Key Features
-
-### 🎙️ Voice-First Interaction
-- **Advanced STT**: Powered by `faster-whisper` for near-instant, high-accuracy local voice transcription.
-- **Smart Filtering**: Integrated high-pass filtering (using `scipy`) to remove background fan noise and hum before transcription.
-- **Natural TTS**: Uses `pyttsx3` for clear, local voice responses with adjustable speech rates.
-
-### 🧠 Local AI Intelligence
-- **Ollama Integration**: Natively connects to a local Ollama server (defaults to the `mistral` model) for private, offline-capable AI responses.
-- **Intent-Based Routing**: Sherly identifies whether you're asking a question, commanding the system, or need a web search.
-- **Web Search**: Automatically intelligently detects when a query needs external data and searches the web using DuckDuckGO for real-time information.
-
-### 🛠️ Developer Tools
-- **Code Explanation**: Select any block of code and ask "Explain this code." Sherly will automatically copy it to the clipboard and provide a detailed logic breakdown.
-- **Modular Design**: Structured as a modular Python package with clean separation between AI, commands, core loop, and UI.
-
-### 💻 System Automation
-- **App Control**: Launch Chrome and VS Code via voice.
-- **Web Navigation**: Open GitHub, ChatGPT, Google, and YouTube instantly.
-- **System Commands**: Lock your computer, open the Downloads folder, or trigger a system shutdown.
-
----
-
-## 🛠️ Tech Stack
-
-- **Core Logic**: Python 3.10+
-- **Voice Recognition**: `faster-whisper` (Base model for CPU efficiency)
-- **Speech Synthesis**: `pyttsx3`
-- **AI Engine**: [Ollama](https://ollama.com/) (Mistral)
-- **Signal Processing**: `scipy` (High-pass filters)
-- **UI Framework**: `pystray` (System Tray Icon)
-- **Utilities**: `pyautogui`, `pyperclip`, `duckduckgo-search`, `mss`, `sounddevice`
-
----
-
-## 📦 Project Structure
-
-Sherly follows a clean, modular architecture:
-
-```bash
-sherly/
-├── sherly_ai/         # AI models & prompts
-├── sherly_commands/   # System, Web, & Developer automation
-├── sherly_core/       # Core loop, STT (with filtering), & routing
-├── sherly_ui/         # System tray implementation
-├── sherly_utils/      # Screen, Clipboard, & File helpers
-├── config/            # Project configurations
-├── main.py            # Startup handler
-└── requirements.txt   # Dependency list
+## Architecture / Folder Structure
+```
+agents/               # Coder/Browser/System agents
+agent_manager.py      # LLM-driven agent classification + dispatch
+core/                 # worker.py (run_async), task_queue.py
+remote_agent/         # Local FastAPI executor calling route_command
+remote_api/           # Public FastAPI proxy + PWA static mount + upload
+remote_ui/            # PWA (index.html, manifest.json, icon.png)
+sherly_ui/            # PySide6 window, tray, worker thread
+tools/                # STT/TTS, screen, automation, task_engine, etc.
+runtime_utils.py      # logging, safe_execute, safe_run, ntfy send_notification
+model_manager.py      # prompt builder, model routing, idle unload, DEV_MODE
+memory_brain.py       # persistent user facts
+task_scheduler.py     # background interval tasks
+command_router.py     # main intent router
+requirements.txt
+config.json
 ```
 
----
+## Installation & Setup
+```bash
+pip install -r requirements.txt
+# start desktop app
+python main.py
+# start local agent
+uvicorn remote_agent.agent:app --host 127.0.0.1 --port 5001
+# start remote API + PWA
+uvicorn remote_api.server:app --host 0.0.0.0 --port 8000
+```
+Prereqs: Python 3.10+, Ollama running if using local LLM, ntfy mobile app (subscribe to `sherly-channel` or your chosen topic), microphone access.
 
-## ⚙️ Installation & Setup
+## Usage
+- Desktop: launch `main.py`, press Listen Once or enable auto-mode; speak commands (“open vscode”, “explain this code”).
+- Remote: open `http://YOUR_IP:8000` (PWA), tap mic or upload file; API key via `key` query/`x-api-key` header (`SHERLY_REMOTE_API_KEY`, default `sherly123`).
+- Memory: “remember project is sherly”, “what is project”.
+- Background tasks: import `add_task`/`start_scheduler` to register periodic jobs.
 
-1. **Clone the project**:
-   ```bash
-   git clone https://github.com/yourusername/sherly.git
-   cd sherly
-   ```
+## API
+- `POST /command` (remote_api): `{text}` → `{response}` (requires API key).
+- `POST /upload` (remote_api): file → saved to `uploads/`, auto explain via model, ntfy push.
+- `POST /execute` (remote_agent): `{text}` → router response.
 
-2. **Set up Ollama**:
-   - Install [Ollama](https://ollama.com/)
-   - Pull the Mistral model:
-     ```bash
-     ollama pull mistral
-     ```
-   - Ensure the Ollama server is running (usually on `http://localhost:11434`).
+## Tech Stack
+Python, FastAPI, PySide6, faster-whisper, pyttsx3, requests, ntfy, duckduckgo-search, pyautogui, Ollama (local LLM), PWA (HTML/CSS/JS).
 
-3. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *(Note: For Windows, ensure standard portaudio-related DLLs are present. For Linux, you may need `sudo apt install libportaudio2`).*
+## Configuration
+- `config.json`: current_model, auto_mode, API keys, plugin toggles.
+- Env: `SHERLY_REMOTE_API_KEY` for remote API; ntfy channel configurable in `runtime_utils.send_notification`.
+- Models: set via voice (“use openai/gemini/groq/local”) or config.
 
-4. **Run Sherly**:
-   ```bash
-   python main.py
-   ```
+## Performance
+- STT tiny/int8; prompts short; responses clipped to 250 chars; `max_tokens=100`.
+- Idle unload after 60s; async worker + task queue to avoid UI blocking.
+- Expect sub-second UI responsiveness on typical laptops; remote API latency depends on network/LLM.
 
----
+## Testing
+- `python -m py_compile` over modules or targeted smoke runs.
+- Manual: voice command, remote `/command`, file upload → ntfy push.
 
-## 🎯 Usage
+## Security
+- API key required for remote endpoints; set strong `SHERLY_REMOTE_API_KEY`.
+- ntfy topics are public by default—use a private/random channel.
+- CORS open for remote_api; restrict origins in production.
+- Uploaded files stored under `uploads/`—treat as untrusted.
 
-1. **Start Sherly**: Click the tray icon and select "Start Sherly."
-2. **Commands**: Once Sherly is listening, try:
-   - *"Open GitHub"* — Opens GitHub in your browser.
-   - *"What is the latest score in Formula 1?"* — Triggers an intelligent web search.
-   - *"Explain this code"* — Automatically reads code from your clipboard/selected text.
-   - *"Lock my computer"* — Locks Windows immediately.
-3. **Exit**: Right-click the tray icon and select "Exit."
+## Deployment
+- Desktop app: run `python main.py` (bundle with PyInstaller if desired).
+- Remote services: `uvicorn remote_api.server:app` and `uvicorn remote_agent.agent:app` behind reverse proxy; optional `ngrok http 8000` for quick exposure.
+- PWA served from remote_api static mount (`remote_ui/`).
 
----
+## Documentation References
+- Key modules: `command_router.py`, `model_manager.py`, `agent_manager.py`, `sherly_ui/app_manager.py`, `remote_api/server.py`, `remote_ui/index.html`.
+- External: Ollama, ntfy.sh, FastAPI, faster-whisper docs.
 
-## 📝 License
+## Contributing
+- Fork, branch, keep responses capped/non-blocking; follow async/task queue patterns.
+- Add tests or smoke steps for new features.
 
-This project is open-source and available under the **MIT License**.
+## License
+MIT License.

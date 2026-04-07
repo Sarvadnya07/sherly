@@ -2,7 +2,7 @@ import pystray
 from PIL import Image
 import threading
 
-from sherly_core.assistant_loop import start_sherly
+from sherly_core.sherly_loop import start_sherly
 
 assistant_thread = None
 
@@ -35,11 +35,8 @@ def create_tray():
     image = Image.new("RGB", (64, 64), color=(0, 120, 255))
 
     menu = pystray.Menu(
-
         pystray.MenuItem("Start Sherly", start_assistant),
-
         pystray.MenuItem("Exit", exit_app)
-
     )
 
     icon = pystray.Icon(

@@ -1,6 +1,4 @@
-from sherly_ui.tray_icon import create_tray
-
+from sherly_ui.app_manager import start_app
 
 if __name__ == "__main__":
-
-    create_tray()
+    start_app()

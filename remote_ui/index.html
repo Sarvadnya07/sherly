@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sherly</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    input {
+      width: 80%;
+      padding: 12px;
+      margin: 10px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      background: #0c0c0c;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 20px;
+      margin: 5px;
+      border-radius: 10px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+    #mic {
+      background: #6C63FF;
+      color: white;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      font-size: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🤖 Sherly</h2>
+
+<input id="cmd" placeholder="Type command..." autofocus />
+<input type="file" id="file" style="display:block;margin:10px auto;color:white;" />
+
+<br>
+
+<button onclick="send()">Send</button>
+<button id="mic" onclick="startVoice()">🎤</button>
+<button onclick="uploadFile()">Upload</button>
+
+<p id="res"></p>
+
+<script>
+const API_KEY = "sherly123"; // change to your key if overridden
+
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate(50);
+}
+
+function setStatus(text) {
+  document.getElementById("res").innerText = text;
+}
+
+async function send() {
+  const input = document.getElementById("cmd");
+  const text = input.value.trim();
+  if (!text) {
+    setStatus("Enter a command first.");
+    return;
+  }
+
+  setStatus("Thinking...");
+  vibrate();
+
+  try {
+    const res = await fetch("/command?key=" + encodeURIComponent(API_KEY), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({text})
+    });
+    const data = await res.json();
+    const msg = data.response || data.error || "No response.";
+    setStatus(msg);
+    vibrate();
+    speak(data.response);
+  } catch (err) {
+    setStatus("Request failed: " + err);
+  } finally {
+    input.focus();
+  }
+}
+
+// 🎤 Voice Input
+function startVoice() {
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
+
+  recognition.onresult = function(event) {
+    let text = event.results[0][0].transcript;
+    document.getElementById("cmd").value = text;
+    send();
+  };
+
+  recognition.start();
+}
+
+// 🔊 Voice Output
+function speak(text) {
+  if (!text) return;
+  let speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-US";
+  window.speechSynthesis.speak(speech);
+}
+
+async function uploadFile() {
+  const fileInput = document.getElementById("file");
+  if (!fileInput.files.length) {
+    alert("Choose a file first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  setStatus("Uploading...");
+  vibrate();
+
+  try {
+    const res = await fetch("/upload", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    alert(data.message || data.error || "No response");
+    setStatus(data.message || data.error || "Done");
+    vibrate();
+  } catch (err) {
+    alert("Upload failed: " + err);
+    setStatus("Upload failed");
+  } finally {
+    document.getElementById("cmd").focus();
+  }
+}
+
+window.onload = () => {
+  document.getElementById("cmd").focus();
+};
+</script>
+
+</body>
+</html>
