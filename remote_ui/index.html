@@ -333,7 +333,7 @@
 <body>
 
 <div class="header-nav">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme" onclick="toggleTheme()">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme" title="Toggle Theme" onclick="toggleTheme()">
         🌙
     </button>
 </div>
@@ -342,10 +342,10 @@
     <h2><span style="font-size: 32px">🤖</span> Sherly</h2>
 
     <div class="input-group">
-        <input id="cmd" type="text" placeholder="Type a command..." autofocus onkeypress="handleKeyPress(event)" />
+        <input id="cmd" type="text" placeholder="Type a command..." autofocus onkeypress="handleKeyPress(event)" aria-label="Command input" />
         
         <div class="file-upload-wrapper">
-            <input type="file" id="file" onchange="updateFileName()" />
+            <input type="file" id="file" onchange="updateFileName()" aria-label="Upload file" />
             <div class="file-upload-display" id="file-display">
                 <span style="margin-right:8px">📄</span> Choose a file to upload...
             </div>
@@ -353,16 +353,16 @@
     </div>
 
     <div class="actions">
-        <button class="btn primary" onclick="send()">
+        <button class="btn primary" onclick="send()" id="send-btn">
             <span>🚀</span> Send
         </button>
-        <button class="btn" onclick="uploadFile()">
+        <button class="btn" onclick="uploadFile()" id="upload-btn">
             <span>📤</span> Upload
         </button>
     </div>
 
     <div class="mic-btn-container">
-        <button id="mic" onclick="startVoice()" aria-label="Voice input">
+        <button id="mic" onclick="startVoice()" aria-label="Voice input" title="Start voice input">
             🎤
         </button>
     </div>
@@ -406,15 +406,37 @@
         if (navigator.vibrate) navigator.vibrate(50);
     }
 
+    function setInputsDisabled(disabled) {
+        document.getElementById("cmd").disabled = disabled;
+        document.getElementById("file").disabled = disabled;
+        document.getElementById("send-btn").disabled = disabled;
+        document.getElementById("upload-btn").disabled = disabled;
+        document.getElementById("mic").disabled = disabled;
+
+        if (disabled) {
+            document.getElementById("cmd").style.opacity = '0.5';
+            document.getElementById("send-btn").style.opacity = '0.5';
+            document.getElementById("upload-btn").style.opacity = '0.5';
+            document.getElementById("mic").style.opacity = '0.5';
+        } else {
+            document.getElementById("cmd").style.opacity = '';
+            document.getElementById("send-btn").style.opacity = '';
+            document.getElementById("upload-btn").style.opacity = '';
+            document.getElementById("mic").style.opacity = '';
+        }
+    }
+
     function showLoader(show) {
         const loader = document.getElementById('loader');
         const text = document.getElementById('res-text');
         if (show) {
             loader.classList.add('active');
             text.style.display = 'none';
+            setInputsDisabled(true);
         } else {
             loader.classList.remove('active');
             text.style.display = 'block';
+            setInputsDisabled(false);
         }
     }
 
