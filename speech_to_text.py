@@ -12,12 +12,18 @@ import time
 
 import numpy as np
 import sounddevice as sd
-from faster_whisper import WhisperModel
 
 # ---------------------------------------------------------------------------
-# Model — ultra-light profile
+# Model — ultra-light profile, lazy loaded
 # ---------------------------------------------------------------------------
-model = WhisperModel("tiny", device="cpu", compute_type="int8")
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        from faster_whisper import WhisperModel
+        _model = WhisperModel("tiny", device="cpu", compute_type="int8")
+    return _model
 
 # ---------------------------------------------------------------------------
 # Audio thresholds
@@ -157,6 +163,7 @@ def transcribe() -> str:
     audio = _normalize(audio)
 
     try:
+        model = get_model()
         segments, info = model.transcribe(
             audio,
             language="en",
