@@ -291,3 +291,4 @@
 2026-04-16 18:40:51,884 INFO Could not import comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4: Typelib different than module
 2026-04-16 18:40:51,888 INFO # Generating comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4
 2026-04-16 18:40:51,950 INFO # Generating comtypes.gen.SpeechLib
+2026-04-16 19:11:15,822 INFO Shutting down Sherly.

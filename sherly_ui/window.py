@@ -59,12 +59,13 @@ C_AI_BG       = "rgba(0,255,204,0.08)"
 # Signals object shared across threads
 # ─────────────────────────────────────────────────────────────────────────────
 class UIUpdater(QObject):
-    add_msg_sig      = Signal(str, str)
-    status_sig       = Signal(str)
-    toggle_power_sig = Signal(bool)
-    listen_once_sig  = Signal()
-    set_auto_mode_sig= Signal(bool)
-    chat_input_sig   = Signal(str)   # user typed something → route_command
+    add_msg_sig       = Signal(str, str)
+    status_sig        = Signal(str)
+    toggle_power_sig  = Signal(bool)
+    listen_once_sig   = Signal()
+    set_auto_mode_sig = Signal(bool)
+    chat_input_sig    = Signal(str)      # user typed something → route_command
+    refresh_actions_sig = Signal()       # refresh pending/history panel
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -269,6 +270,7 @@ class SherlyWindow(QWidget):
         self.updater.add_msg_sig.connect(self._on_add_message)
         self.updater.status_sig.connect(self._on_status)
         self.updater.toggle_power_sig.connect(self.toggle_power)
+        self.updater.refresh_actions_sig.connect(self._refresh_action_panel)
 
         self.setWindowTitle("Sherly AI Desktop")
         from PySide6.QtGui import QIcon
@@ -369,6 +371,35 @@ class SherlyWindow(QWidget):
 
         self._hist_scroll.setWidget(self._hist_container)
         lay.addWidget(self._hist_scroll)
+
+        # ── Action Panel (pending approvals + recent history) ─────────────
+        action_title = QLabel("ACTIONS")
+        action_title.setStyleSheet(
+            f"color: {C_MUTED}; font-size: 9px; font-weight: 900; letter-spacing: 3px;"
+        )
+        lay.addWidget(action_title)
+
+        self._action_scroll = QScrollArea()
+        self._action_scroll.setWidgetResizable(True)
+        self._action_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._action_scroll.setFixedHeight(160)
+        self._action_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._action_scroll.setStyleSheet("background: transparent;")
+
+        self._action_container = QWidget()
+        self._action_container.setStyleSheet("background: transparent;")
+        self._action_layout = QVBoxLayout(self._action_container)
+        self._action_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._action_layout.setSpacing(6)
+        self._action_layout.setContentsMargins(0, 0, 4, 0)
+
+        self._action_placeholder = QLabel("No pending actions")
+        self._action_placeholder.setStyleSheet(f"color: {C_MUTED}; font-size: 10px;")
+        self._action_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._action_layout.addWidget(self._action_placeholder)
+
+        self._action_scroll.setWidget(self._action_container)
+        lay.addWidget(self._action_scroll)
 
         # Status line at bottom of sidebar
         self._sidebar_status = QLabel("Ready")
@@ -653,6 +684,116 @@ class SherlyWindow(QWidget):
         self._add_bubble(text, response)
         self._add_history_card(text, response)
         self._sidebar_status.setText(datetime.now().strftime("%I:%M %p"))
+        # Refresh action panel after every response (pending may have changed)
+        self._refresh_action_panel()
+
+    def _refresh_action_panel(self):
+        """
+        Rebuild the sidebar action panel with current pending approvals
+        and the last 5 action history entries.  Called on the GUI thread via signal.
+        """
+        try:
+            from action_manager import _pending_actions, _action_history
+        except Exception:
+            return
+
+        # Clear existing widgets
+        while self._action_layout.count():
+            item = self._action_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        has_content = False
+
+        # ── Pending approvals ──────────────────────────────────────────────
+        import threading as _threading
+        pending = {}
+        with _threading.Lock():
+            pending = dict(_pending_actions)
+
+        try:
+            from tools.preview import preview_store
+            for aid, p_data in preview_store.items():
+                pending[aid] = {"cmd": f"Preview: {p_data['file']}"}
+        except Exception:
+            pass
+
+        if pending:
+            hdr = QLabel("⏳ Awaiting Approval")
+            hdr.setStyleSheet(f"color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
+            self._action_layout.addWidget(hdr)
+            has_content = True
+
+            for aid, entry in list(pending.items()):
+                card = QFrame()
+                card.setObjectName("PendCard")
+                card.setStyleSheet(f"""
+                    #PendCard {{
+                        background: rgba(255,170,51,0.07);
+                        border: 1px solid rgba(255,170,51,0.3);
+                        border-radius: 8px;
+                    }}
+                """)
+                cl = QVBoxLayout(card)
+                cl.setContentsMargins(8, 6, 8, 6)
+                cl.setSpacing(4)
+
+                cmd_lbl = QLabel(entry["cmd"][:45] + ("…" if len(entry["cmd"]) > 45 else ""))
+                cmd_lbl.setWordWrap(True)
+                cmd_lbl.setStyleSheet(f"color: {C_TEXT}; font-size: 10px; font-weight: 600;")
+                id_lbl = QLabel(f"ID: {aid}")
+                id_lbl.setStyleSheet(f"color: {C_MUTED}; font-size: 9px;")
+                cl.addWidget(cmd_lbl)
+                cl.addWidget(id_lbl)
+
+                btn_row = QHBoxLayout()
+                approve_btn = QPushButton("✓ Approve")
+                cancel_btn  = QPushButton("✕ Cancel")
+                for b in (approve_btn, cancel_btn):
+                    b.setFixedHeight(22)
+                    b.setCursor(Qt.CursorShape.PointingHandCursor)
+
+                approve_btn.setStyleSheet("""
+                    QPushButton { background: rgba(0,255,100,0.15); color: #00ff88;
+                        border: 1px solid rgba(0,255,100,0.3); border-radius: 6px; font-size: 10px; }
+                    QPushButton:hover { background: rgba(0,255,100,0.25); }
+                """)
+                cancel_btn.setStyleSheet("""
+                    QPushButton { background: rgba(255,50,50,0.1); color: #ff5555;
+                        border: 1px solid rgba(255,50,50,0.3); border-radius: 6px; font-size: 10px; }
+                    QPushButton:hover { background: rgba(255,50,50,0.2); }
+                """)
+                _aid = aid
+                approve_btn.clicked.connect(lambda _, a=_aid: self.updater.chat_input_sig.emit(f"approve {a}"))
+                cancel_btn.clicked.connect(lambda _, a=_aid: self.updater.chat_input_sig.emit(f"cancel {a}"))
+                btn_row.addWidget(approve_btn)
+                btn_row.addWidget(cancel_btn)
+                cl.addLayout(btn_row)
+
+                self._action_layout.addWidget(card)
+
+        # ── Recent history ─────────────────────────────────────────────────
+        history = list(_action_history)[:5]
+        if history:
+            hdr2 = QLabel("📋 Recent Actions")
+            hdr2.setStyleSheet(f"color: {C_MUTED}; font-size: 9px; font-weight: 900; letter-spacing: 2px; margin-top: 4px;")
+            self._action_layout.addWidget(hdr2)
+            has_content = True
+
+            for entry in history:
+                flag = "↩" if entry["undoable"] else "🔒"
+                row = QLabel(f"{flag} {entry['action'][:40]}{'…' if len(entry['action']) > 40 else ''}")
+                row.setWordWrap(True)
+                row.setStyleSheet(f"color: {C_MUTED}; font-size: 10px; padding: 2px 0;")
+                self._action_layout.addWidget(row)
+
+        if not has_content:
+            ph = QLabel("No pending actions")
+            ph.setStyleSheet(f"color: {C_MUTED}; font-size: 10px;")
+            ph.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._action_layout.addWidget(ph)
+
+
 
     def _add_history_card(self, user: str, ai: str):
         card = QFrame()
