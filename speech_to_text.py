@@ -1,9 +1,15 @@
-from faster_whisper import WhisperModel
 import sounddevice as sd
 import numpy as np
 
 # Ultra-light STT profile to reduce RAM and startup cost.
-model = WhisperModel("tiny", device="cpu", compute_type="int8")
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        from faster_whisper import WhisperModel
+        _model = WhisperModel("tiny", device="cpu", compute_type="int8")
+    return _model
 
 def record_audio(seconds=4, fs=16000):
     """Records audio from the default microphone."""
@@ -40,6 +46,7 @@ def transcribe():
         audio = audio / max_val if max_val > 0 else audio
 
         # Transcribe with VAD (Voice Activity Detection) parameters
+        model = get_model()
         segments, _ = model.transcribe(
             audio,
             language="en",
