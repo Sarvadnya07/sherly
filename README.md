@@ -1,122 +1,86 @@
 # Sherly AI – Voice-First Local Dev Copilot
 
+![Sherly AI](sherly_ui/assets/sherlyai.png)
+
 ## Overview
-Sherly is a desktop-native, voice-controlled developer copilot for your local machine. It runs, debugs, and explains your projects hands-free, with a PWA remote control, controlled task execution, and lightweight local models.
+Sherly is a desktop-native, voice-controlled developer copilot that transforms how you interact with your code. It runs, debugs, and explains your projects hands-free using high-performance local models, sophisticated safety guards, and a Git-style approval workflow.
 
-## ⚙️ How It Works
-Voice → STT → Intent Router → Agent Selection → Execution → Response → TTS → Notification
+## 🧠 The Sherly Core Foundation
+Sherly is built on 6 pillars of reliability and safety:
+1. **Input Layer**: 5-gate STT filter with noise rejection and prompt injection guards.
+2. **Execution Layer**: Deterministic routing first, LLM fallback only when necessary.
+3. **AI Layer**: Optimized 15s timeouts, single-model RAM locking, and 5-turn context caps.
+4. **System Layer**: Strict whitelist of safe terminal commands under `safe_exec`.
+5. **Control Layer**: 3-tier action classification (SAFE/CONFIRM/DANGEROUS).
+6. **Runtime Layer**: Thread-safe logging, task queue overflow protection, and atomic JSON writes.
 
-## 🎯 Product (MVP Lock)
-Core promise: run, debug, and understand your code just by speaking.
-- KEEP: voice run, error detection/explanation, safe terminal execution, file/code explanation, one-click “fix my project.”
-- DROP: multi-agent complexity, camera/vision, excessive plugins, fancy automation.
+## 🚀 Key Features
 
-## 🧠 Why Sherly?
-- Works offline (local-first) and faster than cloud assistants.
-- Voice-first debugging copilot: say “Run my project,” get error analysis and fixes.
-- Extensible via agents/plugins, yet controlled for safety.
-- Remote control from phone via PWA + notifications.
+### 🛡️ Safety & Control (Human-in-the-Loop)
+Sherly never acts blindly. Every critical action follows a strict 3-tier safety protocol:
+- **SAFE**: Information retrieval and explanation (executed directly).
+- **CONFIRM**: System changes, file writes, and tool execution (requires approval).
+- **DANGEROUS**: Destructive commands (blocked or requires high-level override).
+  
+### 📁 Git-Style Preview System
+Before applying any code fix, Sherly generates a **Multi-File Preview**:
+- **Inline Diffs**: Clean `➕ Added` / `➖ Removed` visualization directly in the chat.
+- **Confidence Scoring**: Sherly introspects her own solutions and warns you if confidence is low (<60%).
+- **Patch System**: Apply complex fixes across multiple files with a single `approve <id>` command.
+- **Auto-Backups**: Every patch creates an automatic restorable copy in the `backups/` directory.
 
-## 💬 Example
-User: “open chrome”  
-Sherly: Opening Chrome...
+### ↩️ Action History & Undo Engine
+Total reversibility. Sherly tracks your recent interactions in a bounded history stack:
+- **Undo last**: Revert file writes, restorations, or even clear conversation context.
+- **Action History**: View a chronological log of all executed commands and their undoable status.
 
-User: “summarize this log file”  
-Sherly: This log indicates...
+### 🔁 Self-Healing Auto-Fix Loop
+Sherly handles the entire debugging cycle:
+1. **Run**: Executes your project and captures error logs.
+2. **Fix**: AI calculates a multi-file patch with a confidence score.
+3. **Preview**: Shows you the exact changes for approval.
+4. **Iterate**: If the fix fails, Sherly immediately analyzes the *new* error and proposes a secondary patch.
 
 ## 📸 UI
-![Sherly UI](sherly_ui/assets/sherlyai.png)
-Add a screenshot of the PySide6 panel or PWA for quick visual context.
+The PySide6 Desktop Panel features:
+- **Glassmorphism Design**: Premium modern aesthetic with dark/light mode toggle.
+- **Action Panel**: Dedicate sidebar area for pending approvals and recent history.
+- **Visual Feedback**: Real-time status indicators (Listening, Thinking, Executing).
 
-
-## Features
-- **Voice + UI**: Whisper tiny int8 STT, debounce, short responses for fast TTS; PySide6 panel with Idle/Listening/Thinking/Executing/Speaking.
-- **Smart Routing**: LLM-based agent selection (coder/browser/system); plugin/tool registry.
-- **Remote Control**: FastAPI remote agent + public API gateway; PWA with mic/upload; ntfy push notifications.
-- **Automation & Tasks**: Background scheduler, task queue, async worker to avoid UI blocking; safe terminal execution (`safe_exec`).
-- **Memory**: Chat DB + `memory_brain` key-value context injected into prompts; DEV_MODE for developer-style reasoning.
-- **Reliability**: Retry + circuit breaker around local models, response caps, idle model unload, safe wrappers, controlled step executor (max 3 steps).
+## ⚙️ How It Works
+Voice/Text → Input Validator → Intent Router → [Action Manager (Approval Gate)] → Agent/Tool → Preview Engine → Execution → Result → Undo Logger
 
 ## Architecture / Folder Structure
 ```
 agents/               # coder/browser/system agents
-agent_manager.py      # LLM-driven agent classification + dispatch
 core/                 # worker.py (run_async), task_queue.py
-remote_agent/         # Local FastAPI executor calling route_command
-remote_api/           # Public FastAPI proxy + PWA static mount + upload
-remote_ui/            # PWA (index.html, manifest.json, icon.png)
-sherly_ui/            # PySide6 window, tray, worker thread
-tools/                # STT/TTS, screen, automation, task_engine, etc.
-runtime_utils.py      # logging, safe_execute, safe_run, ntfy send_notification
-model_manager.py      # prompt builder, model routing, idle unload, DEV_MODE, retry/breaker
-memory_brain.py       # persistent user facts
-task_scheduler.py     # background interval tasks
-command_router.py     # main intent router
-requirements.txt
-config.json
+remote_agent/         # Local FastAPI executor
+remote_api/           # Public FastAPI proxy + PWA mount
+sherly_ui/            # PySide6 window, Tray, UI Signals
+tools/                # STT/TTS, Preview, Fix Project, Task Engine
+action_manager.py     # Approval queue, History stack, Undo engine
+command_router.py     # Main intent router with safety gates
+input_validator.py    # Prompt injection & STT filters
+runtime_utils.py      # Thread-safe logging, safe_execute
+model_manager.py      # Prompt builder, Model routing, Timeouts
 ```
 
 ## Installation & Setup
 ```bash
 pip install -r requirements.txt
-# start desktop app
+# Start desktop app
 python main.py
-# start local agent
-uvicorn remote_agent.agent:app --host 127.0.0.1 --port 5001
-# start remote API + PWA
-uvicorn remote_api.server:app --host 0.0.0.0 --port 8000
 ```
-Prereqs: Python 3.10+, Ollama running if using local LLM, ntfy mobile app (subscribe to your channel), microphone access.
+*Prereqs: Python 3.10+, Ollama (local LLM), Microphone access.*
 
 ## Usage
-- Desktop: run `main.py`, click mic or auto-mode; speak “run my project” / “explain this code.”
-- Remote: open `http://YOUR_IP:8000`, tap mic or upload file; API key via `key` query or `x-api-key` header (`SHERLY_REMOTE_API_KEY`, default `sherly123`).
-- Memory: “remember project is sherly”; “what is project”.
-- Background tasks: use `add_task` / `start_scheduler`.
-
-## API
-- `POST /command` (remote_api): `{text}` → `{response}` (API key).
-- `POST /upload` (remote_api): file → saved to `uploads/`, auto explain + ntfy push.
-- `POST /execute` (remote_agent): `{text}` → router response.
+- **Fix Project**: Say "fix my project". Sherly will run it, find the error, and show a preview.
+- **Approve**: Type/Say `approve <id>` to execute a staged patch or terminal command.
+- **Undo**: Say `undo last action` to revert the most recent change.
+- **History**: Say `show action history` to see what Sherly has done.
 
 ## Tech Stack
-Python, FastAPI, PySide6, faster-whisper, pyttsx3, requests, ntfy, duckduckgo-search, pyautogui, Ollama (local LLM), tenacity + pybreaker, PWA (HTML/CSS/JS).
-
-## Configuration
-- `config.json`: current_model, auto_mode, API keys, plugin toggles.
-- Env: `SHERLY_REMOTE_API_KEY` for remote API; ntfy channel in `runtime_utils.send_notification`.
-- Models: switch via voice (“use openai/gemini/groq/local”) or config.
-
-## Performance
-- STT tiny/int8; prompts short; responses clipped to 250 chars; `max_tokens=100`.
-- Idle unload after 60s; async worker + task queue to avoid UI blocking.
-- Retry + circuit breaker for local models; fallback to lightweight web snippet on failure.
-
-## Security
-- API key required for remote endpoints (FastAPI dependency).
-- Safe command execution allowlist; treat uploads as untrusted.
-- CORS can be restricted; ntfy topics should be private/random.
-
-## Deployment
-- Desktop: `python main.py` or bundle with PyInstaller (`pyinstaller --noconsole --onefile main.py`).
-- Remote: `uvicorn remote_api.server:app` and `uvicorn remote_agent.agent:app` behind reverse proxy; `ngrok http 8000` for quick share.
-- PWA served from `remote_api` static mount.
-
-## Landing Page Copy (for marketing)
-- Hero: “Talk to Your Code. Sherly runs, debugs, and fixes your projects — hands-free.”
-- Problem: tired of manual debugging, context switching, repeated commands?
-- Solution: say “Run my project.” Sherly executes, finds errors, explains, suggests fixes.
-- CTA: Download Sherly (Beta).
-
-## Demo Script (30–45s)
-Open Sherly → say “Run my project” → show error → Sherly explains → suggests fix → (optional) applies fix.
-
-## Feedback Loop
-Add lightweight in-app prompt: “Was this helpful? (y/n)” and log responses to refine accuracy/speed.
-
-## Contributing
-- Fork, branch, keep responses capped/non-blocking; follow async/task queue patterns.
-- Add tests or smoke steps for new features.
+Python, PySide6, FastAPI, faster-whisper, pyttsx3, diff-lib, Ollama, DuckDuckGo Search, ntfy.
 
 ## License
 MIT License.
