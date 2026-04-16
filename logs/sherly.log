@@ -1,0 +1,293 @@
+2026-04-08 12:03:58,668 INFO Sherly UI started.
+2026-04-08 12:04:38,920 INFO Processing audio with duration 00:04.000
+2026-04-08 12:04:39,194 INFO VAD filter removed 00:02.304 of audio
+2026-04-08 12:04:39,489 INFO Active local model set: phi3
+2026-04-08 12:04:57,755 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 12:04:57,756 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 12:05:21,433 INFO Processing audio with duration 00:04.000
+2026-04-08 12:05:21,439 INFO VAD filter removed 00:04.000 of audio
+2026-04-08 12:05:43,453 INFO Processing audio with duration 00:04.000
+2026-04-08 12:05:43,459 INFO VAD filter removed 00:02.304 of audio
+2026-04-08 12:05:58,614 INFO Processing audio with duration 00:04.000
+2026-04-08 12:05:58,620 INFO VAD filter removed 00:00.048 of audio
+2026-04-08 12:06:18,076 INFO Processing audio with duration 00:04.000
+2026-04-08 12:06:18,082 INFO VAD filter removed 00:00.000 of audio
+2026-04-08 12:06:33,860 INFO Processing audio with duration 00:04.000
+2026-04-08 12:06:33,866 INFO VAD filter removed 00:04.000 of audio
+2026-04-08 12:06:48,312 INFO Processing audio with duration 00:04.000
+2026-04-08 12:06:48,318 INFO VAD filter removed 00:00.000 of audio
+2026-04-08 12:07:03,969 INFO Processing audio with duration 00:04.000
+2026-04-08 12:07:03,975 INFO VAD filter removed 00:00.208 of audio
+2026-04-08 12:07:19,670 INFO Processing audio with duration 00:04.000
+2026-04-08 12:07:19,677 INFO VAD filter removed 00:00.016 of audio
+2026-04-08 12:55:40,500 INFO Processing audio with duration 00:04.000
+2026-04-08 12:55:40,507 INFO VAD filter removed 00:00.000 of audio
+2026-04-08 12:55:46,197 INFO Unloaded model: phi3
+2026-04-08 12:55:46,198 INFO Active local model set: phi3
+2026-04-08 12:56:12,010 INFO Shutting down Sherly.
+2026-04-08 12:56:34,074 INFO Shutting down Sherly.
+2026-04-08 13:05:02,708 INFO Sherly UI started.
+2026-04-08 13:07:11,006 INFO Shutting down Sherly.
+2026-04-08 13:08:26,910 INFO Sherly UI started.
+2026-04-08 13:11:32,926 INFO Shutting down Sherly.
+2026-04-08 13:18:31,204 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 13:18:57,585 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:19:02,370 INFO Processing audio with duration 00:04.000
+2026-04-08 13:19:02,582 INFO VAD filter removed 00:00.720 of audio
+2026-04-08 13:19:02,924 INFO Active local model set: phi3
+2026-04-08 13:19:27,664 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 13:19:27,664 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 13:23:12,697 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:23:17,441 INFO Processing audio with duration 00:04.000
+2026-04-08 13:23:17,447 INFO VAD filter removed 00:02.624 of audio
+2026-04-08 13:23:23,009 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Hello. 200
+2026-04-08 13:23:23,435 INFO response: https://grokipedia.com/api/typeahead?query=Hello.&limit=1 200
+2026-04-08 13:23:23,707 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Hello.app&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 13:23:26,019 INFO response: https://www.mojeek.com/search?q=Hello. 200
+2026-04-08 13:23:49,382 INFO Model error: RetryError[<Future at 0x1e3954bde10 state=finished raised ReadTimeout>]
+2026-04-08 13:23:50,682 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%0ASummarize%20this%20information%3A%0A%0A%5B%7B%27title%27%3A%20%27Hello.app%27%2C%20%27href%27%3A%20%27https%3A//en.wikipedia.org/wiki/Hello.app%27%2C%20%27body%27%3A%20%27hello.app%20was%20a%20peer-to-peer%2C%20decentralized%20storage%20platform%20based%20in%20Barcelona.%20Founded%20in%202022%20by%20%C3%81lvaro%20Pintado%20and%20Alexander%20Baikalov%20at%20age%2017%2C%20it%20was%20among%20the%20first%20to%20offer%20distributed%20storage%20on%20mobile%20devices%2C%20allowing%20users%20to%20monetize%20unused%20space%20via%20blockchain.It%20aimed%20to%20replace%20centralized%20server%20infrastructure%20by%20using%20existing%20personal%20devices%20as%20nodes%20in%20a%20fragmented%2C%20distributed%20and%20encrypted%20network.%20In%20this%20model%2C%20phones%2C%20tablets%2C%20and%20laptops%20would%20collectively%20function%20as%20storage%20servers%2C%20contributing%20to%20a%20more%20resilient%2C%20worldwide%20system%20of%20data%20storage%20with%20no%20single%20point%20of%20control.%27%7D%2C%20%7B%27title%27%3A%20%27Hello%20%28Lionel%20Richie%20song%29%27%2C%20%27href%27%3A%20%27https%3A//grokipedia.com/page/Hello_%28Lionel_Richie_song%29%27%2C%20%27body%27%3A%20%27Hello%20%28Lionel%20Richie%20song%29%20%22Hello%22%20is%20a%20ballad%20written%2C%20arranged%2C%20produced%2C%20and%20performed%20by%20American%20singer-songwriter%20Lionel%20Richie%2C%20released%20in%201984%20as%20the%20third%20single%20from%20his%20second%20studio...%27%7D%2C%20%7B%27title%27%3A%20%27Welcome%20to%20Hello%21Lucky%27%2C%20%27href%27%3A%20%27https%3A//www.hellolucky.com/%27%2C%20%27body%27%3A%20%27I%20didn%20t%20knowHelloLucky%20is%20woman%20owned%3A%20All%20the%20better%21%20I%20write%20about%205%20cards%20%28mainly%20postcards%29%20a%20week%2C%20but%20wish%20I%20did%20more%20because%20I%20love%20sending%20...%27%7D%2C%20%7B%27title%27%3A%20%27%5BHello%20Elementor%5D%20Support%20%7C%20WordPress.org%27%2C%20%27href%27%3A%20%27https%3A//wordpress.org/support/theme/hello-elementor/%27%2C%20%27body%27%3A%20%27On%20iPad%20view%2C%20theHelloElementor%20menu%20displays%20the%20dropdown%20menu.%20...%20Persistent%20FOUC%20Issue%20on%20Multiple%20Sites%20UsingHelloElementor%20and%20Elementor%20Pro%27%7D%2C%20%7B%27title%27%3A%20%27%5BHello%20Biz%5D%20Support%20%7C%20WordPress.org%27%2C%20%27href%27%3A%20%27https%3A//wordpress.org/support/theme/hello-biz/%27%2C%20%27body%27%3A%20%27Forums%20/%20Theme%3AHelloBiz%20...HelloBiz%5D%20Support%20...hello-biz-child%20doesn%20%E2%80%99%20t%20load%20child%20style%27%7D%5D%0A 200
+2026-04-08 13:23:54,393 INFO Error in engine brave: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=%0ASummarize+this+information%3A%0A%0A%5B%7B%27title%27%3A+%27Hello.app%27%2C+%27href%27%3A+%27https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FHello.app%27%2C+%27body%27%3A+%27hello.app+was+a+peer-to-peer%2C+decentralized+storage+platform+based+in+Barcelona.+Founded+in+2022+by+%C3%81lvaro+Pintado+and+Alexander+Baikalov+at+age+17%2C+it+was+among+the+first+to+offer+distributed+storage+on+mobile+devices%2C+allowing+users+to+monetize+unused+space+via+blockchain.It+aimed+to+replace+centralized+server+infrastructure+by+using+existing+personal+devices+as+nodes+in+a+fragmented%2C+distributed+and+encrypted+network.+In+this+model%2C+phones%2C+tablets%2C+and+laptops+would+collectively+function+as+storage+servers%2C+contributing+to+a+more+resilient%2C+worldwide+system+of+data+storage+with+no+single+point+of+control.%27%7D%2C+%7B%27title%27%3A+%27Hello+%28Lionel+Richie+song%29%27%2C+%27href%27%3A+%27https%3A%2F%2Fgrokipedia.com%2Fpage%2FHello_%28Lionel_Richie_song%29%27%2C+%27body%27%3A+%27Hello+%28Lionel+Richie+song%29+%22Hello%22+is+a+ballad+written%2C+arranged%2C+produced%2C+and+performed+by+American+singer-songwriter+Lionel+Richie%2C+released+in+1984+as+the+third+single+from+his+second+studio...%27%7D%2C+%7B%27title%27%3A+%27Welcome+to+Hello%21Lucky%27%2C+%27href%27%3A+%27https%3A%2F%2Fwww.hellolucky.com%2F%27%2C+%27body%27%3A+%27I+didn+t+knowHelloLucky+is+woman+owned%3A+All+the+better%21+I+write+about+5+cards+%28mainly+postcards%29+a+week%2C+but+wish+I+did+more+because+I+love+sending+...%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Elementor%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-elementor%2F%27%2C+%27body%27%3A+%27On+iPad+view%2C+theHelloElementor+menu+displays+the+dropdown+menu.+...+Persistent+FOUC+Issue+on+Multiple+Sites+UsingHelloElementor+and+Elementor+Pro%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Biz%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-biz%2F%27%2C+%27body%27%3A+%27Forums+%2F+Theme%3AHelloBiz+...HelloBiz%5D+Support+...hello-biz-child+doesn+%E2%80%99+t+load+child+style%27%7D%5D%0A&limit=1)', 'https://grokipedia.com/api/typeahead?query=%0ASummarize+this+information%3A%0A%0A%5B%7B%27title%27%3A+%27Hello.app%27%2C+%27href%27%3A+%27https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FHello.app%27%2C+%27body%27%3A+%27hello.app+was+a+peer-to-peer%2C+decentralized+storage+platform+based+in+Barcelona.+Founded+in+2022+by+%C3%81lvaro+Pintado+and+Alexander+Baikalov+at+age+17%2C+it+was+among+the+first+to+offer+distributed+storage+on+mobile+devices%2C+allowing+users+to+monetize+unused+space+via+blockchain.It+aimed+to+replace+centralized+server+infrastructure+by+using+existing+personal+devices+as+nodes+in+a+fragmented%2C+distributed+and+encrypted+network.+In+this+model%2C+phones%2C+tablets%2C+and+laptops+would+collectively+function+as+storage+servers%2C+contributing+to+a+more+resilient%2C+worldwide+system+of+data+storage+with+no+single+point+of+control.%27%7D%2C+%7B%27title%27%3A+%27Hello+%28Lionel+Richie+song%29%27%2C+%27href%27%3A+%27https%3A%2F%2Fgrokipedia.com%2Fpage%2FHello_%28Lionel_Richie_song%29%27%2C+%27body%27%3A+%27Hello+%28Lionel+Richie+song%29+%22Hello%22+is+a+ballad+written%2C+arranged%2C+produced%2C+and+performed+by+American+singer-songwriter+Lionel+Richie%2C+released+in+1984+as+the+third+single+from+his+second+studio...%27%7D%2C+%7B%27title%27%3A+%27Welcome+to+Hello%21Lucky%27%2C+%27href%27%3A+%27https%3A%2F%2Fwww.hellolucky.com%2F%27%2C+%27body%27%3A+%27I+didn+t+knowHelloLucky+is+woman+owned%3A+All+the+better%21+I+write+about+5+cards+%28mainly+postcards%29+a+week%2C+but+wish+I+did+more+because+I+love+sending+...%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Elementor%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-elementor%2F%27%2C+%27body%27%3A+%27On+iPad+view%2C+theHelloElementor+menu+displays+the+dropdown+menu.+...+Persistent+FOUC+Issue+on+Multiple+Sites+UsingHelloElementor+and+Elementor+Pro%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Biz%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-biz%2F%27%2C+%27body%27%3A+%27Forums+%2F+Theme%3AHelloBiz+...HelloBiz%5D+Support+...hello-biz-child+doesn+%E2%80%99+t+load+child+style%27%7D%5D%0A&limit=1'))
+2026-04-08 13:23:55,314 INFO response: https://search.brave.com/search?q=%0ASummarize+this+information%3A%0A%0A%5B%7B%27title%27%3A+%27Hello.app%27%2C+%27href%27%3A+%27https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FHello.app%27%2C+%27body%27%3A+%27hello.app+was+a+peer-to-peer%2C+decentralized+storage+platform+based+in+Barcelona.+Founded+in+2022+by+%C3%81lvaro+Pintado+and+Alexander+Baikalov+at+age+17%2C+it+was+among+the+first+to+offer+distributed+storage+on+mobile+devices%2C+allowing+users+to+monetize+unused+space+via+blockchain.It+aimed+to+replace+centralized+server+infrastructure+by+using+existing+personal+devices+as+nodes+in+a+fragmented%2C+distributed+and+encrypted+network.+In+this+model%2C+phones%2C+tablets%2C+and+laptops+would+collectively+function+as+storage+servers%2C+contributing+to+a+more+resilient%2C+worldwide+system+of+data+storage+with+no+single+point+of+control.%27%7D%2C+%7B%27title%27%3A+%27Hello+%28Lionel+Richie+song%29%27%2C+%27href%27%3A+%27https%3A%2F%2Fgrokipedia.com%2Fpage%2FHello_%28Lionel_Richie_song%29%27%2C+%27body%27%3A+%27Hello+%28Lionel+Richie+song%29+%22Hello%22+is+a+ballad+written%2C+arranged%2C+produced%2C+and+performed+by+American+singer-songwriter+Lionel+Richie%2C+released+in+1984+as+the+third+single+from+his+second+studio...%27%7D%2C+%7B%27title%27%3A+%27Welcome+to+Hello%21Lucky%27%2C+%27href%27%3A+%27https%3A%2F%2Fwww.hellolucky.com%2F%27%2C+%27body%27%3A+%27I+didn+t+knowHelloLucky+is+woman+owned%3A+All+the+better%21+I+write+about+5+cards+%28mainly+postcards%29+a+week%2C+but+wish+I+did+more+because+I+love+sending+...%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Elementor%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-elementor%2F%27%2C+%27body%27%3A+%27On+iPad+view%2C+theHelloElementor+menu+displays+the+dropdown+menu.+...+Persistent+FOUC+Issue+on+Multiple+Sites+UsingHelloElementor+and+Elementor+Pro%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Biz%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-biz%2F%27%2C+%27body%27%3A+%27Forums+%2F+Theme%3AHelloBiz+...HelloBiz%5D+Support+...hello-biz-child+doesn+%E2%80%99+t+load+child+style%27%7D%5D%0A&source=web 200
+2026-04-08 13:23:56,015 INFO response: https://www.google.com/search?q=%0ASummarize+this+information%3A%0A%0A%5B%7B%27title%27%3A+%27Hello.app%27%2C+%27href%27%3A+%27https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FHello.app%27%2C+%27body%27%3A+%27hello.app+was+a+peer-to-peer%2C+decentralized+storage+platform+based+in+Barcelona.+Founded+in+2022+by+%C3%81lvaro+Pintado+and+Alexander+Baikalov+at+age+17%2C+it+was+among+the+first+to+offer+distributed+storage+on+mobile+devices%2C+allowing+users+to+monetize+unused+space+via+blockchain.It+aimed+to+replace+centralized+server+infrastructure+by+using+existing+personal+devices+as+nodes+in+a+fragmented%2C+distributed+and+encrypted+network.+In+this+model%2C+phones%2C+tablets%2C+and+laptops+would+collectively+function+as+storage+servers%2C+contributing+to+a+more+resilient%2C+worldwide+system+of+data+storage+with+no+single+point+of+control.%27%7D%2C+%7B%27title%27%3A+%27Hello+%28Lionel+Richie+song%29%27%2C+%27href%27%3A+%27https%3A%2F%2Fgrokipedia.com%2Fpage%2FHello_%28Lionel_Richie_song%29%27%2C+%27body%27%3A+%27Hello+%28Lionel+Richie+song%29+%22Hello%22+is+a+ballad+written%2C+arranged%2C+produced%2C+and+performed+by+American+singer-songwriter+Lionel+Richie%2C+released+in+1984+as+the+third+single+from+his+second+studio...%27%7D%2C+%7B%27title%27%3A+%27Welcome+to+Hello%21Lucky%27%2C+%27href%27%3A+%27https%3A%2F%2Fwww.hellolucky.com%2F%27%2C+%27body%27%3A+%27I+didn+t+knowHelloLucky+is+woman+owned%3A+All+the+better%21+I+write+about+5+cards+%28mainly+postcards%29+a+week%2C+but+wish+I+did+more+because+I+love+sending+...%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Elementor%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-elementor%2F%27%2C+%27body%27%3A+%27On+iPad+view%2C+theHelloElementor+menu+displays+the+dropdown+menu.+...+Persistent+FOUC+Issue+on+Multiple+Sites+UsingHelloElementor+and+Elementor+Pro%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Biz%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-biz%2F%27%2C+%27body%27%3A+%27Forums+%2F+Theme%3AHelloBiz+...HelloBiz%5D+Support+...hello-biz-child+doesn+%E2%80%99+t+load+child+style%27%7D%5D%0A&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 403
+2026-04-08 13:23:56,929 INFO response: https://www.mojeek.com/search?q=%0ASummarize+this+information%3A%0A%0A%5B%7B%27title%27%3A+%27Hello.app%27%2C+%27href%27%3A+%27https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FHello.app%27%2C+%27body%27%3A+%27hello.app+was+a+peer-to-peer%2C+decentralized+storage+platform+based+in+Barcelona.+Founded+in+2022+by+%C3%81lvaro+Pintado+and+Alexander+Baikalov+at+age+17%2C+it+was+among+the+first+to+offer+distributed+storage+on+mobile+devices%2C+allowing+users+to+monetize+unused+space+via+blockchain.It+aimed+to+replace+centralized+server+infrastructure+by+using+existing+personal+devices+as+nodes+in+a+fragmented%2C+distributed+and+encrypted+network.+In+this+model%2C+phones%2C+tablets%2C+and+laptops+would+collectively+function+as+storage+servers%2C+contributing+to+a+more+resilient%2C+worldwide+system+of+data+storage+with+no+single+point+of+control.%27%7D%2C+%7B%27title%27%3A+%27Hello+%28Lionel+Richie+song%29%27%2C+%27href%27%3A+%27https%3A%2F%2Fgrokipedia.com%2Fpage%2FHello_%28Lionel_Richie_song%29%27%2C+%27body%27%3A+%27Hello+%28Lionel+Richie+song%29+%22Hello%22+is+a+ballad+written%2C+arranged%2C+produced%2C+and+performed+by+American+singer-songwriter+Lionel+Richie%2C+released+in+1984+as+the+third+single+from+his+second+studio...%27%7D%2C+%7B%27title%27%3A+%27Welcome+to+Hello%21Lucky%27%2C+%27href%27%3A+%27https%3A%2F%2Fwww.hellolucky.com%2F%27%2C+%27body%27%3A+%27I+didn+t+knowHelloLucky+is+woman+owned%3A+All+the+better%21+I+write+about+5+cards+%28mainly+postcards%29+a+week%2C+but+wish+I+did+more+because+I+love+sending+...%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Elementor%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-elementor%2F%27%2C+%27body%27%3A+%27On+iPad+view%2C+theHelloElementor+menu+displays+the+dropdown+menu.+...+Persistent+FOUC+Issue+on+Multiple+Sites+UsingHelloElementor+and+Elementor+Pro%27%7D%2C+%7B%27title%27%3A+%27%5BHello+Biz%5D+Support+%7C+WordPress.org%27%2C+%27href%27%3A+%27https%3A%2F%2Fwordpress.org%2Fsupport%2Ftheme%2Fhello-biz%2F%27%2C+%27body%27%3A+%27Forums+%2F+Theme%3AHelloBiz+...HelloBiz%5D+Support+...hello-biz-child+doesn+%E2%80%99+t+load+child+style%27%7D%5D%0A 400
+2026-04-08 13:23:57,584 INFO response: https://html.duckduckgo.com/50x.html?e=3 200
+2026-04-08 13:23:59,545 INFO response: https://yandex.com/search/site/?text=%0ASummarize%20this%20information%3A%0A%0A%5B%7B%27title%27%3A%20%27Hello.app%27%2C%20%27href%27%3A%20%27https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FHello.app%27%2C%20%27body%27%3A%20%27hello.app%20was%20a%20peer-to-peer%2C%20decentralized%20storage%20platform%20based%20in%20Barcelona.%20Founded%20in%202022%20by%20%C3%81lvaro%20Pintado%20and%20Alexander%20Baikalov%20at%20age%2017%2C%20it%20was%20among%20the%20first%20to%20offer%20distributed%20storage%20on%20mobile%20devices%2C%20allowing%20users%20to%20monetize%20unused%20space%20via%20blockchain.It%20aimed%20to%20&web=1&searchid=7439734&lr=10558&redircnt=1775634838.1 200
+2026-04-08 13:35:51,684 INFO Shutting down Sherly.
+2026-04-08 13:36:03,550 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 13:37:23,061 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:37:42,268 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:37:46,959 INFO Processing audio with duration 00:04.000
+2026-04-08 13:37:47,076 INFO VAD filter removed 00:00.528 of audio
+2026-04-08 13:37:52,278 INFO Active local model set: phi3
+2026-04-08 13:38:05,214 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 13:38:05,214 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 13:38:35,663 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:38:40,451 INFO Processing audio with duration 00:04.000
+2026-04-08 13:38:40,460 INFO VAD filter removed 00:02.496 of audio
+2026-04-08 13:38:59,401 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:39:04,435 INFO Processing audio with duration 00:04.000
+2026-04-08 13:39:04,442 INFO VAD filter removed 00:02.544 of audio
+2026-04-08 13:49:01,792 INFO Shutting down Sherly.
+2026-04-08 13:49:08,691 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 13:49:12,340 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:49:33,996 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:49:38,759 INFO Processing audio with duration 00:04.000
+2026-04-08 13:49:38,868 INFO VAD filter removed 00:02.496 of audio
+2026-04-08 13:49:39,327 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 13:49:39,327 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 13:49:47,512 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:49:52,353 INFO Processing audio with duration 00:04.000
+2026-04-08 13:49:52,359 INFO VAD filter removed 00:02.352 of audio
+2026-04-08 13:49:53,584 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Apple. 200
+2026-04-08 13:49:53,958 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Apple%20Inc.&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 13:49:54,482 INFO response: https://grokipedia.com/api/typeahead?query=Apple.&limit=1 200
+2026-04-08 13:49:55,827 INFO response: https://yandex.com/search/site/?text=Apple.&web=1&searchid=5071529 200
+2026-04-08 13:49:55,865 INFO Active local model set: phi3
+2026-04-08 13:50:17,864 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:50:22,593 INFO Processing audio with duration 00:04.000
+2026-04-08 13:50:22,599 INFO VAD filter removed 00:02.112 of audio
+2026-04-08 13:50:23,516 INFO response: https://grokipedia.com/api/typeahead?query=Hitler%21&limit=1 200
+2026-04-08 13:50:23,518 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Hitler%21 200
+2026-04-08 13:50:23,846 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Adolf%20Hitler&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 13:50:24,734 INFO response: https://search.brave.com/search?q=Hitler%21&source=web 200
+2026-04-08 13:52:12,044 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:52:16,738 INFO Processing audio with duration 00:04.000
+2026-04-08 13:52:16,744 INFO VAD filter removed 00:02.400 of audio
+2026-04-08 13:54:11,308 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:54:16,129 INFO Processing audio with duration 00:04.000
+2026-04-08 13:54:16,134 INFO VAD filter removed 00:00.080 of audio
+2026-04-08 13:54:17,451 INFO response: https://grokipedia.com/api/typeahead?query=Gokin%21+Search+Gokin%21+Search+Gokin%21&limit=1 200
+2026-04-08 13:54:17,527 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=Gokin%21%20Search%20Gokin%21%20Search%20Gokin%21 200
+2026-04-08 13:54:18,206 INFO response: https://www.google.com/search?q=Gokin%21+Search+Gokin%21+Search+Gokin%21&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-04-08 13:54:37,265 INFO Hotkey Triggered: Listen Once
+2026-04-08 13:54:42,065 INFO Processing audio with duration 00:04.000
+2026-04-08 13:54:42,070 INFO VAD filter removed 00:00.000 of audio
+2026-04-08 13:56:54,597 INFO Shutting down Sherly.
+2026-04-08 13:57:40,375 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 13:57:48,926 INFO Processing audio with duration 00:04.000
+2026-04-08 13:57:49,040 INFO VAD filter removed 00:02.016 of audio
+2026-04-08 13:57:49,336 INFO Active local model set: phi3
+2026-04-08 13:57:54,038 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 13:57:54,038 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 13:58:24,832 INFO response: https://grokipedia.com/api/typeahead?query=apple&limit=1 200
+2026-04-08 13:58:24,907 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=apple 200
+2026-04-08 13:58:25,242 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Apple&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 13:58:26,230 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 13:59:09,792 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=drugs 200
+2026-04-08 13:59:10,128 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Drugs&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 13:59:10,859 INFO response: https://grokipedia.com/api/typeahead?query=drugs&limit=1 200
+2026-04-08 13:59:11,840 INFO response: https://search.yahoo.com/search;_ylt=9xyh4fqorB59pvBnPeBWjB6f;_ylu=NArm2uYBl7BzEOxHT5DP59PQCSlsWSY7NHtYgtB0bE0NpKk?p=drugs 200
+2026-04-08 13:59:12,742 INFO response: https://www.google.com/search?q=drugs&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+2026-04-08 13:59:45,657 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=click%20show%20more%20in%20ai%20overview 200
+2026-04-08 13:59:46,113 INFO response: https://grokipedia.com/api/typeahead?query=click+show+more+in+ai+overview&limit=1 200
+2026-04-08 13:59:47,124 INFO response: https://search.brave.com/search?q=click+show+more+in+ai+overview&source=web 200
+2026-04-08 13:59:57,112 INFO response: https://grokipedia.com/api/typeahead?query=mia+khalifa&limit=1 200
+2026-04-08 13:59:57,138 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=mia%20khalifa 200
+2026-04-08 13:59:57,464 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Mia%20Khalifa&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 13:59:59,193 INFO response: https://www.mojeek.com/search?q=mia+khalifa 200
+2026-04-08 14:00:16,292 INFO response: https://grokipedia.com/api/typeahead?query=open+lesbify+website&limit=1 200
+2026-04-08 14:00:16,424 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=open%20lesbify%20website 200
+2026-04-08 14:00:17,287 INFO response: https://search.brave.com/search?q=open+lesbify+website&source=web 200
+2026-04-08 14:07:53,848 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=apple 200
+2026-04-08 14:07:54,226 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Apple&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 14:07:55,348 INFO response: https://grokipedia.com/api/typeahead?query=apple&limit=1 200
+2026-04-08 14:07:56,394 INFO response: https://www.google.com/search?q=apple&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 403
+2026-04-08 14:07:57,592 INFO response: https://search.yahoo.com/search;_ylt=Pc8hDV8KQeuA4I6wIvgDIKPb;_ylu=22RfGtT3APSesKl8oTePaVNAZMxylKunh_nmtsa2RnwRmP0?p=apple 200
+2026-04-08 14:08:00,341 INFO Unloaded model: phi3
+2026-04-08 14:08:00,342 INFO Active local model set: phi3
+2026-04-08 14:15:54,420 INFO Shutting down Sherly.
+2026-04-08 14:16:00,874 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 14:16:05,776 INFO Error: '"action"'
+2026-04-08 14:16:05,855 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 14:16:05,856 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 14:19:09,760 INFO Active local model set: phi3
+2026-04-08 14:19:17,686 INFO response: https://grokipedia.com/api/typeahead?query=porn+videos&limit=1 200
+2026-04-08 14:19:17,836 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=porn%20videos 200
+2026-04-08 14:19:18,179 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Porn%20videos&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 14:19:19,059 INFO response: https://www.google.com/search?q=porn+videos&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 403
+2026-04-08 14:19:20,467 INFO response: https://yandex.com/search/site/?text=porn+videos&web=1&searchid=6983308 200
+2026-04-08 14:19:38,118 INFO Error: '"action"'
+2026-04-08 14:19:46,858 INFO Error: '"action"'
+2026-04-08 14:20:16,687 INFO response: https://grokipedia.com/api/typeahead?query=mia+khalifa&limit=1 200
+2026-04-08 14:20:16,724 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=mia%20khalifa 200
+2026-04-08 14:20:17,051 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Mia%20Khalifa&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 14:20:18,089 INFO response: https://search.brave.com/search?q=mia+khalifa&source=web 200
+2026-04-08 14:20:42,746 INFO response: https://grokipedia.com/api/typeahead?query=virat+kohli&limit=1 200
+2026-04-08 14:20:42,858 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=virat%20kohli 200
+2026-04-08 14:20:43,197 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Virat%20Kohli&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 14:20:43,906 INFO response: https://search.yahoo.com/search;_ylt=KsnN3W1PU7hxSY1YU1nENdOc;_ylu=xtkGKU26vesksYWjMpgenDpMWqIVwgqpAZqM0suiV23o18k?p=virat+kohli 200
+2026-04-08 14:27:57,472 INFO Unloaded model: phi3
+2026-04-08 14:27:57,472 INFO Active local model set: phi3
+2026-04-08 14:28:04,197 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=apple 200
+2026-04-08 14:28:04,532 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Apple&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 14:28:04,803 INFO response: https://grokipedia.com/api/typeahead?query=apple&limit=1 200
+2026-04-08 14:28:05,541 INFO response: https://search.brave.com/search?q=apple&source=web 200
+2026-04-08 14:30:11,518 INFO Shutting down Sherly.
+2026-04-08 14:30:29,893 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 15:43:16,166 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 15:43:41,531 INFO Error: '"action"'
+2026-04-08 15:43:41,957 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 15:43:41,958 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 15:43:48,732 INFO Error: '"action"'
+2026-04-08 15:44:44,566 INFO Error: '"action"'
+2026-04-08 15:44:54,278 INFO Error: '"action"'
+2026-04-08 15:45:37,245 INFO Processing audio with duration 00:04.000
+2026-04-08 15:45:37,556 INFO VAD filter removed 00:00.144 of audio
+2026-04-08 15:45:37,937 INFO Active local model set: phi3
+2026-04-08 15:46:54,840 INFO Error: '"action"'
+2026-04-08 15:47:05,805 INFO Error: '"action"'
+2026-04-08 15:48:00,105 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=apple 200
+2026-04-08 15:48:00,452 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Apple&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 15:48:00,706 INFO response: https://grokipedia.com/api/typeahead?query=apple&limit=1 200
+2026-04-08 15:48:01,707 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 15:49:05,835 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=ipl 200
+2026-04-08 15:49:06,231 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Ipl&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 15:49:06,366 INFO response: https://grokipedia.com/api/typeahead?query=ipl&limit=1 200
+2026-04-08 15:49:07,278 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 15:49:24,362 INFO Error: '"action"'
+2026-04-08 15:49:24,432 INFO Processing audio with duration 00:04.000
+2026-04-08 15:49:24,439 INFO VAD filter removed 00:00.848 of audio
+2026-04-08 15:49:45,595 INFO Processing audio with duration 00:04.000
+2026-04-08 15:49:45,601 INFO VAD filter removed 00:00.800 of audio
+2026-04-08 15:51:01,420 INFO Hotkey Triggered: Listen Once
+2026-04-08 15:51:02,608 INFO Hotkey Triggered: Listen Once
+2026-04-08 15:51:14,915 INFO Shutting down Sherly.
+2026-04-08 15:53:34,964 INFO Active local model set: phi3
+2026-04-08 15:55:00,445 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 15:55:12,830 INFO Active local model set: phi3
+2026-04-08 15:55:21,200 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 15:55:21,200 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 15:58:38,802 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=instagram 200
+2026-04-08 15:58:39,253 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Instagram&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 15:58:40,152 INFO response: https://grokipedia.com/api/typeahead?query=instagram&limit=1 200
+2026-04-08 15:58:41,277 INFO response: https://yandex.com/search/site/?text=instagram&web=1&searchid=2845553 200
+2026-04-08 15:59:52,307 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=xhamster 200
+2026-04-08 15:59:52,677 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=XHamster&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 15:59:54,216 INFO response: https://grokipedia.com/api/typeahead?query=xhamster&limit=1 200
+2026-04-08 15:59:54,801 INFO response: https://search.brave.com/search?q=xhamster&source=web 200
+2026-04-08 16:01:00,711 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=i%20pl%20france%20international%20players%20list 200
+2026-04-08 16:01:01,411 INFO response: https://grokipedia.com/api/typeahead?query=i+pl+france+international+players+list&limit=1 200
+2026-04-08 16:01:02,062 INFO response: https://search.yahoo.com/search;_ylt=te2Ldr-bMsAB-UltIF6koWNO;_ylu=43U-m7HaPiBmLL7oMrD_FNW3rMiQk4_emfLasart6a5YnQ0?p=i+pl+france+international+players+list 200
+2026-04-08 16:01:03,873 INFO response: https://yandex.com/search/site/?text=i+pl+france+international+players+list&web=1&searchid=2453755 200
+2026-04-08 16:16:51,214 INFO Active local model set: phi3
+2026-04-08 16:20:40,026 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 16:20:57,610 INFO Active local model set: phi3
+2026-04-08 16:21:05,320 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 16:21:05,320 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 16:21:52,149 INFO response: https://grokipedia.com/api/typeahead?query=aadhar+and+click+on+first+link&limit=1 200
+2026-04-08 16:21:52,191 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=aadhar%20and%20click%20on%20first%20link 200
+2026-04-08 16:21:53,249 INFO response: https://www.google.com/search?q=aadhar+and+click+on+first+link&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 403
+2026-04-08 16:21:54,725 INFO response: https://yandex.com/search/site/?text=aadhar+and+click+on+first+link&web=1&searchid=4357791 200
+2026-04-08 16:22:33,602 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=apple 200
+2026-04-08 16:22:33,966 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Apple&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 16:22:34,124 INFO response: https://grokipedia.com/api/typeahead?query=apple&limit=1 200
+2026-04-08 16:22:34,963 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 16:22:52,419 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=banana 200
+2026-04-08 16:22:52,774 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=Banana&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 16:22:54,032 INFO response: https://grokipedia.com/api/typeahead?query=banana&limit=1 200
+2026-04-08 16:22:54,839 INFO response: https://search.brave.com/search?q=banana&source=web 200
+2026-04-08 16:23:15,032 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=xhamster 200
+2026-04-08 16:23:15,290 INFO response: https://grokipedia.com/api/typeahead?query=xhamster&limit=1 200
+2026-04-08 16:23:15,386 INFO response: https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&titles=XHamster&explaintext=0&exintro=0&redirects=1 200
+2026-04-08 16:23:16,436 INFO response: https://yandex.com/search/site/?text=xhamster&web=1&searchid=8730071 200
+2026-04-08 16:25:19,814 INFO Active local model set: phi3
+2026-04-08 16:30:49,660 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 16:31:00,542 INFO Error: '\n  "query"'
+2026-04-08 16:31:00,626 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 16:31:00,626 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 16:31:07,087 INFO Error: '\n  "query"'
+2026-04-08 16:31:12,589 INFO Error: '\n  "query"'
+2026-04-08 16:31:47,251 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=search%20latest%20news%20and%20play%20any%20random%20video 200
+2026-04-08 16:31:47,724 INFO response: https://grokipedia.com/api/typeahead?query=search+latest+news+and+play+any+random+video&limit=1 200
+2026-04-08 16:31:48,881 INFO response: https://search.brave.com/search?q=search+latest+news+and+play+any+random+video&source=web 200
+2026-04-08 16:31:48,927 INFO Error: 0
+2026-04-08 16:32:32,660 INFO Error: '\n  "query"'
+2026-04-08 16:33:16,549 INFO Active local model set: phi3
+2026-04-08 16:36:12,603 INFO Active local model set: phi3
+2026-04-08 16:36:21,491 INFO response: https://grokipedia.com/api/typeahead?query=latest+news+and+play+any+random+video&limit=1 200
+2026-04-08 16:36:21,501 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=latest%20news%20and%20play%20any%20random%20video 200
+2026-04-08 16:36:22,323 INFO response: https://search.yahoo.com/search;_ylt=w2xv0ERblhaojF0BTykxmI8e;_ylu=cN6BXv-KWxNSA1KRY2TnYz_IU1YfrjrDhKDf5E9YRx14gZA?p=latest+news+and+play+any+random+video 200
+2026-04-08 16:37:00,951 INFO Error: '\n  "query"'
+2026-04-08 16:43:04,076 INFO Active local model set: phi3
+2026-04-08 16:45:39,125 INFO Unloaded model: phi3
+2026-04-08 16:45:39,126 INFO Active local model set: phi3
+2026-04-08 16:45:42,887 INFO Error: '\n  "query"'
+2026-04-08 16:46:05,365 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-08 16:47:29,625 INFO Active local model set: phi3
+2026-04-08 16:47:39,282 INFO response: https://grokipedia.com/api/typeahead?query=seach+bollywood+music+on+yt+annd+play+video&limit=1 200
+2026-04-08 16:47:39,336 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=seach%20bollywood%20music%20on%20yt%20annd%20play%20video 200
+2026-04-08 16:47:41,581 INFO response: https://www.mojeek.com/search?q=seach+bollywood+music+on+yt+annd+play+video 200
+2026-04-08 16:47:42,149 INFO Error in engine yahoo: DDGSException("RequestError: RequestError('error sending request for url (https://search.yahoo.com/search;_ylt=iOD6h6BRyExOVwhECvvmXEVV;_ylu=VI7pB8wX65iGqhZTtH5nDwukcdhaAopMPLIVQWiQb-iGvus?p=seach+bollywood+music+on+yt+annd+play+video)', 'https://search.yahoo.com/search;_ylt=iOD6h6BRyExOVwhECvvmXEVV;_ylu=VI7pB8wX65iGqhZTtH5nDwukcdhaAopMPLIVQWiQb-iGvus?p=seach+bollywood+music+on+yt+annd+play+video')")
+2026-04-08 16:47:43,075 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 16:47:47,828 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-08 16:47:47,829 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-08 16:49:14,465 INFO Active local model set: phi3
+2026-04-08 16:50:57,972 INFO Active local model set: phi3
+2026-04-08 16:51:03,952 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=bollywood%20relaxing%20songs 200
+2026-04-08 16:51:04,635 INFO response: https://grokipedia.com/api/typeahead?query=bollywood+relaxing+songs&limit=1 200
+2026-04-08 16:51:05,655 INFO response: https://www.google.com/search?q=bollywood+relaxing+songs&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 403
+2026-04-08 16:51:08,372 INFO response: https://yandex.com/search/site/?text=bollywood+relaxing+songs&web=1&searchid=3569572 200
+2026-04-08 17:02:19,327 INFO Unloaded model: phi3
+2026-04-08 17:02:19,328 INFO Active local model set: phi3
+2026-04-08 17:02:28,099 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=maths%20educational%20videos 200
+2026-04-08 17:02:28,521 INFO response: https://grokipedia.com/api/typeahead?query=maths+educational+videos&limit=1 200
+2026-04-08 17:02:29,664 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 17:03:42,819 INFO response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=site%3Ayoutube.com/results%3Fsearch_query%3Dporn%2Bvideo%20play%20porn%20video 200
+2026-04-08 17:03:42,940 INFO Error in engine grokipedia: TimeoutException(TimeoutError('error sending request for url (https://grokipedia.com/api/typeahead?query=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video&limit=1)', 'https://grokipedia.com/api/typeahead?query=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video&limit=1'))
+2026-04-08 17:03:44,710 INFO Error in engine yahoo: DDGSException("RequestError: RequestError('error sending request for url (https://search.yahoo.com/search;_ylt=9imhlotvMh3un1EOITCPi4oF;_ylu=XcWSibkPl3b5KRjGybv74DBuvqP12cKZyHyLdxgYbhYi9j4?p=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video)', 'https://search.yahoo.com/search;_ylt=9imhlotvMh3un1EOITCPi4oF;_ylu=XcWSibkPl3b5KRjGybv74DBuvqP12cKZyHyLdxgYbhYi9j4?p=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video')")
+2026-04-08 17:03:49,719 INFO Error in engine brave: TimeoutException(TimeoutError('error sending request for url (https://www.google.com/search?q=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS)', 'https://www.google.com/search?q=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS'))
+2026-04-08 17:03:50,905 INFO response: https://search.brave.com/search?q=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video&source=web 200
+2026-04-08 17:03:50,989 INFO response: https://yandex.com/search/site/?text=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video&web=1&searchid=7850480 200
+2026-04-08 17:03:52,181 INFO response: https://html.duckduckgo.com/html/ 200
+2026-04-08 17:03:53,215 INFO response: https://www.mojeek.com/search?q=site%3Ayoutube.com%2Fresults%3Fsearch_query%3Dporn%2Bvideo+play+porn+video 403
+2026-04-08 17:06:47,801 INFO Active local model set: phi3
+2026-04-08 17:09:18,230 INFO Active local model set: phi3
+2026-04-16 18:35:45,318 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-16 18:39:55,343 INFO Shutting down Sherly.
+2026-04-16 18:40:01,774 INFO Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-16 18:40:29,686 INFO Active local model set: phi3
+2026-04-16 18:40:51,796 INFO Imported existing <module 'comtypes.gen' from 'C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+2026-04-16 18:40:51,796 INFO Using writeable comtypes cache directory: 'C:\Users\ASUS\AppData\Local\Programs\Python\Python313\Lib\site-packages\comtypes\gen'
+2026-04-16 18:40:51,884 INFO Could not import comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4: Typelib different than module
+2026-04-16 18:40:51,888 INFO # Generating comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4
+2026-04-16 18:40:51,950 INFO # Generating comtypes.gen.SpeechLib

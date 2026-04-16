@@ -1,560 +1,859 @@
+"""
+Sherly Assistant – main window (complete redesign)
+
+Layout
+──────
+┌────────────────────────────────────────────────────────┐
+│  Header: logo · title/status · Listen · Power · Settings · – · ✕  │
+├────────────┬───────────────────────────────────────────┤
+│  Sidebar   │  Chat area (scrollable bubbles)           │
+│ (history / │                                           │
+│  memory)   │  ───────────────────────────────────────  │
+│            │  [  type a message …  ]  [ ⬆ Send ]      │
+└────────────┴───────────────────────────────────────────┘
+"""
+
 import sys
 import random
-import time
 from datetime import datetime
+
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QApplication,
-    QGraphicsDropShadowEffect,
-    QScrollArea,
-    QFrame,
-    QSizePolicy,
-    QPushButton,
-    QDialog,
-    QFormLayout,
-    QComboBox,
-    QLineEdit,
-    QCheckBox,
-    QGroupBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QApplication,
+    QGraphicsDropShadowEffect, QScrollArea, QFrame, QSizePolicy,
+    QPushButton, QDialog, QFormLayout, QComboBox, QLineEdit,
+    QCheckBox, QGroupBox, QTextEdit,
 )
-from PySide6.QtCore import Qt, QPoint, QTimer, Signal, QObject, Property, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPixmap, QPen, QBrush
+from PySide6.QtCore import (
+    Qt, QTimer, Signal, QObject, QPropertyAnimation, QEasingCurve,
+    QSize,
+)
+from PySide6.QtGui import (
+    QColor, QFont, QLinearGradient, QPainter, QPixmap, QFontDatabase,
+    QKeyEvent,
+)
 
 from config_manager import (
-    get_api_key,
-    get_auto_mode,
-    get_current_model,
-    set_api_key,
-    set_auto_mode,
-    set_current_model,
+    get_api_key, get_auto_mode, get_current_model,
+    set_api_key, set_auto_mode, set_current_model,
 )
 from plugin_manager import get_all_plugin_states, set_plugin_enabled
 
-class UIUpdater(QObject):
-    add_msg_sig = Signal(str, str)
-    status_sig = Signal(str)
-    toggle_power_sig = Signal(bool)
-    listen_once_sig = Signal()
-    set_auto_mode_sig = Signal(bool)
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Colours / tokens
+# ─────────────────────────────────────────────────────────────────────────────
+C_BG          = "#0b0b12"
+C_SIDEBAR     = "#0d0d16"
+C_PANEL       = "#111120"
+C_INPUT_BG    = "#161625"
+C_BORDER      = "rgba(255,255,255,0.07)"
+C_ACCENT      = "#6C63FF"
+C_ACCENT2     = "#00ffcc"
+C_TEXT        = "#e8e8f0"
+C_MUTED       = "rgba(255,255,255,0.35)"
+C_USER_BG     = "rgba(108,99,255,0.18)"
+C_AI_BG       = "rgba(0,255,204,0.08)"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Signals object shared across threads
+# ─────────────────────────────────────────────────────────────────────────────
+class UIUpdater(QObject):
+    add_msg_sig      = Signal(str, str)
+    status_sig       = Signal(str)
+    toggle_power_sig = Signal(bool)
+    listen_once_sig  = Signal()
+    set_auto_mode_sig= Signal(bool)
+    chat_input_sig   = Signal(str)   # user typed something → route_command
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Mini waveform (status indicator only – compact)
+# ─────────────────────────────────────────────────────────────────────────────
 class WaveformWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedHeight(100)
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update)
-        self.timer.start(50)
-        self.bars = 60
-        self.amplitudes = [random.uniform(0.1, 0.5) for _ in range(self.bars)]
-        self.is_active = False
+        self.setFixedSize(80, 28)
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self.update)
+        self._timer.start(60)
+        self._bars = 14
+        self._amp  = [random.uniform(0.1, 0.4) for _ in range(self._bars)]
+        self.active = False
 
-    def setActive(self, active):
-        self.is_active = active
+    def setActive(self, active: bool):
+        self.active = active
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        width = self.width()
-        height = self.height()
-        
-        bar_width = max(2, (width / self.bars) * 0.5)
-        spacing = (width / self.bars) * 0.5
-        
-        gradient = QLinearGradient(0, 0, 0, height)
-        if self.is_active:
-            gradient.setColorAt(0, QColor(0, 200, 255))
-            gradient.setColorAt(0.5, QColor(108, 99, 255))
-            gradient.setColorAt(1, QColor(255, 50, 200))
+    def paintEvent(self, _):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w, h = self.width(), self.height()
+        bw  = (w / self._bars) * 0.55
+        gap = (w / self._bars) * 0.45
+
+        grad = QLinearGradient(0, 0, 0, h)
+        if self.active:
+            grad.setColorAt(0, QColor(0, 255, 204))
+            grad.setColorAt(1, QColor(108, 99, 255))
         else:
-            gradient.setColorAt(0, QColor(100, 100, 100, 60))
-            gradient.setColorAt(1, QColor(50, 50, 50, 30))
-        
-        painter.setBrush(gradient)
-        painter.setPen(Qt.PenStyle.NoPen)
-        
-        for i in range(self.bars):
-            if self.is_active:
-                self.amplitudes[i] += (random.uniform(0.1, 1.0) - self.amplitudes[i]) * 0.2
+            grad.setColorAt(0, QColor(60, 60, 80))
+            grad.setColorAt(1, QColor(30, 30, 50))
+
+        p.setBrush(grad)
+        p.setPen(Qt.PenStyle.NoPen)
+
+        for i in range(self._bars):
+            if self.active:
+                self._amp[i] += (random.uniform(0.15, 1.0) - self._amp[i]) * 0.25
             else:
-                self.amplitudes[i] += (0.05 - self.amplitudes[i]) * 0.1
-            
-            bar_h = self.amplitudes[i] * height
-            x = i * (bar_width + spacing)
-            y = (height - bar_h) / 2
-            
-            painter.drawRoundedRect(int(x), int(y), int(bar_width), int(bar_h), bar_width/2, bar_width/2)
+                self._amp[i] += (0.08 - self._amp[i]) * 0.1
+            bh = max(4, self._amp[i] * h)
+            x  = i * (bw + gap)
+            y  = (h - bh) / 2
+            p.drawRoundedRect(int(x), int(y), int(bw), int(bh), bw / 2, bw / 2)
 
-class HistoryItem(QFrame):
-    def __init__(self, text, response, time_str, parent=None):
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Chat bubble widget
+# ─────────────────────────────────────────────────────────────────────────────
+class ChatBubble(QFrame):
+    """Single exchange: user message on the right, AI reply below on the left."""
+
+    def __init__(self, user_text: str, ai_text: str, time_str: str, parent=None):
         super().__init__(parent)
-        self.text = text
-        self.response = response
-        
-        self.setObjectName("HistoryItem")
+        self._user  = user_text
+        self._ai    = ai_text
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        self.setStyleSheet("""
-            #HistoryItem {
-                background: rgba(255, 255, 255, 0.04);
-                border-radius: 16px;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-            }
-            #HistoryItem:hover {
-                background: rgba(255, 255, 255, 0.07);
-                border: 1px solid rgba(108, 99, 255, 0.4);
-            }
-        """)
-        
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 12, 15, 12)
-        layout.setSpacing(10)
-        
-        header_row = QHBoxLayout()
-        time_label = QLabel(time_str)
-        time_label.setStyleSheet("color: rgba(255, 255, 255, 0.2); font-size: 8px; font-weight: 600;")
-        
-        self.copy_btn = QPushButton("📋")
-        self.copy_btn.setFixedSize(24, 24)
-        self.copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.copy_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(255, 255, 255, 0.05); color: #aaa;
-                border: none; border-radius: 6px; font-size: 10px;
-            }
-            QPushButton:hover {
-                background: rgba(108, 99, 255, 0.2); color: #fff;
-            }
-        """)
-        self.copy_btn.clicked.connect(self.copy_to_clipboard)
-        
-        header_row.addWidget(time_label)
-        header_row.addStretch()
-        header_row.addWidget(self.copy_btn)
-        
+        self.setStyleSheet("background: transparent;")
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(8, 4, 8, 4)
+        root.setSpacing(6)
+
+        # ── User bubble (right-aligned) ──────────────────────────────────
         user_row = QHBoxLayout()
-        u_tag = QLabel("YOU")
-        u_tag.setFixedWidth(30)
-        u_tag.setStyleSheet("color: #6C63FF; font-size: 7px; font-weight: 900; background: rgba(108, 99, 255, 0.1); padding: 2px; border-radius: 4px;")
-        u_tag.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        user_text = QLabel(text)
-        user_text.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 11px; font-weight: 500;")
-        user_text.setWordWrap(True)
-        user_row.addWidget(u_tag, 0, Qt.AlignmentFlag.AlignTop)
-        user_row.addWidget(user_text, 1)
-        
-        resp_row = QHBoxLayout()
-        s_tag = QLabel("AI")
-        s_tag.setFixedWidth(30)
-        s_tag.setStyleSheet("color: #00ffcc; font-size: 7px; font-weight: 900; background: rgba(0, 255, 204, 0.1); padding: 2px; border-radius: 4px;")
-        s_tag.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        resp_text = QLabel(response)
-        resp_text.setStyleSheet("color: #ffffff; font-size: 12px; font-weight: 400;")
-        resp_text.setWordWrap(True)
-        resp_row.addWidget(s_tag, 0, Qt.AlignmentFlag.AlignTop)
-        resp_row.addWidget(resp_text, 1)
-        
-        layout.addLayout(header_row)
-        layout.addLayout(user_row)
-        layout.addLayout(resp_row)
+        user_row.addStretch()
 
-    def copy_to_clipboard(self):
-        full_text = f"You: {self.text}\nSherly: {self.response}"
-        QApplication.clipboard().setText(full_text)
-        original_style = self.copy_btn.styleSheet()
-        self.copy_btn.setText("✔")
-        self.copy_btn.setStyleSheet("background: #00ffcc; color: black; border-radius: 6px;")
-        QTimer.singleShot(1000, lambda: self.reset_copy_btn(original_style))
+        user_box = QFrame()
+        user_box.setObjectName("UserBubble")
+        user_box.setStyleSheet(f"""
+            #UserBubble {{
+                background: {C_USER_BG};
+                border: 1px solid rgba(108,99,255,0.3);
+                border-radius: 18px 18px 4px 18px;
+                padding: 2px;
+            }}
+        """)
+        user_box_layout = QVBoxLayout(user_box)
+        user_box_layout.setContentsMargins(14, 10, 14, 10)
+        user_box_layout.setSpacing(2)
 
-    def reset_copy_btn(self, style):
-        self.copy_btn.setText("📋")
-        self.copy_btn.setStyleSheet(style)
+        u_lbl = QLabel(user_text)
+        u_lbl.setWordWrap(True)
+        u_lbl.setMaximumWidth(340)
+        u_lbl.setStyleSheet(f"color: {C_TEXT}; font-size: 13px; font-weight: 500; background: transparent;")
+        u_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        user_box_layout.addWidget(u_lbl)
 
+        t_lbl = QLabel(time_str)
+        t_lbl.setStyleSheet("color: rgba(255,255,255,0.25); font-size: 9px; background: transparent;")
+        t_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
+        user_box_layout.addWidget(t_lbl)
+
+        user_row.addWidget(user_box)
+        root.addLayout(user_row)
+
+        # ── AI bubble (left-aligned) ─────────────────────────────────────
+        ai_row = QHBoxLayout()
+
+        # small avatar dot
+        dot = QLabel("S")
+        dot.setFixedSize(28, 28)
+        dot.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        dot.setStyleSheet(f"""
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+                stop:0 {C_ACCENT}, stop:1 #8F94FB);
+            color: white; font-size: 12px; font-weight: 800;
+            border-radius: 14px;
+        """)
+        ai_row.addWidget(dot, 0, Qt.AlignmentFlag.AlignTop)
+        ai_row.addSpacing(8)
+
+        ai_box = QFrame()
+        ai_box.setObjectName("AIBubble")
+        ai_box.setStyleSheet(f"""
+            #AIBubble {{
+                background: {C_AI_BG};
+                border: 1px solid rgba(0,255,204,0.15);
+                border-radius: 18px 18px 18px 4px;
+                padding: 2px;
+            }}
+        """)
+        ai_box_layout = QVBoxLayout(ai_box)
+        ai_box_layout.setContentsMargins(14, 10, 14, 10)
+
+        ai_lbl = QLabel(ai_text)
+        ai_lbl.setWordWrap(True)
+        ai_lbl.setMaximumWidth(360)
+        ai_lbl.setStyleSheet(f"color: {C_TEXT}; font-size: 13px; font-weight: 400; background: transparent;")
+        ai_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        ai_box_layout.addWidget(ai_lbl)
+
+        # copy button row
+        copy_row = QHBoxLayout()
+        copy_row.addStretch()
+        self._copy_btn = QPushButton("Copy")
+        self._copy_btn.setFixedHeight(22)
+        self._copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._copy_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent; color: rgba(255,255,255,0.3);
+                border: none; font-size: 10px; padding: 0 6px;
+            }
+            QPushButton:hover { color: #00ffcc; }
+        """)
+        self._copy_btn.clicked.connect(self._copy)
+        copy_row.addWidget(self._copy_btn)
+        ai_box_layout.addLayout(copy_row)
+
+        ai_row.addWidget(ai_box)
+        ai_row.addStretch()
+        root.addLayout(ai_row)
+
+    def _copy(self):
+        QApplication.clipboard().setText(f"You: {self._user}\nSherly: {self._ai}")
+        self._copy_btn.setText("Copied!")
+        QTimer.singleShot(1200, lambda: self._copy_btn.setText("Copy"))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Send-on-Enter text input
+# ─────────────────────────────────────────────────────────────────────────────
+class ChatInput(QTextEdit):
+    submitted = Signal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setPlaceholderText("Type a message or command… (Enter to send, Shift+Enter for newline)")
+        self.setFixedHeight(52)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.document().contentsChanged.connect(self._auto_resize)
+
+    def _auto_resize(self):
+        doc_h = int(self.document().size().height()) + 16
+        self.setFixedHeight(max(52, min(doc_h, 120)))
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                super().keyPressEvent(event)
+            else:
+                text = self.toPlainText().strip()
+                if text:
+                    self.submitted.emit(text)
+                    self.clear()
+                    self.setFixedHeight(52)
+        else:
+            super().keyPressEvent(event)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Main window
+# ─────────────────────────────────────────────────────────────────────────────
 class SherlyWindow(QWidget):
     def __init__(self):
         super().__init__()
-        
+
         self.is_powered_on = True
         self.updater = UIUpdater()
-        self.updater.add_msg_sig.connect(self._internal_add_message)
-        self.updater.status_sig.connect(self._internal_set_status)
+        self.updater.add_msg_sig.connect(self._on_add_message)
+        self.updater.status_sig.connect(self._on_status)
+        self.updater.toggle_power_sig.connect(self.toggle_power)
+
+        self.setWindowTitle("Sherly AI Desktop")
+        from PySide6.QtGui import QIcon
+        self.setWindowIcon(QIcon("sherly_ui/assets/brain.png"))
         
         self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint | 
-            Qt.WindowType.WindowStaysOnTopHint | 
-            Qt.WindowType.Tool
+            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowOpacity(0.0) 
-        
-        self.oldPos = self.pos()
-        self.setup_ui()
-        
-        self.anim = QPropertyAnimation(self, b"windowOpacity")
-        self.anim.setDuration(500)
-        self.anim.setStartValue(0.0)
-        self.anim.setEndValue(0.98)
-        self.anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
-        self.anim.start()
+        self.setWindowOpacity(0.0)
+        self._drag_pos = None
 
-    def setup_ui(self):
-        self.setFixedSize(760, 580)
-        
-        self.main_container = QFrame(self)
-        self.main_container.setGeometry(10, 10, 740, 560)
-        self.main_container.setObjectName("MainContainer")
-        self.main_container.setStyleSheet("""
-            #MainContainer {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #0a0a0f, stop:1 #12121a);
-                border-radius: 32px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }
+        self._setup_ui()
+
+        # Fade-in
+        self._anim = QPropertyAnimation(self, b"windowOpacity")
+        self._anim.setDuration(450)
+        self._anim.setStartValue(0.0)
+        self._anim.setEndValue(0.97)
+        self._anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._anim.start()
+
+    # ──────────────────────────────────────────────────────────────────────
+    # UI construction
+    # ──────────────────────────────────────────────────────────────────────
+    def _setup_ui(self):
+        self.setFixedSize(820, 600)
+
+        outer = QFrame(self)
+        outer.setGeometry(8, 8, 804, 584)
+        outer.setObjectName("Outer")
+        outer.setStyleSheet(f"""
+            #Outer {{
+                background: {C_BG};
+                border-radius: 28px;
+                border: 1px solid {C_BORDER};
+            }}
         """)
-        
+
         shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(50)
-        shadow.setColor(QColor(0, 0, 0, 220))
-        shadow.setOffset(0, 15)
-        self.main_container.setGraphicsEffect(shadow)
-        
-        layout = QHBoxLayout(self.main_container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        
-        # --- SIDEBAR ---
-        self.sidebar = QFrame()
-        self.sidebar.setFixedWidth(280)
-        self.sidebar.setObjectName("Sidebar")
-        self.sidebar.setStyleSheet("""
-            #Sidebar {
-                background: rgba(255, 255, 255, 0.01);
-                border-right: 1px solid rgba(255, 255, 255, 0.04);
-                border-top-left_radius: 32px;
-                border-bottom-left-radius: 32px;
+        shadow.setBlurRadius(60)
+        shadow.setColor(QColor(0, 0, 0, 200))
+        shadow.setOffset(0, 12)
+        outer.setGraphicsEffect(shadow)
+
+        root = QHBoxLayout(outer)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
+
+        root.addWidget(self._build_sidebar())
+        root.addWidget(self._build_main_panel())
+
+    def _build_sidebar(self) -> QWidget:
+        side = QFrame()
+        side.setFixedWidth(230)
+        side.setObjectName("Sidebar")
+        side.setStyleSheet(f"""
+            #Sidebar {{
+                background: {C_SIDEBAR};
+                border-top-left-radius: 28px;
+                border-bottom-left-radius: 28px;
+                border-right: 1px solid {C_BORDER};
+            }}
+        """)
+
+        lay = QVBoxLayout(side)
+        lay.setContentsMargins(16, 24, 16, 24)
+        lay.setSpacing(16)
+
+        # Title
+        title = QLabel("HISTORY")
+        title.setStyleSheet(f"color: {C_MUTED}; font-size: 9px; font-weight: 900; letter-spacing: 3px;")
+        lay.addWidget(title)
+
+        # Scroll area for history
+        self._hist_scroll = QScrollArea()
+        self._hist_scroll.setWidgetResizable(True)
+        self._hist_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._hist_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._hist_scroll.setStyleSheet("background: transparent;")
+        self._hist_scroll.verticalScrollBar().setStyleSheet("""
+            QScrollBar:vertical {
+                border: none; background: transparent; width: 3px; margin: 0;
             }
+            QScrollBar::handle:vertical {
+                background: rgba(255,255,255,0.08); border-radius: 2px; min-height: 20px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
         """)
-        
-        sidebar_layout = QVBoxLayout(self.sidebar)
-        sidebar_layout.setContentsMargins(20, 30, 20, 30)
-        sidebar_layout.setSpacing(20)
-        
-        side_title = QLabel("CONVERSATION MEMORY")
-        side_title.setStyleSheet("color: rgba(255, 255, 255, 0.2); font-size: 9px; font-weight: 900; letter-spacing: 2px;")
-        sidebar_layout.addWidget(side_title)
-        
-        self.history_scroll = QScrollArea()
-        self.history_scroll.setWidgetResizable(True)
-        self.history_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self.history_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.history_scroll.setStyleSheet("background: transparent;")
-        self.history_scroll.verticalScrollBar().setStyleSheet("""
-            QScrollBar:vertical { border: none; background: transparent; width: 4px; }
-            QScrollBar::handle:vertical { background: rgba(255, 255, 255, 0.05); border-radius: 2px; }
+
+        self._hist_container = QWidget()
+        self._hist_container.setStyleSheet("background: transparent;")
+        self._hist_layout = QVBoxLayout(self._hist_container)
+        self._hist_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._hist_layout.setSpacing(8)
+        self._hist_layout.setContentsMargins(0, 0, 4, 0)
+
+        self._hist_scroll.setWidget(self._hist_container)
+        lay.addWidget(self._hist_scroll)
+
+        # Status line at bottom of sidebar
+        self._sidebar_status = QLabel("Ready")
+        self._sidebar_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._sidebar_status.setStyleSheet(f"color: {C_MUTED}; font-size: 10px;")
+        lay.addWidget(self._sidebar_status)
+
+        return side
+
+    def _build_main_panel(self) -> QWidget:
+        panel = QFrame()
+        panel.setObjectName("Panel")
+        panel.setStyleSheet("background: transparent;")
+
+        lay = QVBoxLayout(panel)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
+
+        lay.addWidget(self._build_header())
+
+        # Thin divider
+        div = QFrame()
+        div.setFrameShape(QFrame.Shape.HLine)
+        div.setStyleSheet(f"color: {C_BORDER};")
+        div.setFixedHeight(1)
+        lay.addWidget(div)
+
+        lay.addWidget(self._build_chat_area(), stretch=1)
+
+        lay.addWidget(self._build_input_bar())
+
+        return panel
+
+    def _build_header(self) -> QWidget:
+        hdr = QFrame()
+        hdr.setObjectName("Header")
+        hdr.setFixedHeight(64)
+        hdr.setStyleSheet("background: transparent;")
+
+        lay = QHBoxLayout(hdr)
+        lay.setContentsMargins(24, 0, 16, 0)
+        lay.setSpacing(10)
+
+        # Logo circle
+        logo = QLabel("S")
+        logo.setFixedSize(38, 38)
+        logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo.setStyleSheet(f"""
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+                stop:0 {C_ACCENT}, stop:1 #8F94FB);
+            color: white; font-size: 18px; font-weight: 800; border-radius: 12px;
         """)
-        
-        self.history_container = QWidget()
-        self.history_container.setStyleSheet("background: transparent;")
-        self.history_layout = QVBoxLayout(self.history_container)
-        self.history_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.history_layout.setSpacing(15)
-        self.history_layout.setContentsMargins(0, 0, 5, 0)
-        
-        self.history_scroll.setWidget(self.history_container)
-        sidebar_layout.addWidget(self.history_scroll)
-        
-        # --- CONTENT ---
-        self.content = QFrame()
-        content_layout = QVBoxLayout(self.content)
-        content_layout.setContentsMargins(40, 30, 40, 30)
-        
-        # Header
-        header = QHBoxLayout()
-        self.logo = QLabel("S")
-        self.logo.setFixedSize(36, 36)
-        self.logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.logo.setStyleSheet("""
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #6C63FF, stop:1 #8F94FB);
-            color: white; font-weight: bold; font-size: 20px; border-radius: 10px;
-        """)
-        
-        title_vbox = QVBoxLayout()
-        title_vbox.setSpacing(0)
-        title = QLabel("Sherly Assistant")
-        title.setStyleSheet("color: #fff; font-size: 18px; font-weight: 700;")
+        lay.addWidget(logo)
+        lay.addSpacing(8)
+
+        # Title + status
+        text_col = QVBoxLayout()
+        text_col.setSpacing(1)
+        t = QLabel("Sherly")
+        t.setStyleSheet(f"color: {C_TEXT}; font-size: 16px; font-weight: 700;")
         self.status_header = QLabel("Active")
-        self.status_header.setStyleSheet("color: #00ffcc; font-size: 11px; font-weight: 800; text-transform: uppercase;")
-        title_vbox.addWidget(title)
-        title_vbox.addWidget(self.status_header)
-        
-        header.addWidget(self.logo)
-        header.addLayout(title_vbox)
-        header.addStretch()
+        self.status_header.setStyleSheet(f"color: {C_ACCENT2}; font-size: 10px; font-weight: 700; letter-spacing: 1px;")
+        text_col.addWidget(t)
+        text_col.addWidget(self.status_header)
+        lay.addLayout(text_col)
 
-        self.listen_btn = QPushButton("Listen Once")
-        self.listen_btn.setFixedSize(110, 36)
-        self.listen_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.listen_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(255, 255, 255, 0.05);
-                color: #fff; border-radius: 18px;
-                font-size: 11px; font-weight: 700;
-            }
-            QPushButton:hover {
-                background: rgba(0, 255, 204, 0.2);
-            }
-        """)
-        self.listen_btn.clicked.connect(self.request_single_listen)
-        header.addWidget(self.listen_btn)
-        header.addSpacing(8)
-        
-        # Power Toggle
-        self.power_btn = QPushButton("⏻")
-        self.power_btn.setFixedSize(40, 40)
-        self.power_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.power_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(0, 255, 204, 0.1); color: #00ffcc;
-                border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 20px;
-                font-size: 18px; font-weight: bold;
-            }
-            QPushButton:hover {
-                background: rgba(0, 255, 204, 0.2);
-            }
-        """)
-        self.power_btn.clicked.connect(self.toggle_power)
-        header.addWidget(self.power_btn)
-        header.addSpacing(10)
-        
-        self.settings_btn = QPushButton("⚙")
-        self.settings_btn.setFixedSize(40, 40)
-        self.settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.settings_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(255, 255, 255, 0.05);
-                color: #fff; border-radius: 20px;
-                font-size: 18px; font-weight: bold;
-            }
-            QPushButton:hover {
-                background: rgba(108, 99, 255, 0.2);
-            }
-        """)
-        self.settings_btn.clicked.connect(self.open_settings_panel)
-        header.addWidget(self.settings_btn)
-
-        self.close_btn = QPushButton("✕")
-        self.close_btn.setFixedSize(40, 40)
-        self.close_btn.setStyleSheet("""
-            QPushButton { background: transparent; color: #444; font-size: 18px; border-radius: 20px; }
-            QPushButton:hover { background: rgba(255, 50, 50, 0.15); color: #ff5555; }
-        """)
-        self.close_btn.clicked.connect(self.hide)
-        header.addWidget(self.close_btn)
-        
-        content_layout.addLayout(header)
-        content_layout.addSpacing(40)
-        
-        self.brain_container = QWidget()
-        self.brain_container.setFixedHeight(220)
-        brain_box = QVBoxLayout(self.brain_container)
-        self.brain_label = QLabel()
-        brain_pixmap = QPixmap("sherly_ui/assets/brain.png")
-        if not brain_pixmap.isNull():
-            brain_pixmap = brain_pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            self.brain_label.setPixmap(brain_pixmap)
-        else:
-            self.brain_label.setText("🧠")
-            self.brain_label.setStyleSheet("font-size: 100px;")
-        self.brain_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        brain_box.addWidget(self.brain_label)
-        content_layout.addWidget(self.brain_container)
-        
-        content_layout.addSpacing(30)
+        # Waveform (compact)
         self.waveform = WaveformWidget()
-        content_layout.addWidget(self.waveform)
-        
-        content_layout.addStretch()
-        self.footer_status = QLabel("System Ready")
-        self.footer_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.footer_status.setStyleSheet("color: rgba(255, 255, 255, 0.3); font-size: 14px; font-weight: 500;")
-        content_layout.addWidget(self.footer_status)
-        
-        layout.addWidget(self.sidebar)
-        layout.addWidget(self.content)
+        lay.addWidget(self.waveform)
 
-    def toggle_power(self):
-        self.is_powered_on = not self.is_powered_on
-        self.updater.toggle_power_sig.emit(self.is_powered_on)
-        
-        if self.is_powered_on:
-            self.power_btn.setStyleSheet("""
-                QPushButton {
-                    background: rgba(0, 255, 204, 0.1); color: #00ffcc;
-                    border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 20px;
-                    font-size: 18px; font-weight: bold;
-                }
-                QPushButton:hover { background: rgba(0, 255, 204, 0.2); }
+        lay.addStretch()
+
+        # ── Action buttons ────────────────────
+        self.listen_btn = self._icon_btn("🎙 Listen", accent=True)
+        self.listen_btn.clicked.connect(self.request_single_listen)
+        lay.addWidget(self.listen_btn)
+
+        self.power_btn = self._icon_btn("⏻")
+        self.power_btn.setFixedSize(38, 38)
+        self.power_btn.setStyleSheet(self._power_style(True))
+        self.power_btn.clicked.connect(self.toggle_power)
+        lay.addWidget(self.power_btn)
+
+        self.settings_btn = self._icon_btn("⚙")
+        self.settings_btn.setFixedSize(38, 38)
+        self.settings_btn.clicked.connect(self.open_settings_panel)
+        lay.addWidget(self.settings_btn)
+
+        min_btn = self._icon_btn("–")
+        min_btn.setFixedSize(38, 38)
+        min_btn.clicked.connect(self.showMinimized)
+        lay.addWidget(min_btn)
+
+        close_btn = self._icon_btn("✕", danger=True)
+        close_btn.setFixedSize(38, 38)
+        close_btn.clicked.connect(self.hide)
+        lay.addWidget(close_btn)
+
+        return hdr
+
+    def _build_chat_area(self) -> QWidget:
+        """Scrollable chat bubble area."""
+        self._chat_scroll = QScrollArea()
+        self._chat_scroll.setWidgetResizable(True)
+        self._chat_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._chat_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._chat_scroll.setStyleSheet(f"background: {C_PANEL}; border: none;")
+        self._chat_scroll.verticalScrollBar().setStyleSheet("""
+            QScrollBar:vertical {
+                border: none; background: transparent; width: 4px; margin: 0;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(255,255,255,0.1); border-radius: 2px; min-height: 30px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+        """)
+
+        self._chat_container = QWidget()
+        self._chat_container.setStyleSheet("background: transparent;")
+        self._chat_layout = QVBoxLayout(self._chat_container)
+        self._chat_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._chat_layout.setSpacing(12)
+        self._chat_layout.setContentsMargins(16, 16, 16, 16)
+
+        # Placeholder when no messages
+        self._empty_label = QLabel("Start talking or type below…")
+        self._empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._empty_label.setStyleSheet(f"color: {C_MUTED}; font-size: 13px;")
+        self._chat_layout.addStretch()
+        self._chat_layout.addWidget(self._empty_label)
+        self._chat_layout.addStretch()
+
+        self._chat_scroll.setWidget(self._chat_container)
+        return self._chat_scroll
+
+    def _build_input_bar(self) -> QWidget:
+        bar = QFrame()
+        bar.setObjectName("InputBar")
+        bar.setStyleSheet(f"""
+            #InputBar {{
+                background: {C_INPUT_BG};
+                border-top: 1px solid {C_BORDER};
+                border-bottom-right-radius: 28px;
+            }}
+        """)
+
+        lay = QHBoxLayout(bar)
+        lay.setContentsMargins(16, 10, 16, 10)
+        lay.setSpacing(10)
+
+        self._chat_input = ChatInput()
+        self._chat_input.setStyleSheet(f"""
+            QTextEdit {{
+                background: rgba(255,255,255,0.05);
+                color: {C_TEXT};
+                border: 1px solid {C_BORDER};
+                border-radius: 14px;
+                padding: 10px 14px;
+                font-size: 13px;
+            }}
+            QTextEdit:focus {{
+                border: 1px solid rgba(108,99,255,0.5);
+            }}
+        """)
+        self._chat_input.submitted.connect(self._on_user_typed)
+        lay.addWidget(self._chat_input)
+
+        send_btn = QPushButton("⬆")
+        send_btn.setFixedSize(44, 44)
+        send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        send_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C_ACCENT};
+                color: white; border-radius: 14px; font-size: 18px; font-weight: 700;
+            }}
+            QPushButton:hover {{
+                background: #7B74FF;
+            }}
+            QPushButton:pressed {{
+                background: #5a54cc;
+            }}
+        """)
+        send_btn.clicked.connect(self._send_from_btn)
+        lay.addWidget(send_btn)
+
+        return bar
+
+    # ──────────────────────────────────────────────────────────────────────
+    # Helper: create a styled icon button
+    # ──────────────────────────────────────────────────────────────────────
+    def _icon_btn(self, label: str, *, accent: bool = False, danger: bool = False) -> QPushButton:
+        btn = QPushButton(label)
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn.setFixedHeight(38)
+        btn.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        if accent:
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: rgba(108,99,255,0.15); color: {C_ACCENT};
+                    border: 1px solid rgba(108,99,255,0.35); border-radius: 12px;
+                    font-size: 12px; font-weight: 700; padding: 0 14px;
+                }}
+                QPushButton:hover {{ background: rgba(108,99,255,0.28); }}
             """)
-            self.status_header.setText("Active")
-            self.status_header.setStyleSheet("color: #00ffcc; font-size: 11px; font-weight: 800;")
-            self.footer_status.setText("Back Online")
+        elif danger:
+            btn.setStyleSheet("""
+                QPushButton { background: transparent; color: #555; border-radius: 12px; font-size: 16px; }
+                QPushButton:hover { background: rgba(255,50,50,0.15); color: #ff5555; }
+            """)
         else:
-            self.power_btn.setStyleSheet("""
-                QPushButton {
-                    background: rgba(255, 50, 50, 0.1); color: #ff5555;
-                    border: 1px solid rgba(255, 50, 50, 0.3); border-radius: 20px;
-                    font-size: 18px; font-weight: bold;
-                }
-                QPushButton:hover { background: rgba(255, 50, 50, 0.2); }
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background: rgba(255,255,255,0.05); color: {C_MUTED};
+                    border: 1px solid {C_BORDER}; border-radius: 12px; font-size: 16px;
+                }}
+                QPushButton:hover {{ background: rgba(255,255,255,0.1); color: {C_TEXT}; }}
             """)
+        return btn
+
+    def _power_style(self, on: bool) -> str:
+        if on:
+            return f"""
+                QPushButton {{
+                    background: rgba(0,255,204,0.1); color: {C_ACCENT2};
+                    border: 1px solid rgba(0,255,204,0.35); border-radius: 12px; font-size: 18px;
+                }}
+                QPushButton:hover {{ background: rgba(0,255,204,0.22); }}
+            """
+        return """
+            QPushButton {
+                background: rgba(255,50,50,0.1); color: #ff5555;
+                border: 1px solid rgba(255,50,50,0.35); border-radius: 12px; font-size: 18px;
+            }
+            QPushButton:hover { background: rgba(255,50,50,0.22); }
+        """
+
+    # ──────────────────────────────────────────────────────────────────────
+    # Chat logic
+    # ──────────────────────────────────────────────────────────────────────
+    def _on_user_typed(self, text: str):
+        """Called when user presses Enter in the chat input."""
+        # Show optimistic user bubble immediately
+        self._add_bubble(text, "…thinking…")
+        # Emit signal → app_manager routes to worker
+        self.updater.chat_input_sig.emit(text)
+
+    def _send_from_btn(self):
+        text = self._chat_input.toPlainText().strip()
+        if text:
+            self._chat_input.clear()
+            self._chat_input.setFixedHeight(52)
+            self._on_user_typed(text)
+
+    def _add_bubble(self, user_text: str, ai_text: str):
+        """Append a new chat bubble. If ai_text is placeholder, mark it pending."""
+        # Remove empty state widgets if first message
+        if self._empty_label is not None:
+            self._empty_label.hide()
+
+        time_str = datetime.now().strftime("%I:%M %p")
+        bubble = ChatBubble(user_text, ai_text, time_str)
+        self._chat_layout.addWidget(bubble)
+
+        # Scroll to bottom
+        QTimer.singleShot(60, self._scroll_to_bottom)
+        return bubble
+
+    def _scroll_to_bottom(self):
+        sb = self._chat_scroll.verticalScrollBar()
+        sb.setValue(sb.maximum())
+
+    # ──────────────────────────────────────────────────────────────────────
+    # Public API used by app_manager
+    # ──────────────────────────────────────────────────────────────────────
+    def add_message(self, text: str, response: str):
+        """Called from worker thread via signal."""
+        self.updater.add_msg_sig.emit(text, response)
+
+    def _on_add_message(self, text: str, response: str):
+        """GUI thread: add to chat area AND sidebar history mini-card."""
+        self._add_bubble(text, response)
+        self._add_history_card(text, response)
+        self._sidebar_status.setText(datetime.now().strftime("%I:%M %p"))
+
+    def _add_history_card(self, user: str, ai: str):
+        card = QFrame()
+        card.setObjectName("HCard")
+        card.setStyleSheet(f"""
+            #HCard {{
+                background: rgba(255,255,255,0.03);
+                border: 1px solid {C_BORDER};
+                border-radius: 10px;
+            }}
+            #HCard:hover {{
+                background: rgba(108,99,255,0.08);
+                border: 1px solid rgba(108,99,255,0.3);
+            }}
+        """)
+        cl = QVBoxLayout(card)
+        cl.setContentsMargins(10, 8, 10, 8)
+        cl.setSpacing(3)
+
+        u = QLabel(user[:40] + ("…" if len(user) > 40 else ""))
+        u.setStyleSheet(f"color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
+        u.setWordWrap(True)
+
+        a = QLabel(ai[:60] + ("…" if len(ai) > 60 else ""))
+        a.setStyleSheet(f"color: {C_MUTED}; font-size: 10px;")
+        a.setWordWrap(True)
+
+        cl.addWidget(u)
+        cl.addWidget(a)
+        self._hist_layout.insertWidget(0, card)
+
+    def set_status(self, text: str):
+        self.updater.status_sig.emit(text)
+
+    def _on_status(self, text: str):
+        low = text.lower()
+        self._sidebar_status.setText(text)
+
+        if "listening" in low or "recording" in low:
+            self.waveform.setActive(True)
+            self.status_header.setText("Listening")
+            self.status_header.setStyleSheet(f"color: {C_ACCENT2}; font-size: 10px; font-weight: 700;")
+        elif "thinking" in low:
+            self.waveform.setActive(True)
+            self.status_header.setText("Thinking")
+            self.status_header.setStyleSheet("color: #ffaa33; font-size: 10px; font-weight: 700;")
+        elif "speaking" in low:
+            self.waveform.setActive(True)
+            self.status_header.setText("Speaking")
+            self.status_header.setStyleSheet(f"color: {C_ACCENT}; font-size: 10px; font-weight: 700;")
+        else:
+            self.waveform.setActive(False)
+            if self.is_powered_on:
+                self.status_header.setText("Active")
+                self.status_header.setStyleSheet(f"color: {C_ACCENT2}; font-size: 10px; font-weight: 700;")
+
+    # ──────────────────────────────────────────────────────────────────────
+    # Power toggle
+    # ──────────────────────────────────────────────────────────────────────
+    def toggle_power(self, state=None):
+        if state is not None:
+            if self.is_powered_on == state:
+                return
+            self.is_powered_on = state
+        else:
+            self.is_powered_on = not self.is_powered_on
+            self.updater.toggle_power_sig.emit(self.is_powered_on)
+
+        self.power_btn.setStyleSheet(self._power_style(self.is_powered_on))
+
+        if self.is_powered_on:
+            self.status_header.setText("Active")
+            self.status_header.setStyleSheet(f"color: {C_ACCENT2}; font-size: 10px; font-weight: 700;")
+        else:
             self.status_header.setText("Paused")
-            self.status_header.setStyleSheet("color: #ff5555; font-size: 11px; font-weight: 800;")
-            self.footer_status.setText("Sherly is Paused")
+            self.status_header.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: 700;")
             self.waveform.setActive(False)
 
+    # ──────────────────────────────────────────────────────────────────────
+    # Other actions
+    # ──────────────────────────────────────────────────────────────────────
     def open_settings_panel(self):
-        dialog = SettingsDialog(self)
-        dialog.exec()
+        SettingsDialog(self).exec()
 
     def request_single_listen(self):
         self.updater.listen_once_sig.emit()
-        self.footer_status.setText("Listening")
 
-    def hide_to_tray(self):
-        self.hide()
-
-    def set_status(self, text):
-        self.updater.status_sig.emit(text)
-
-    def _internal_set_status(self, text):
-        self.footer_status.setText(text)
-        if not self.is_powered_on: return
-        
-        low_text = text.lower()
-        if "listening" in low_text or "recording" in low_text or "waking" in low_text:
-            self.waveform.setActive(True)
-            self.status_header.setText("Listening")
-            self.status_header.setStyleSheet("color: #00ffcc; font-size: 11px; font-weight: 800;")
-        elif "speaking" in low_text or "processing" in low_text:
-            self.waveform.setActive(True)
-            self.status_header.setText("Talking")
-            self.status_header.setStyleSheet("color: #6C63FF; font-size: 11px; font-weight: 800;")
-        elif "thinking" in low_text:
-            self.waveform.setActive(True)
-            self.status_header.setText("Thinking")
-            self.status_header.setStyleSheet("color: #ffaa33; font-size: 11px; font-weight: 800;")
-        else:
-            self.waveform.setActive(False)
-            self.status_header.setText("Active")
-            self.status_header.setStyleSheet("color: #00ffcc; font-size: 11px; font-weight: 800;")
-
-    def add_message(self, text, response):
-        self.updater.add_msg_sig.emit(text, response)
-        
-    def _internal_add_message(self, text, response):
-        time_str = datetime.now().strftime("%I:%M %p")
-        item = HistoryItem(text, response, time_str)
-        self.history_layout.insertWidget(0, item)
-        self.footer_status.setText("Commands Ready")
-
+    # ──────────────────────────────────────────────────────────────────────
+    # Drag to move
+    # ──────────────────────────────────────────────────────────────────────
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.oldPos = event.globalPosition().toPoint()
+            self._drag_pos = event.globalPosition().toPoint()
 
     def mouseMoveEvent(self, event):
-        if event.buttons() & Qt.MouseButton.LeftButton:
-            delta = event.globalPosition().toPoint() - self.oldPos
+        if event.buttons() & Qt.MouseButton.LeftButton and self._drag_pos:
+            delta = event.globalPosition().toPoint() - self._drag_pos
             self.move(self.x() + delta.x(), self.y() + delta.y())
-            self.oldPos = event.globalPosition().toPoint()
+            self._drag_pos = event.globalPosition().toPoint()
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Settings dialog (styled to match new dark theme)
+# ─────────────────────────────────────────────────────────────────────────────
 class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Sherly Settings")
         self.setModal(True)
-        self.setFixedSize(420, 520)
-        self.setStyleSheet("""
-            background: #0d0d14;
-            color: #fff;
+        self.setFixedSize(440, 540)
+        self.setStyleSheet(f"""
+            QDialog {{ background: #0d0d18; color: {C_TEXT}; }}
+            QLabel {{ color: {C_TEXT}; font-size: 12px; }}
+            QComboBox, QLineEdit {{
+                background: rgba(255,255,255,0.06);
+                color: {C_TEXT}; border: 1px solid {C_BORDER};
+                border-radius: 8px; padding: 6px 10px; font-size: 12px;
+            }}
+            QCheckBox {{ color: {C_TEXT}; spacing: 8px; font-size: 12px; }}
+            QGroupBox {{
+                color: {C_MUTED}; font-size: 10px; font-weight: 700;
+                border: 1px solid {C_BORDER}; border-radius: 10px; margin-top: 10px;
+                padding: 12px;
+            }}
+            QPushButton {{
+                background: rgba(108,99,255,0.2); color: {C_ACCENT};
+                border: 1px solid rgba(108,99,255,0.4); border-radius: 8px;
+                padding: 8px 20px; font-size: 12px; font-weight: 700;
+            }}
+            QPushButton:hover {{ background: rgba(108,99,255,0.35); }}
         """)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(16)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(24, 24, 24, 24)
+        lay.setSpacing(16)
 
-        form_layout = QFormLayout()
-        form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
-        form_layout.setSpacing(12)
+        form = QFormLayout()
+        form.setSpacing(12)
 
         self.model_combo = QComboBox()
-        for option in ["phi3", "tinyllama", "openai", "gemini", "groq"]:
-            self.model_combo.addItem(option)
+        for opt in ["phi3", "tinyllama", "openai", "gemini", "groq"]:
+            self.model_combo.addItem(opt)
         self.model_combo.setCurrentText(get_current_model())
-        form_layout.addRow("Active model", self.model_combo)
+        form.addRow("Active model", self.model_combo)
 
-        self.api_inputs = {}
-        for provider in ["openai", "gemini", "groq"]:
-            field = QLineEdit(get_api_key(provider) or "")
-            field.setPlaceholderText("Enter API key")
-            field.setStyleSheet("background: rgba(255,255,255,0.05); border-radius: 6px;")
-            self.api_inputs[provider] = field
-            form_layout.addRow(f"{provider.upper()} API Key", field)
+        self.api_inputs: dict[str, QLineEdit] = {}
+        for prov in ["openai", "gemini", "groq"]:
+            f = QLineEdit(get_api_key(prov) or "")
+            f.setPlaceholderText(f"{prov.upper()} API Key")
+            f.setEchoMode(QLineEdit.EchoMode.Password)
+            self.api_inputs[prov] = f
+            form.addRow(f"{prov.upper()} API Key", f)
 
-        layout.addLayout(form_layout)
+        lay.addLayout(form)
 
-        self.auto_checkbox = QCheckBox("Enable auto-mode (automatically process incoming text)")
-        self.auto_checkbox.setChecked(get_auto_mode())
-        layout.addWidget(self.auto_checkbox)
+        self.auto_cb = QCheckBox("Enable auto-mode (continuous listening)")
+        self.auto_cb.setChecked(get_auto_mode())
+        lay.addWidget(self.auto_cb)
 
-        plugin_group = QGroupBox("Plugin toggles")
-        plugin_layout = QVBoxLayout()
-        plugin_layout.setSpacing(8)
-        plugin_layout.setContentsMargins(12, 12, 12, 12)
-
-        self.plugin_checkboxes = {}
-        plugin_states = get_all_plugin_states()
-        if plugin_states:
-            for name, enabled in plugin_states.items():
-                checkbox = QCheckBox(name)
-                checkbox.setChecked(enabled)
-                plugin_layout.addWidget(checkbox)
-                self.plugin_checkboxes[name] = checkbox
+        pg = QGroupBox("Plugins")
+        pl = QVBoxLayout(pg)
+        self.plugin_cbs: dict[str, QCheckBox] = {}
+        states = get_all_plugin_states()
+        if states:
+            for name, en in states.items():
+                cb = QCheckBox(name)
+                cb.setChecked(en)
+                pl.addWidget(cb)
+                self.plugin_cbs[name] = cb
         else:
-            plugin_layout.addWidget(QLabel("No plugins detected yet."))
+            pl.addWidget(QLabel("No plugins found."))
+        lay.addWidget(pg)
 
-        plugin_group.setLayout(plugin_layout)
-        layout.addWidget(plugin_group)
+        lay.addStretch()
 
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
+        btns = QHBoxLayout()
+        btns.addStretch()
         apply_btn = QPushButton("Apply")
         close_btn = QPushButton("Close")
-        apply_btn.clicked.connect(self._apply_changes)
+        close_btn.setStyleSheet("background: rgba(255,255,255,0.05); color: #888; border: 1px solid rgba(255,255,255,0.08);")
+        apply_btn.clicked.connect(self._apply)
         close_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(apply_btn)
-        btn_layout.addWidget(close_btn)
-        layout.addLayout(btn_layout)
+        btns.addWidget(close_btn)
+        btns.addWidget(apply_btn)
+        lay.addLayout(btns)
 
-    def _apply_changes(self):
+    def _apply(self):
         set_current_model(self.model_combo.currentText())
-        for provider, field in self.api_inputs.items():
-            set_api_key(provider, field.text().strip())
-
-        auto_mode = self.auto_checkbox.isChecked()
-        set_auto_mode(auto_mode)
-        parent = self.parent()
-        if parent and hasattr(parent, "updater"):
-            parent.updater.set_auto_mode_sig.emit(auto_mode)
-
-        for name, checkbox in self.plugin_checkboxes.items():
-            set_plugin_enabled(name, checkbox.isChecked())
-
+        for prov, f in self.api_inputs.items():
+            set_api_key(prov, f.text().strip())
+        auto = self.auto_cb.isChecked()
+        set_auto_mode(auto)
+        if (p := self.parent()) and hasattr(p, "updater"):
+            p.updater.set_auto_mode_sig.emit(auto)
+        for name, cb in self.plugin_cbs.items():
+            set_plugin_enabled(name, cb.isChecked())
         self.accept()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = SherlyWindow()
-    window.show()
+    w = SherlyWindow()
+    w.show()
     sys.exit(app.exec())

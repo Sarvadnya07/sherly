@@ -1,10 +1,12 @@
 {
     "current_model": "phi3",
-    "auto_mode": false,
+    "auto_mode": true,
     "api_keys": {
         "openai": "YOUR_OPENAI_KEY",
         "gemini": "YOUR_GEMINI_KEY",
         "groq": "YOUR_GROQ_KEY"
     },
-    "plugins": {}
+    "plugins": {
+        "weather": false
+    }
 }

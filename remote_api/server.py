@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
+
 
 import requests
-from fastapi import FastAPI, Header, Query
+from fastapi import FastAPI, Header, Query, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -29,11 +31,18 @@ class Command(BaseModel):
     text: str
 
 
+def verify_key(x_api_key: str = Header(default="")):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    return True
+
+
 @app.post("/command")
 def send_command(
     cmd: Command,
     key: str = Query(default=""),
     x_api_key: str = Header(default=""),
+    _: bool = Depends(verify_key),
 ):
     provided_key = x_api_key or key
     if provided_key != API_KEY:

@@ -11,5 +11,7 @@ pyautogui
 pyperclip
 mss
 PySide6
+tenacity
 fastapi
 uvicorn
+pynput

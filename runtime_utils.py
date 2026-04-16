@@ -1,18 +1,23 @@
+import logging
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
+
 import requests
 
 task_queue = Queue()
 
 LOG_FILE = Path("logs") / "sherly.log"
+LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+logging.basicConfig(
+    filename=str(LOG_FILE),
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
 
 
 def log(message):
-    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with LOG_FILE.open("a", encoding="utf-8") as handle:
-        handle.write(f"[{timestamp}] {message}\n")
+    logging.info(message)
 
 
 def safe_execute(func, fallback="Error"):

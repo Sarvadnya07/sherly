@@ -1,51 +1,45 @@
-# Sherly AI – Local-First Voice + Remote-Control Assistant
+# Sherly AI – Voice-First Local Dev Copilot
 
 ## Overview
-Sherly is a desktop-native AI assistant that listens, thinks, executes, and notifies in real time. It blends local speech/LLM workflows with a remote web/PWA control surface, agent routing, and background task automation—optimized for low RAM and responsive UX.
+Sherly is a desktop-native, voice-controlled developer copilot for your local machine. It runs, debugs, and explains your projects hands-free, with a PWA remote control, controlled task execution, and lightweight local models.
 
 ## ⚙️ How It Works
 Voice → STT → Intent Router → Agent Selection → Execution → Response → TTS → Notification
 
+## 🎯 Product (MVP Lock)
+Core promise: run, debug, and understand your code just by speaking.
+- KEEP: voice run, error detection/explanation, safe terminal execution, file/code explanation, one-click “fix my project.”
+- DROP: multi-agent complexity, camera/vision, excessive plugins, fancy automation.
+
 ## 🧠 Why Sherly?
-- Works offline (local-first)
-- Faster than cloud assistants
-- Fully extensible via agents
-- Remote control from phone
+- Works offline (local-first) and faster than cloud assistants.
+- Voice-first debugging copilot: say “Run my project,” get error analysis and fixes.
+- Extensible via agents/plugins, yet controlled for safety.
+- Remote control from phone via PWA + notifications.
 
 ## 💬 Example
-User: "open chrome"  
+User: “open chrome”  
 Sherly: Opening Chrome...
 
-User: "summarize this log file"  
+User: “summarize this log file”  
 Sherly: This log indicates...
 
 ## 📸 UI
-*Add a screenshot of the PySide6 panel or PWA here for quick visual context.*
+![Sherly UI](sherly_ui/assets/sherlyai.png)
+Add a screenshot of the PySide6 panel or PWA for quick visual context.
+
 
 ## Features
-- **Voice + UI**
-  - Fast STT (Whisper tiny int8), debounce logic, short responses for snappy TTS.
-  - PySide6 floating panel with status states (Idle/Listening/Thinking/Executing/Speaking).
-- **Smart Routing**
-  - LLM-based agent selection (coder/browser/system) for better intent mapping.
-  - Plugin registry + tool routing for extensibility.
-- **Remote Control**
-  - FastAPI remote agent + public API gateway, PWA UI with mic and uploads, ntfy push notifications.
-  - File upload endpoint auto-processes code/logs and pushes explanations to phone.
-- **Automation & Tasks**
-  - Background task scheduler, task queue, async worker helper to prevent UI blocking.
-  - System automation via pyautogui, terminal commands, screen analysis.
-- **Memory**
-  - Dual memory: chat DB plus `memory_brain` key-value “personal brain” injected into prompts.
-  - Prompt builder includes user context; DEV_MODE adds developer-style reasoning.
-- **Notifications**
-  - ntfy push after command/processing and uploads.
-- **Safety & Performance**
-  - Response/length caps, idle model unload, safe wrappers, controlled step executor (max 3 steps).
+- **Voice + UI**: Whisper tiny int8 STT, debounce, short responses for fast TTS; PySide6 panel with Idle/Listening/Thinking/Executing/Speaking.
+- **Smart Routing**: LLM-based agent selection (coder/browser/system); plugin/tool registry.
+- **Remote Control**: FastAPI remote agent + public API gateway; PWA with mic/upload; ntfy push notifications.
+- **Automation & Tasks**: Background scheduler, task queue, async worker to avoid UI blocking; safe terminal execution (`safe_exec`).
+- **Memory**: Chat DB + `memory_brain` key-value context injected into prompts; DEV_MODE for developer-style reasoning.
+- **Reliability**: Retry + circuit breaker around local models, response caps, idle model unload, safe wrappers, controlled step executor (max 3 steps).
 
 ## Architecture / Folder Structure
 ```
-agents/               # Coder/Browser/System agents
+agents/               # coder/browser/system agents
 agent_manager.py      # LLM-driven agent classification + dispatch
 core/                 # worker.py (run_async), task_queue.py
 remote_agent/         # Local FastAPI executor calling route_command
@@ -54,7 +48,7 @@ remote_ui/            # PWA (index.html, manifest.json, icon.png)
 sherly_ui/            # PySide6 window, tray, worker thread
 tools/                # STT/TTS, screen, automation, task_engine, etc.
 runtime_utils.py      # logging, safe_execute, safe_run, ntfy send_notification
-model_manager.py      # prompt builder, model routing, idle unload, DEV_MODE
+model_manager.py      # prompt builder, model routing, idle unload, DEV_MODE, retry/breaker
 memory_brain.py       # persistent user facts
 task_scheduler.py     # background interval tasks
 command_router.py     # main intent router
@@ -72,50 +66,53 @@ uvicorn remote_agent.agent:app --host 127.0.0.1 --port 5001
 # start remote API + PWA
 uvicorn remote_api.server:app --host 0.0.0.0 --port 8000
 ```
-Prereqs: Python 3.10+, Ollama running if using local LLM, ntfy mobile app (subscribe to `sherly-channel` or your chosen topic), microphone access.
+Prereqs: Python 3.10+, Ollama running if using local LLM, ntfy mobile app (subscribe to your channel), microphone access.
 
 ## Usage
-- Desktop: launch `main.py`, press Listen Once or enable auto-mode; speak commands (“open vscode”, “explain this code”).
-- Remote: open `http://YOUR_IP:8000` (PWA), tap mic or upload file; API key via `key` query/`x-api-key` header (`SHERLY_REMOTE_API_KEY`, default `sherly123`).
-- Memory: “remember project is sherly”, “what is project”.
-- Background tasks: import `add_task`/`start_scheduler` to register periodic jobs.
+- Desktop: run `main.py`, click mic or auto-mode; speak “run my project” / “explain this code.”
+- Remote: open `http://YOUR_IP:8000`, tap mic or upload file; API key via `key` query or `x-api-key` header (`SHERLY_REMOTE_API_KEY`, default `sherly123`).
+- Memory: “remember project is sherly”; “what is project”.
+- Background tasks: use `add_task` / `start_scheduler`.
 
 ## API
-- `POST /command` (remote_api): `{text}` → `{response}` (requires API key).
-- `POST /upload` (remote_api): file → saved to `uploads/`, auto explain via model, ntfy push.
+- `POST /command` (remote_api): `{text}` → `{response}` (API key).
+- `POST /upload` (remote_api): file → saved to `uploads/`, auto explain + ntfy push.
 - `POST /execute` (remote_agent): `{text}` → router response.
 
 ## Tech Stack
-Python, FastAPI, PySide6, faster-whisper, pyttsx3, requests, ntfy, duckduckgo-search, pyautogui, Ollama (local LLM), PWA (HTML/CSS/JS).
+Python, FastAPI, PySide6, faster-whisper, pyttsx3, requests, ntfy, duckduckgo-search, pyautogui, Ollama (local LLM), tenacity + pybreaker, PWA (HTML/CSS/JS).
 
 ## Configuration
 - `config.json`: current_model, auto_mode, API keys, plugin toggles.
-- Env: `SHERLY_REMOTE_API_KEY` for remote API; ntfy channel configurable in `runtime_utils.send_notification`.
-- Models: set via voice (“use openai/gemini/groq/local”) or config.
+- Env: `SHERLY_REMOTE_API_KEY` for remote API; ntfy channel in `runtime_utils.send_notification`.
+- Models: switch via voice (“use openai/gemini/groq/local”) or config.
 
 ## Performance
 - STT tiny/int8; prompts short; responses clipped to 250 chars; `max_tokens=100`.
 - Idle unload after 60s; async worker + task queue to avoid UI blocking.
-- Expect sub-second UI responsiveness on typical laptops; remote API latency depends on network/LLM.
-
-## Testing
-- `python -m py_compile` over modules or targeted smoke runs.
-- Manual: voice command, remote `/command`, file upload → ntfy push.
+- Retry + circuit breaker for local models; fallback to lightweight web snippet on failure.
 
 ## Security
-- API key required for remote endpoints; set strong `SHERLY_REMOTE_API_KEY`.
-- ntfy topics are public by default—use a private/random channel.
-- CORS open for remote_api; restrict origins in production.
-- Uploaded files stored under `uploads/`—treat as untrusted.
+- API key required for remote endpoints (FastAPI dependency).
+- Safe command execution allowlist; treat uploads as untrusted.
+- CORS can be restricted; ntfy topics should be private/random.
 
 ## Deployment
-- Desktop app: run `python main.py` (bundle with PyInstaller if desired).
-- Remote services: `uvicorn remote_api.server:app` and `uvicorn remote_agent.agent:app` behind reverse proxy; optional `ngrok http 8000` for quick exposure.
-- PWA served from remote_api static mount (`remote_ui/`).
+- Desktop: `python main.py` or bundle with PyInstaller (`pyinstaller --noconsole --onefile main.py`).
+- Remote: `uvicorn remote_api.server:app` and `uvicorn remote_agent.agent:app` behind reverse proxy; `ngrok http 8000` for quick share.
+- PWA served from `remote_api` static mount.
 
-## Documentation References
-- Key modules: `command_router.py`, `model_manager.py`, `agent_manager.py`, `sherly_ui/app_manager.py`, `remote_api/server.py`, `remote_ui/index.html`.
-- External: Ollama, ntfy.sh, FastAPI, faster-whisper docs.
+## Landing Page Copy (for marketing)
+- Hero: “Talk to Your Code. Sherly runs, debugs, and fixes your projects — hands-free.”
+- Problem: tired of manual debugging, context switching, repeated commands?
+- Solution: say “Run my project.” Sherly executes, finds errors, explains, suggests fixes.
+- CTA: Download Sherly (Beta).
+
+## Demo Script (30–45s)
+Open Sherly → say “Run my project” → show error → Sherly explains → suggests fix → (optional) applies fix.
+
+## Feedback Loop
+Add lightweight in-app prompt: “Was this helpful? (y/n)” and log responses to refine accuracy/speed.
 
 ## Contributing
 - Fork, branch, keep responses capped/non-blocking; follow async/task queue patterns.

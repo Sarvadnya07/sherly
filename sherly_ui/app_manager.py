@@ -1,20 +1,41 @@
 import sys
 import threading
 import time
-from queue import Empty
 
-from PySide6.QtCore import QObject, QCoreApplication, Signal, Slot
+from PySide6.QtCore import QObject, QCoreApplication, Signal, Slot, Qt
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtNetwork import QTcpServer
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
 from command_router import route_command
-from config_manager import get_auto_mode
 from core.task_queue import add_task
 from runtime_utils import log, safe_execute
 from sherly_ui.window import SherlyWindow
 from speech_to_text import transcribe
 from text_to_speech import speak
+try:
+    from pynput import keyboard
+except ImportError:
+    keyboard = None
+
+# Disable high-DPI scaling to avoid Windows DPI awareness warnings
+QApplication.setAttribute(Qt.ApplicationAttribute.AA_DisableHighDpiScaling, True)
+
+
+def is_valid_input(text):
+    if not text:
+        return False
+
+    text = text.strip().lower()
+
+    # reject noise patterns
+    if len(text) < 3:
+        return False
+
+    if text in ["...", ".", "uh", "hmm"]:
+        return False
+
+    return True
 
 
 class AssistantWorker(QObject):
@@ -27,7 +48,8 @@ class AssistantWorker(QObject):
         self._running = True
         self._paused = False
         self._is_listening = False
-        self._auto_mode = get_auto_mode()
+        # Force manual trigger mode to stop continuous listening loops
+        self._auto_mode = False
         self._is_processing = False
 
     @Slot(bool)
@@ -38,9 +60,7 @@ class AssistantWorker(QObject):
 
     @Slot(bool)
     def set_auto_mode(self, enabled):
-        self._auto_mode = bool(enabled)
-        if self._auto_mode and not self._paused:
-            self.request_listen()
+        self._auto_mode = enabled
 
     @Slot()
     def request_listen(self):
@@ -48,23 +68,34 @@ class AssistantWorker(QObject):
             return
         add_task(self._listen_once)
 
+    @Slot(str)
+    def process_chat_input(self, text: str):
+        """Route a typed message through the same pipeline as voice."""
+        if not text or self._paused or not self._running or self._is_processing:
+            return
+        if is_valid_input(text):
+            self._is_processing = True
+            add_task(self._process_text, text)
+
     @Slot()
     def stop(self):
         self._running = False
-        task_queue.put("stop")
 
     def run(self):
         self.status_changed.emit("Idle")
 
         while self._running:
             if self._paused:
-                time.sleep(0.2)
+                time.sleep(0.5)
                 continue
 
             if self._auto_mode and not self._is_listening and not self._is_processing:
-                add_task(self._listen_once)
-
-            time.sleep(0.1)
+                # In auto-mode, we wait for a moment and then listen
+                time.sleep(1.0)
+                if self._auto_mode and not self._paused:
+                    self._listen_once()
+            else:
+                time.sleep(0.1)
 
     def _listen_once(self):
         if self._is_processing or self._paused or not self._running:
@@ -77,8 +108,9 @@ class AssistantWorker(QObject):
 
         if not self._running or self._paused:
             return
-        if not text or len(text.strip()) < 2:
-            self.status_changed.emit("Idle")
+
+        if not is_valid_input(text):
+            self.status_changed.emit("Filtered noise")
             return
 
         self._is_processing = True
@@ -89,7 +121,7 @@ class AssistantWorker(QObject):
         response = safe_execute(lambda: route_command(text), "I hit an error while processing that.")
         if not response:
             response = "No response generated."
-        response = response[:250]
+        response = response[:2000]
 
         self.new_message.emit(text, response)
         self.status_changed.emit("Speaking")
@@ -100,7 +132,12 @@ class AssistantWorker(QObject):
 
 class SherlyApp:
     def __init__(self):
-        self.app = QApplication.instance() or QApplication(sys.argv)
+        # QApplication instance for type checkers
+        instance = QApplication.instance()
+        if instance is None or not isinstance(instance, QApplication):
+            self.app: QApplication = QApplication(sys.argv)
+        else:
+            self.app: QApplication = instance
 
         self.instance_server = QTcpServer()
         if not self.instance_server.listen(port=49152):
@@ -132,11 +169,41 @@ class SherlyApp:
         self.window.updater.toggle_power_sig.connect(self.worker.set_active)
         self.window.updater.listen_once_sig.connect(self.worker.request_listen)
         self.window.updater.set_auto_mode_sig.connect(self.worker.set_auto_mode)
+        self.window.updater.chat_input_sig.connect(self.worker.process_chat_input)
 
         self.worker_thread = threading.Thread(target=self.worker.run, daemon=True)
         self.worker_thread.start()
+        
+        # Global Hotkey setup (optional if pynput is available)
+        if keyboard:
+            self.hotkey_thread = threading.Thread(target=self._setup_hotkeys, daemon=True)
+            self.hotkey_thread.start()
+            log("Sherly UI started with global hotkeys (Ctrl+Shift+L / Ctrl+Shift+P).")
+        else:
+            log("pynput not installed; global hotkeys disabled.")
+
         self.window.show()
-        log("Sherly UI started.")
+
+    def _setup_hotkeys(self):
+        if not keyboard:
+            return
+        try:
+            def on_activate_listen():
+                log("Hotkey Triggered: Listen Once")
+                self.worker.request_listen()
+
+            def on_activate_toggle():
+                new_state = not self.window.is_powered_on
+                log(f"Hotkey Triggered: Toggle Power -> {new_state}")
+                # We need to call window toggle_power on the GUI thread
+                self.window.updater.toggle_power_sig.emit(new_state)
+
+            with keyboard.GlobalHotKeys({
+                '<ctrl>+<shift>+l': on_activate_listen,
+                '<ctrl>+<shift>+p': on_activate_toggle}) as h:
+                h.join()
+        except Exception as e:
+            log(f"Hotkey Error: {e}")
 
     def quit_app(self):
         log("Shutting down Sherly.")

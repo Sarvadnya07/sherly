@@ -24,3 +24,13 @@ def run_command(command):
         return "Command timed out."
     except Exception as exc:
         return f"Command error: {exc}"
+
+
+ALLOWED_PREFIXES = ("python", "pip", "git")
+
+
+def safe_exec(command):
+    command = command.strip()
+    if not any(command.startswith(prefix) for prefix in ALLOWED_PREFIXES):
+        return "Blocked for safety"
+    return run_command(command)

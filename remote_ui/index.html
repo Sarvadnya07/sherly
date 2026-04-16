@@ -1,159 +1,553 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
-  <title>Sherly</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="/manifest.json">
-  <style>
-    body {
-      background: #111;
-      color: white;
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    input {
-      width: 80%;
-      padding: 12px;
-      margin: 10px;
-      border-radius: 10px;
-      border: 1px solid #333;
-      background: #0c0c0c;
-      color: white;
-      font-size: 16px;
-    }
-    button {
-      padding: 12px 20px;
-      margin: 5px;
-      border-radius: 10px;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-    }
-    #mic {
-      background: #6C63FF;
-      color: white;
-      border-radius: 50%;
-      width: 70px;
-      height: 70px;
-      font-size: 22px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Sherly Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #121212;
+            --container-bg: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --accent-color: #6C63FF;
+            --accent-hover: #544ada;
+            --input-bg: #f5f5f5;
+            --btn-bg: #e0e0e0;
+            --btn-text: #121212;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --container-bg: rgba(20, 20, 20, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #6C63FF;
+            --accent-hover: #8b85ff;
+            --input-bg: #1a1a1a;
+            --btn-bg: #2a2a2a;
+            --btn-text: #ffffff;
+            --shadow: 0 8px 32px rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, var(--accent-color) 0%, transparent 40%);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .header-nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .theme-toggle {
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            outline: none;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            background: var(--btn-bg);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--container-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px;
+        }
+
+        @media (min-width: 768px) {
+            .container { margin-top: 0; }
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(108, 99, 255, 0.1) 0%, transparent 60%);
+            z-index: -1;
+            animation: pulse 6s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            height: 54px;
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .file-upload-display {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--input-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: 14px;
+            color: var(--text-color);
+            font-size: 15px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .file-upload-wrapper:hover .file-upload-display {
+            border-color: var(--accent-color);
+            background: var(--btn-bg);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button.btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button.btn:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+        }
+        
+        button.btn:active {
+            transform: translateY(0);
+        }
+
+        button.btn.primary {
+            background: var(--accent-color);
+            color: #ffffff;
+        }
+
+        button.btn.primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .mic-btn-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        #mic {
+            background: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            width: 72px;
+            height: 72px;
+            font-size: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(108, 99, 255, 0.3);
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #mic:hover {
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 12px 24px rgba(108, 99, 255, 0.4);
+        }
+
+        #mic:active {
+            transform: scale(0.95);
+        }
+
+        #mic.recording {
+            animation: pulse-mic 1s infinite alternate;
+            background: #ff4757;
+            box-shadow: 0 8px 16px rgba(255, 71, 87, 0.4);
+        }
+
+        @keyframes pulse-mic {
+            from { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+            to { box-shadow: 0 0 0 15px rgba(255, 71, 87, 0); }
+        }
+
+        #status-wrapper {
+            position: relative;
+        }
+
+        #res {
+            margin-top: 10px;
+            padding: 16px;
+            border-radius: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            min-height: 64px;
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Loader inside text response area */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+        .typing-indicator.active {
+            display: flex;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        #res-text {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
-<h2>🤖 Sherly</h2>
+<div class="header-nav">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme" onclick="toggleTheme()">
+        🌙
+    </button>
+</div>
 
-<input id="cmd" placeholder="Type command..." autofocus />
-<input type="file" id="file" style="display:block;margin:10px auto;color:white;" />
+<div class="container">
+    <h2><span style="font-size: 32px">🤖</span> Sherly</h2>
 
-<br>
+    <div class="input-group">
+        <input id="cmd" type="text" placeholder="Type a command..." autofocus onkeypress="handleKeyPress(event)" />
+        
+        <div class="file-upload-wrapper">
+            <input type="file" id="file" onchange="updateFileName()" />
+            <div class="file-upload-display" id="file-display">
+                <span style="margin-right:8px">📄</span> Choose a file to upload...
+            </div>
+        </div>
+    </div>
 
-<button onclick="send()">Send</button>
-<button id="mic" onclick="startVoice()">🎤</button>
-<button onclick="uploadFile()">Upload</button>
+    <div class="actions">
+        <button class="btn primary" onclick="send()">
+            <span>🚀</span> Send
+        </button>
+        <button class="btn" onclick="uploadFile()">
+            <span>📤</span> Upload
+        </button>
+    </div>
 
-<p id="res"></p>
+    <div class="mic-btn-container">
+        <button id="mic" onclick="startVoice()" aria-label="Voice input">
+            🎤
+        </button>
+    </div>
+
+    <div id="status-wrapper">
+        <div id="res">
+            <div class="typing-indicator" id="loader">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <span id="res-text">Waiting for your command...</span>
+        </div>
+    </div>
+</div>
 
 <script>
-const API_KEY = "sherly123"; // change to your key if overridden
+    const API_KEY = "sherly123";
 
-function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(50);
-}
+    function toggleTheme() {
+        const root = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggle');
+        if (root.getAttribute('data-theme') === 'dark') {
+            root.setAttribute('data-theme', 'light');
+            toggleBtn.innerHTML = '☀️';
+            localStorage.setItem('theme', 'light');
+        } else {
+            root.setAttribute('data-theme', 'dark');
+            toggleBtn.innerHTML = '🌙';
+            localStorage.setItem('theme', 'dark');
+        }
+    }
 
-function setStatus(text) {
-  document.getElementById("res").innerText = text;
-}
+    // Initialize theme based on local storage
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.getElementById('themeToggle').innerHTML = '☀️';
+    }
 
-async function send() {
-  const input = document.getElementById("cmd");
-  const text = input.value.trim();
-  if (!text) {
-    setStatus("Enter a command first.");
-    return;
-  }
+    function vibrate() {
+        if (navigator.vibrate) navigator.vibrate(50);
+    }
 
-  setStatus("Thinking...");
-  vibrate();
+    function showLoader(show) {
+        const loader = document.getElementById('loader');
+        const text = document.getElementById('res-text');
+        if (show) {
+            loader.classList.add('active');
+            text.style.display = 'none';
+        } else {
+            loader.classList.remove('active');
+            text.style.display = 'block';
+        }
+    }
 
-  try {
-    const res = await fetch("/command?key=" + encodeURIComponent(API_KEY), {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({text})
-    });
-    const data = await res.json();
-    const msg = data.response || data.error || "No response.";
-    setStatus(msg);
-    vibrate();
-    speak(data.response);
-  } catch (err) {
-    setStatus("Request failed: " + err);
-  } finally {
-    input.focus();
-  }
-}
+    function setStatus(text) {
+        document.getElementById("res-text").innerText = text;
+        showLoader(false);
+    }
 
-// 🎤 Voice Input
-function startVoice() {
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = "en-US";
+    function updateFileName() {
+        const fileInput = document.getElementById("file");
+        const display = document.getElementById("file-display");
+        if (fileInput.files.length > 0) {
+            display.innerHTML = `<span style="margin-right:8px; color: var(--accent-color)">📁</span> ${fileInput.files[0].name}`;
+        } else {
+            display.innerHTML = `<span style="margin-right:8px">📄</span> Choose a file to upload...`;
+        }
+    }
 
-  recognition.onresult = function(event) {
-    let text = event.results[0][0].transcript;
-    document.getElementById("cmd").value = text;
-    send();
-  };
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            send();
+        }
+    }
 
-  recognition.start();
-}
+    async function send() {
+        const input = document.getElementById("cmd");
+        const text = input.value.trim();
+        if (!text) {
+            setStatus("Enter a command first.");
+            input.focus();
+            return;
+        }
 
-// 🔊 Voice Output
-function speak(text) {
-  if (!text) return;
-  let speech = new SpeechSynthesisUtterance(text);
-  speech.lang = "en-US";
-  window.speechSynthesis.speak(speech);
-}
+        showLoader(true);
+        vibrate();
 
-async function uploadFile() {
-  const fileInput = document.getElementById("file");
-  if (!fileInput.files.length) {
-    alert("Choose a file first.");
-    return;
-  }
+        try {
+            const res = await fetch("/command?key=" + encodeURIComponent(API_KEY), {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({text})
+            });
+            const data = await res.json();
+            const msg = data.response || data.error || "No response.";
+            setStatus(msg);
+            vibrate();
+            speak(data.response);
+        } catch (err) {
+            setStatus("Request failed: " + err);
+        } finally {
+            input.focus();
+        }
+    }
 
-  const formData = new FormData();
-  formData.append("file", fileInput.files[0]);
+    // 🎤 Voice Input
+    function startVoice() {
+        if (!('webkitSpeechRecognition' in window)) {
+            setStatus("Speech recognition not supported in this browser.");
+            return;
+        }
+        
+        const micBtn = document.getElementById('mic');
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "en-US";
+        
+        recognition.onstart = function() {
+            micBtn.classList.add("recording");
+            setStatus("Listening...");
+        };
 
-  setStatus("Uploading...");
-  vibrate();
+        recognition.onend = function() {
+            micBtn.classList.remove("recording");
+        };
 
-  try {
-    const res = await fetch("/upload", {
-      method: "POST",
-      body: formData
-    });
-    const data = await res.json();
-    alert(data.message || data.error || "No response");
-    setStatus(data.message || data.error || "Done");
-    vibrate();
-  } catch (err) {
-    alert("Upload failed: " + err);
-    setStatus("Upload failed");
-  } finally {
-    document.getElementById("cmd").focus();
-  }
-}
+        recognition.onerror = function(event) {
+            micBtn.classList.remove("recording");
+            setStatus("Speech error: " + event.error);
+        };
 
-window.onload = () => {
-  document.getElementById("cmd").focus();
-};
+        recognition.onresult = function(event) {
+            let text = event.results[0][0].transcript;
+            document.getElementById("cmd").value = text;
+            setTimeout(send, 100);
+        };
+
+        recognition.start();
+    }
+
+    // 🔊 Voice Output
+    function speak(text) {
+        if (!text) return;
+        if ('speechSynthesis' in window) {
+            let speech = new SpeechSynthesisUtterance(text);
+            speech.lang = "en-US";
+            window.speechSynthesis.speak(speech);
+        }
+    }
+
+    async function uploadFile() {
+        const fileInput = document.getElementById("file");
+        if (!fileInput.files.length) {
+            setStatus("Choose a file first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        showLoader(true);
+        vibrate();
+
+        try {
+            const res = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+            setStatus(data.message || data.error || "Done");
+            vibrate();
+        } catch (err) {
+            setStatus("Upload failed: " + err);
+        } finally {
+            document.getElementById("cmd").focus();
+            
+            // Reset file input cleanly
+            fileInput.value = "";
+            updateFileName();
+        }
+    }
+
+    window.onload = () => {
+        document.getElementById("cmd").focus();
+    };
 </script>
 
 </body>
