@@ -62,8 +62,12 @@ def send_command(
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    path = UPLOAD_DIR / file.filename
+async def upload(
+    file: UploadFile = File(...),
+    _: bool = Depends(verify_key),
+):
+    safe_filename = os.path.basename(file.filename)
+    path = UPLOAD_DIR / safe_filename
     content = await file.read()
     with path.open("wb") as f:
         f.write(content)
