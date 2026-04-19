@@ -40,14 +40,9 @@ def verify_key(x_api_key: str = Header(default="")):
 @app.post("/command")
 def send_command(
     cmd: Command,
-    key: str = Query(default=""),
     x_api_key: str = Header(default=""),
     _: bool = Depends(verify_key),
 ):
-    provided_key = x_api_key or key
-    if provided_key != API_KEY:
-        return {"error": "Unauthorized"}
-
     try:
         response = requests.post(
             LOCAL_AGENT_URL,
@@ -58,12 +53,16 @@ def send_command(
         payload = response.json()
         return {"response": payload.get("response", "")}
     except Exception as exc:
-        return {"error": str(exc)}
+        return {"error": "An error occurred"}
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    path = UPLOAD_DIR / file.filename
+async def upload(
+    file: UploadFile = File(...),
+    _: bool = Depends(verify_key)
+):
+    safe_filename = Path(file.filename).name
+    path = UPLOAD_DIR / safe_filename
     content = await file.read()
     with path.open("wb") as f:
         f.write(content)
