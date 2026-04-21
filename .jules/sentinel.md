@@ -1,0 +1,4 @@
+## 2024-05-24 - API Security Refactoring
+**Vulnerability:** Path traversal via unsanitized file upload name (`file.filename`), missing authentication on the `/upload` endpoint, and information disclosure through stack traces in the `/command` endpoint. Also exposed API keys via URL query params (`key`).
+**Learning:** These vulnerabilities expose internal systems and file structures. Path traversal allows writing files to arbitrary locations. Unauthenticated uploads allow unauthorized data ingestion. Query params are often logged, leaking secrets. Unhandled exceptions disclose internal architecture.
+**Prevention:** Always use `Path(file.filename).name` or equivalent to sanitize filenames. Apply authorization checks uniformly (e.g., `Depends(verify_key)`) across all sensitive endpoints. Pass secrets exclusively via headers. Catch exceptions globally and log them securely using dedicated loggers, returning generic error messages to the client.
