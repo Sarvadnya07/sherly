@@ -381,6 +381,7 @@
 
 <script>
     const API_KEY = "sherly123";
+    const API_HEADERS = {"x-api-key": API_KEY};
 
     function toggleTheme() {
         const root = document.documentElement;
@@ -474,13 +475,16 @@
         vibrate();
 
         try {
-            const res = await fetch("/command?key=" + encodeURIComponent(API_KEY), {
+            const res = await fetch("/command", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    ...API_HEADERS,
+                },
                 body: JSON.stringify({text})
             });
             const data = await res.json();
-            const msg = data.response || data.error || "No response.";
+            const msg = data.response || data.error || data.detail || "No response.";
             setStatus(msg);
             vibrate();
             speak(data.response);
@@ -551,10 +555,11 @@
         try {
             const res = await fetch("/upload", {
                 method: "POST",
+                headers: API_HEADERS,
                 body: formData
             });
             const data = await res.json();
-            setStatus(data.message || data.error || "Done");
+            setStatus(data.message || data.error || data.detail || "Done");
             vibrate();
         } catch (err) {
             setStatus("Upload failed: " + err);
