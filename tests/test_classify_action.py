@@ -1,5 +1,5 @@
 import pytest
-from action_manager import classify_action
+from sherly.services.action_manager import classify_action
 
 def test_classify_action_dangerous():
     assert classify_action("delete the folder") == "dangerous"

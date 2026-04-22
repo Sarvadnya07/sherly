@@ -1,5 +1,5 @@
 import pytest
-from action_manager import classify_action, log_action, get_history, undo_last
+from sherly.services.action_manager import classify_action, log_action, get_history, undo_last
 
 def test_classify_action():
     assert classify_action("read file.txt") == "safe"

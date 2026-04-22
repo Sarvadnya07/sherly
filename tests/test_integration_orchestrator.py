@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from core.orchestrator import AgentOrchestrator
-from agents.base_agent import BaseAgent
+from sherly.core.orchestrator import AgentOrchestrator
+from sherly.agents.base_agent import BaseAgent
 
 class MockAgent(BaseAgent):
     def run(self, query: str) -> str:

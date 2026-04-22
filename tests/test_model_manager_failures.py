@@ -1,7 +1,7 @@
 import pytest
 import requests
 from unittest.mock import patch, MagicMock
-from model_manager import ask_model
+from sherly.services.model_manager import ask_model
 
 @patch("requests.post")
 def test_ask_model_timeout_fallback(mock_post):
