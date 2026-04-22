@@ -1,9 +1,8 @@
 """
-Compatibility entry point for the legacy ``src/sherly`` layout.
+Main entry point for the src-based Sherly application.
 
-The active branch uses top-level modules such as ``sherly_ui.app_manager``.
-Keep this launcher so IDE run configs pointing at ``src/sherly/main.py`` still
-start the app correctly.
+This keeps the startup checks from main while preserving the cleaner startup
+logging and dependency handling used during the palette branch work.
 """
 
 from __future__ import annotations
@@ -12,7 +11,6 @@ import os
 import platform
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 
 
 _os = platform.system()
@@ -42,19 +40,28 @@ def _check_dependencies() -> None:
         sys.exit(1)
 
 
-def _add_repo_root_to_path() -> None:
-    repo_root = Path(__file__).resolve().parents[2]
-    repo_root_str = str(repo_root)
-    if repo_root_str not in sys.path:
-        sys.path.insert(0, repo_root_str)
+def _check_hardware() -> None:
+    try:
+        import psutil
+
+        mem = psutil.virtual_memory()
+        total_gb = mem.total / (1024**3)
+        if total_gb < 8.0:
+            print(
+                f"WARNING: Your system has {total_gb:.1f}GB of RAM. "
+                "Running local LLMs effectively requires at least 8GB. "
+                "You may experience performance issues or crashes."
+            )
+    except ImportError:
+        pass
 
 
 if __name__ == "__main__":
     _check_dependencies()
-    _add_repo_root_to_path()
+    _check_hardware()
 
     print(f"[{datetime.now(timezone.utc).isoformat()}] Starting Sherly...")
 
-    from sherly_ui.app_manager import start_app
+    from sherly.ui.app_manager import start_app
 
     start_app()

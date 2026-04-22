@@ -30,6 +30,8 @@ from datetime import datetime, timezone
 from typing import Any, Callable
 
 from runtime_utils import log
+from memory import conn
+import json
 
 # ---------------------------------------------------------------------------
 # 1 ─ ACTION CLASSIFIER
@@ -68,12 +70,12 @@ def classify_action(cmd: str) -> str:
     Returns 'safe', 'confirm', or 'dangerous'.
     Checks dangerous first (highest priority), then confirm, then safe.
     """
-    low = cmd.lower()
-    if any(k in low for k in _DANGEROUS_KEYWORDS):
+    words = set(cmd.lower().replace('.', '').replace(',', '').split())
+    if any(k in words for k in _DANGEROUS_KEYWORDS):
         return "dangerous"
-    if any(k in low for k in _CONFIRM_KEYWORDS):
+    if any(k in words for k in _CONFIRM_KEYWORDS):
         return "confirm"
-    if any(k in low for k in _SAFE_KEYWORDS):
+    if any(k in words for k in _SAFE_KEYWORDS):
         return "safe"
     return "confirm"   # default to confirm for unknown commands
 
@@ -172,10 +174,18 @@ def list_pending() -> str:
 # 3 ─ ACTION HISTORY + UNDO ENGINE
 # ---------------------------------------------------------------------------
 
-_MAX_HISTORY = 5
+def _load_history():
+    pass # No longer needed, DB is live
 
-_history_lock = threading.Lock()
-_action_history: deque[dict] = deque(maxlen=_MAX_HISTORY)
+def _save_history(entry):
+    try:
+        conn.execute(
+            "INSERT INTO action_history (action, action_type, undo_data, undoable, timestamp) VALUES (?, ?, ?, ?, ?)",
+            (entry["action"], entry["type"], json.dumps(entry["undo"]), 1 if entry["undoable"] else 0, entry["ts"])
+        )
+        conn.commit()
+    except Exception as e:
+        log(f"Failed to save history: {e}")
 
 
 def log_action(
@@ -201,47 +211,40 @@ def log_action(
         "undoable": undoable and (action_type not in NON_UNDOABLE),
         "ts":       datetime.now(timezone.utc).isoformat(),
     }
-    with _history_lock:
-        _action_history.appendleft(entry)   # newest first
+    _save_history(entry)
     log(f"[ActionManager] logged: {action}")
 
 
 def get_history() -> str:
     """Return a formatted recent action list for UI display."""
-    with _history_lock:
-        if not _action_history:
-            return "No recent actions."
-        lines = ["📋 Recent actions (newest first):"]
-        for i, entry in enumerate(_action_history, 1):
-            flag = "↩" if entry["undoable"] else "🔒"
-            lines.append(f"  {i}. {flag} {entry['action']}")
-        return "\n".join(lines)
+    cursor = conn.execute("SELECT action, undoable FROM action_history ORDER BY id DESC LIMIT 5")
+    rows = cursor.fetchall()
+    if not rows:
+        return "No recent actions."
+    lines = ["📋 Recent actions (newest first):"]
+    for i, (action, undoable) in enumerate(rows, 1):
+        flag = "↩" if undoable else "🔒"
+        lines.append(f"  {i}. {flag} {action}")
+    return "\n".join(lines)
 
 
 def undo_last() -> str:
     """
     Revert the most recent undoable action from history.
-    Non-undoable actions are skipped with a message.
     """
-    with _history_lock:
-        # Find the first undoable entry
-        undoable_idx = next(
-            (i for i, e in enumerate(_action_history) if e["undoable"]),
-            None,
-        )
-        if undoable_idx is None:
-            return "Nothing to undo — recent actions are irreversible."
+    cursor = conn.execute("SELECT id, action, action_type, undo_data FROM action_history WHERE undoable=1 ORDER BY id DESC LIMIT 1")
+    row = cursor.fetchone()
+    if not row:
+        return "Nothing to undo — recent actions are irreversible."
 
-        entry = _action_history[undoable_idx]
-        # Remove it from history
-        tmp = list(_action_history)
-        tmp.pop(undoable_idx)
-        _action_history.clear()
-        _action_history.extend(tmp)
+    hid, action, action_type, undo_json = row
+    undo_data = json.loads(undo_json)
+    
+    # Remove it from history
+    conn.execute("DELETE FROM action_history WHERE id=?", (hid,))
+    conn.commit()
 
-    undo_data = entry["undo"]
-    action_type = entry["type"]
-    log(f"[ActionManager] undoing: {entry['action']}")
+    log(f"[ActionManager] undoing: {action}")
 
     if action_type == "write_file":
         return _undo_write_file(undo_data)
