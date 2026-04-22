@@ -267,6 +267,15 @@ class SherlyApp:
         self.worker_thread = threading.Thread(target=self.worker.run, daemon=True)
         self.worker_thread.start()
 
+        # Start Ghost Mode & P2P Sync
+        self.ghost_server = GhostModeServer(command_callback=route_command)
+        self.ghost_server.start()
+        
+        import uuid
+        node_id = f"sherly-{platform.node()}-{str(uuid.uuid4())[:4]}"
+        self.p2p_sync = P2PSync(node_id=node_id)
+        self.p2p_sync.start()
+
         # Fix #22: hotkeys via pynput (graceful if not installed)
         if keyboard:
             self.hotkey_thread = threading.Thread(target=self._setup_hotkeys, daemon=True)
@@ -301,6 +310,10 @@ class SherlyApp:
 
     def quit_app(self) -> None:
         log("Shutting down Sherly.")
+        if hasattr(self, 'ghost_server'):
+            self.ghost_server.stop()
+        if hasattr(self, 'p2p_sync'):
+            self.p2p_sync.stop()
         self.worker.stop()
         self.worker_thread.join(timeout=2)
         QCoreApplication.quit()
