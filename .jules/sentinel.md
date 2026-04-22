@@ -1,0 +1,4 @@
+## 2024-04-22 - Path Traversal and Auth Bypass in API
+**Vulnerability:** The `/upload` endpoint lacked authentication and used unsanitized filenames directly in the file path (`UPLOAD_DIR / file.filename`), allowing path traversal. Additionally, `/command` permitted API keys in query parameters and leaked raw exception traces.
+**Learning:** Even internal or utility API endpoints must use uniform authentication dependencies (`Depends(verify_key)`) and validate external input strictly (using `Path().name`) to prevent bypassing controls or writing files outside the designated directory. Exposing exceptions to clients also leaks server structure.
+**Prevention:** Always apply the standard authentication dependency to all sensitive endpoints, sanitize file uploads by extracting just the name `Path(filename).name`, and ensure all endpoints log exceptions internally while returning generic error messages to the client.
