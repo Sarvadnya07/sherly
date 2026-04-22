@@ -195,76 +195,80 @@ def _parse_intent(text: str, ask_model) -> dict:
         is_auto = any(w in text.lower() for w in ["click", "play", "watch", "scroll"])
         return {"query": q, "platform": platform, "action": "autonomous_pilot" if is_auto else "search"}
 
-def run(prompt: str, ask_model) -> str:
-    intent = _parse_intent(prompt, ask_model)
-    action = intent.get("action", "search")
+from agents.base_agent import BaseAgent
 
-    if action == "autonomous_pilot":
-        try:
-            from agents import playwright_agent
-            pilot_result = playwright_agent.run(prompt, ask_model)
-            if "Browser automation failed" not in pilot_result and "Error:" not in pilot_result:
-                return pilot_result
-            # If pilot explicitly fails (e.g. Access Denied), gracefully fallback to native browser string
-            print(f"Fallback initiated due to error: {pilot_result}")
-        except ImportError:
-            pass # fallback if playwright isn't installed
+class BrowserAgent(BaseAgent):
+    def run(self, prompt: str, ask_model) -> str:
+        intent = _parse_intent(prompt, ask_model)
+        action = intent.get("action", "search")
 
-    query = intent.get("query", "").strip() or prompt.replace("search", "").strip()
-    platform = intent.get("platform", "google").lower()
-    domain = intent.get("custom_domain", "").strip()
+        if action == "autonomous_pilot":
+            try:
+                from agents.playwright_agent import PlaywrightAgent
+                pilot_result = PlaywrightAgent().run(prompt, ask_model)
+                if "Browser automation failed" not in pilot_result and "Error:" not in pilot_result:
+                    return pilot_result
+                # If pilot explicitly fails (e.g. Access Denied), gracefully fallback to native browser string
+                print(f"Fallback initiated due to error: {pilot_result}")
+            except ImportError:
+                pass # fallback if playwright isn't installed
 
-    # If the user explicitly asks to open a specific domain result or click the first link
-    if action == "open_first_link":
-        search_query = f"site:{domain} {query}" if domain and query and query.lower() != domain.split(".")[0] else query
-        try:
-            results = search_web(search_query)
-            if results and results[0].get("href"):
-                url = results[0]["href"]
-                webbrowser.open(url)
-                return f"Searched '{query}' and opened '{results[0].get('title', domain or 'top result')}'."
-        except Exception:
-            pass
-        # Fallback to just opening the domain directly if the query was just the domain name
+        query = intent.get("query", "").strip() or prompt.replace("search", "").strip()
+        platform = intent.get("platform", "google").lower()
+        domain = intent.get("custom_domain", "").strip()
+
+        # If the user explicitly asks to open a specific domain result or click the first link
+        if action == "open_first_link":
+            search_query = f"site:{domain} {query}" if domain and query and query.lower() != domain.split(".")[0] else query
+            try:
+                results = search_web(search_query)
+                if results and results[0].get("href"):
+                    url = results[0]["href"]
+                    webbrowser.open(url)
+                    return f"Searched '{query}' and opened '{results[0].get('title', domain or 'top result')}'."
+            except Exception:
+                pass
+            # Fallback to just opening the domain directly if the query was just the domain name
+            if domain:
+                fallback_url = f"https://www.{domain}" if not domain.startswith("http") else domain
+                webbrowser.open(fallback_url)
+                return f"Opened {domain}."
+            else:
+                webbrowser.open(f"https://www.google.com/search?btnI=1&q={urllib.parse.quote_plus(query)}")
+                return f"Opened first hit for '{query}'."
+
+        # Direct integrated search platforms
+        if platform == "youtube":
+            webbrowser.open(_youtube_url(query))
+            return f"Opened YouTube search for '{query}'."
+        elif platform == "reddit":
+            webbrowser.open(_reddit_url(query))
+            return f"Opened Reddit search for '{query}'."
+        elif platform == "wikipedia":
+            webbrowser.open(_wikipedia_url(query))
+            return f"Opened Wikipedia search for '{query}'."
+
+        # General Google Search (handle custom domains if specified but action was search)
         if domain:
-            fallback_url = f"https://www.{domain}" if not domain.startswith("http") else domain
-            webbrowser.open(fallback_url)
-            return f"Opened {domain}."
+            google_query = f"site:{domain} {query}"
+            webbrowser.open(_google_url(google_query))
+            return f"Opened Google domain search for '{query}' on {domain}."
         else:
-            webbrowser.open(f"https://www.google.com/search?btnI=1&q={urllib.parse.quote_plus(query)}")
-            return f"Opened first hit for '{query}'."
+            webbrowser.open(_google_url(query))
+        
+        # Try fetching text summary for general knowledge searches
+        try:
+            results = search_web(query)
+            if results:
+                snippets = "\n".join(f"- {r.get('title', '')}: {r.get('body', '')}" for r in results[:3])
+                summary = ask_model(
+                    f"Summarise these search results in 2 brief sentences:\n{snippets}",
+                    store_history=False,
+                    use_context=False,
+                )
+                return f"Searched Google for '{query}'.\n{summary}"
+        except Exception as e:
+            pass
 
-    # Direct integrated search platforms
-    if platform == "youtube":
-        webbrowser.open(_youtube_url(query))
-        return f"Opened YouTube search for '{query}'."
-    elif platform == "reddit":
-        webbrowser.open(_reddit_url(query))
-        return f"Opened Reddit search for '{query}'."
-    elif platform == "wikipedia":
-        webbrowser.open(_wikipedia_url(query))
-        return f"Opened Wikipedia search for '{query}'."
+        return f"Opened Google search for '{query}'."
 
-    # General Google Search (handle custom domains if specified but action was search)
-    if domain:
-        google_query = f"site:{domain} {query}"
-        webbrowser.open(_google_url(google_query))
-        return f"Opened Google domain search for '{query}' on {domain}."
-    else:
-        webbrowser.open(_google_url(query))
-    
-    # Try fetching text summary for general knowledge searches
-    try:
-        results = search_web(query)
-        if results:
-            snippets = "\n".join(f"- {r.get('title', '')}: {r.get('body', '')}" for r in results[:3])
-            summary = ask_model(
-                f"Summarise these search results in 2 brief sentences:\n{snippets}",
-                store_history=False,
-                use_context=False,
-            )
-            return f"Searched Google for '{query}'.\n{summary}"
-    except Exception as e:
-        pass
-
-    return f"Opened Google search for '{query}'."

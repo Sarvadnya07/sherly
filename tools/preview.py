@@ -70,8 +70,16 @@ def apply_preview(action_id: str) -> str:
 
         backup_file(path)
 
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(new_code)
+        # Atomic Write Strategy: Write to .tmp first, then replace
+        temp_path = f"{path}.tmp_{uuid.uuid4().hex}"
+        try:
+            with open(temp_path, "w", encoding="utf-8") as f:
+                f.write(new_code)
+            os.replace(temp_path, path)
+        except Exception as e:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            raise e
 
         log_action(
             action=f"file_edit {path}",
@@ -83,3 +91,30 @@ def apply_preview(action_id: str) -> str:
 
     files = [os.path.basename(c["file"]) for c in changes]
     return f"Patch applied successfully to: {', '.join(files)}"
+
+def apply_hunk(action_id: str, hunk_index: int) -> str:
+    """
+    Experimental: Apply only a specific change from a multi-file preview.
+    In a real implementation, this would use patch hunk offsets.
+    """
+    changes = preview_store.get(action_id)
+    if not changes or hunk_index >= len(changes):
+        return "Invalid hunk index or preview ID"
+
+    change = changes[hunk_index]
+    path = change["file"]
+    
+    backup_file(path)
+    
+    # Atomic Write
+    temp_path = f"{path}.tmp_{uuid.uuid4().hex}"
+    try:
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(change["new"])
+        os.replace(temp_path, path)
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return f"Failed to apply hunk: {e}"
+        
+    return f"Applied hunk {hunk_index} to {os.path.basename(path)}"

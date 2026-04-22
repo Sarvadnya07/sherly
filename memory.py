@@ -4,6 +4,7 @@ import sqlite3
 conn = sqlite3.connect("sherly_memory.db", check_same_thread=False)
 conn.execute("CREATE TABLE IF NOT EXISTS memory (key TEXT UNIQUE, value TEXT)")
 conn.execute("CREATE TABLE IF NOT EXISTS chat_history (id INTEGER PRIMARY KEY, user TEXT, assistant TEXT)")
+conn.execute("CREATE TABLE IF NOT EXISTS action_history (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT, action_type TEXT, undo_data TEXT, undoable INTEGER, timestamp TEXT)")
 conn.commit()
 
 

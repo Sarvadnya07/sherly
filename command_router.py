@@ -307,255 +307,124 @@ def _set_mode(low: str) -> str | None:
 # Main router
 # ---------------------------------------------------------------------------
 
+from routers.file_router import handle_file_command
+from routers.dev_router import handle_dev_command
+from routers.system_router import handle_system_command
+from core.errors import SherlyError, ActionError, SecurityError
+
 def route_command(text: str) -> str:
-    # ── Pillar 1: INPUT VALIDATION + Fix #8 injection guard ─────────────────
-    valid, cleaned = is_valid_input(text)
-    if not valid:
-        return cleaned
+    try:
+        # ── Pillar 1: INPUT VALIDATION + Fix #8 injection guard ─────────────────
+        valid, cleaned = is_valid_input(text)
+        if not valid:
+            raise SecurityError(cleaned, risk_level="high")
 
-    record_command(cleaned)
-    raw = cleaned
-    low = raw.lower().replace(",", "").replace(".", "").replace("?", "").replace("sherly", "").strip()
+        record_command(cleaned)
+        raw = cleaned
+        low = raw.lower().replace(",", "").replace(".", "").replace("?", "").replace("sherly", "").strip()
 
-    # ── Pillar 5: safety_guard CONFIRMATION REPLY ─────────────────────────
-    confirm_reply = handle_confirmation_reply(low)
-    if confirm_reply is not None:
-        if confirm_reply.startswith("__CONFIRMED__:"):
-            confirmed_cmd = confirm_reply[len("__CONFIRMED__:"):]
-            log(f"[Router] confirmed execution: {confirmed_cmd}")
-            output = safe_execute(lambda: safe_exec(confirmed_cmd), "Failed to run the command.")
-            return _finalize_response(raw, output)
-        return confirm_reply
+        # ── Pillar 5: safety_guard CONFIRMATION REPLY ─────────────────────────
+        confirm_reply = handle_confirmation_reply(low)
+        if confirm_reply is not None:
+            if confirm_reply.startswith("__CONFIRMED__:"):
+                confirmed_cmd = confirm_reply[len("__CONFIRMED__:"):]
+                log(f"[Router] confirmed execution: {confirmed_cmd}")
+                output = safe_execute(lambda: safe_exec(confirmed_cmd), "Failed to run the command.")
+                return _finalize_response(raw, output)
+            return confirm_reply
 
-    # ── System 1: APPROVAL QUEUE — approve <id> ──────────────────────────
-    if low.startswith("approve"):
-        action_id = raw.split(None, 1)[1].strip() if len(raw.split()) > 1 else ""
-        if not action_id:
-            return _finalize_response(raw, "Please provide an action ID. Example: approve abc12345")
-
-        try:
-            from tools.preview import preview_store, apply_preview
-            if action_id in preview_store:
-                result = safe_execute(lambda: apply_preview(action_id), "Failed to apply preview.")
-                
-                # Auto-rerun loop logic
-                try:
-                    from tools.fix_project import LAST_FIX_CONTEXT, apply_last_fix
-                    from tools.executor import run_project
-                    cmd = LAST_FIX_CONTEXT.get("command")
-                    if cmd:
-                        status, output = safe_execute(lambda: run_project(cmd), ("error", "Failed to run command"))
-                        if status == "success":
-                            result += f"\n\n✅ Project re-run successful! System restored."
-                            LAST_FIX_CONTEXT["error"] = None
-                        else:
-                            LAST_FIX_CONTEXT["error"] = output
-                            result += f"\n\n❌ Error persisted during auto re-run:\n{output[:300]}\n\nGenerating subsequent fix attempt..."
-                            retry_preview = safe_execute(lambda: apply_last_fix(ask_model), "Failed to generate secondary fix.")
-                            result += f"\n\n{retry_preview}"
-                except Exception as exc:
-                    log(f"Auto-fix loop failure: {exc}")
-
-                return _finalize_response(raw, result)
-        except Exception:
-            pass
-
-        result = safe_execute(
-            lambda: approve_action(action_id, safe_exec),
-            "Failed to execute approved action."
-        )
-        return _finalize_response(raw, result)
-
-    # ── System 1: APPROVAL QUEUE — cancel <id> ───────────────────────────
-    if low.startswith("cancel"):
-        action_id = raw.split(None, 1)[1].strip() if len(raw.split()) > 1 else ""
-        if action_id:
-            result = safe_execute(lambda: cancel_action(action_id), "Failed to cancel.")
+        # ── System 1: APPROVAL QUEUE / HISTORY / UNDO ──────────────────────────
+        if low.startswith("approve"):
+            action_id = raw.split(None, 1)[1].strip() if len(raw.split()) > 1 else ""
+            if not action_id:
+                return _finalize_response(raw, "Please provide an action ID.")
+            result = safe_execute(lambda: approve_action(action_id, safe_exec), "Failed to execute approved action.")
             return _finalize_response(raw, result)
 
-    # ── System 1: list pending ────────────────────────────────────────────
-    if "pending actions" in low or "pending" in low and "action" in low:
-        return _finalize_response(raw, list_pending())
+        if low.startswith("cancel"):
+            action_id = raw.split(None, 1)[1].strip() if len(raw.split()) > 1 else ""
+            if action_id:
+                result = safe_execute(lambda: cancel_action(action_id), "Failed to cancel.")
+                return _finalize_response(raw, result)
 
-    # ── System 2: UNDO ────────────────────────────────────────────────────
-    if low in {"undo", "undo last"} or low.startswith("undo last"):
-        result = safe_execute(undo_last, "Nothing to undo.")
-        return _finalize_response(raw, result)
+        if "pending actions" in low or ("pending" in low and "action" in low):
+            return _finalize_response(raw, list_pending())
 
-    # ── System 2: ACTION HISTORY ──────────────────────────────────────────
-    if "show history" in low or "action history" in low or "recent actions" in low:
-        return _finalize_response(raw, get_history())
+        if low in {"undo", "undo last"} or low.startswith("undo last"):
+            result = safe_execute(undo_last, "Nothing to undo.")
+            return _finalize_response(raw, result)
 
-    if _phase_at_least("C") and low in {"y", "yes"}:
-        return _record_rating("y")
-    if _phase_at_least("C") and low in {"n", "no"}:
-        return _record_rating("n")
+        if "show history" in low or "action history" in low:
+            return _finalize_response(raw, get_history())
 
-    phase_result = _set_phase(low)
-    if phase_result:
-        return _finalize_response(raw, phase_result)
+        # ── DELEGATION TO SUB-ROUTERS ─────────────────────────────────────────
+        
+        # System commands (diagnostics, model switching)
+        system_res = handle_system_command(low, raw)
+        if system_res: return _finalize_response(raw, system_res)
 
-    if _phase_at_least("B") and len(raw.split()) < 2 and low not in SINGLE_WORD_ALLOW:
-        return "Can you clarify what you mean?"
+        # File commands (read, scan)
+        file_res = handle_file_command(low, raw, ask_model)
+        if file_res: return _finalize_response(raw, file_res)
 
-    if _phase_at_least("C"):
-        _learn_user_preferences(raw, low)
+        # Dev commands (error analysis, fixing)
+        dev_res = handle_dev_command(low, raw, ask_model)
+        if dev_res: return _finalize_response(raw, dev_res)
 
-    if _phase_at_least("B"):
-        quick_replies = {
-            "hi": "Hey.", "hello": "Hello.",
-            "thanks": "You're welcome.", "thank you": "You're welcome.",
-        }
-        if low in quick_replies:
-            return _finalize_response(raw, quick_replies[low])
+        # --- Phase / Mode / Preferences ---
+        phase_res = _set_phase(low)
+        if phase_res: return _finalize_response(raw, phase_res)
 
-    mode_result = _set_mode(low)
-    if mode_result:
-        return _finalize_response(raw, mode_result)
+        mode_res = _set_mode(low)
+        if mode_res: return _finalize_response(raw, mode_res)
 
-    # --- Model switching ---
-    for keyword, model_name in [
-        ("use openai", "openai"), ("switch to openai", "openai"),
-        ("use gemini", "gemini"), ("switch to gemini", "gemini"),
-        ("use groq", "groq"), ("switch to groq", "groq"),
-        ("use local", "local"), ("switch to local", "local"),
-    ]:
-        if keyword in low:
-            return _finalize_response(raw, set_current_model(model_name))
+        # --- Terminal commands ---
+        if "run command" in low or "execute" in low:
+            cmd = _extract_after(raw, "run command") or _extract_after(raw, "execute")
+            if not cmd: return _finalize_response(raw, "Please specify the command to run.")
+            
+            action_level = classify_action(cmd)
+            if action_level == "dangerous":
+                log_action(cmd, "dangerous_blocked", undoable=False)
+                return _finalize_response(raw, "⛔ Blocked: That command is too dangerous.")
+            if action_level == "confirm":
+                prompt = safe_execute(lambda: request_approval(cmd), "Failed to queue approval.")
+                return _finalize_response(raw, prompt)
 
-    # --- Dictation ---
-    if "start dictation" in low:
-        response = safe_execute(
-            lambda: "Dictation captured." if start_dictation() else "No speech captured.",
-            "Failed to start dictation.",
-        )
-        return _finalize_response(raw, response)
+            output = safe_execute(lambda: safe_exec(cmd), "Failed to run command.")
+            log_action(cmd, "terminal_safe", undoable=False)
+            return _finalize_response(raw, output)
 
-    # --- Project execution ---
-    if "run project" in low or "start project" in low:
-        return _finalize_response(raw, _run_project_action())
+        # --- Web Search ---
+        if _needs_web_search(low):
+            speak("Searching the web")
+            results = safe_execute(lambda: search_web(raw), [])
+            if results:
+                context = "\n".join(f"{r.get('title','')}: {r.get('body','')}" for r in results[:3])
+                response = _llm(f"Use this info:\n{context}\n\nQuestion: {raw}")
+                return _finalize_response(raw, response)
 
-    # --- Fix / apply fix ---
-    if "fix my project" in low:
-        speak("Running your project")
-        result = safe_execute(lambda: fix_project(ask_model), "Failed to run project fix workflow.")
-        return _finalize_response(raw, result)
+        # --- Plugins ---
+        _refresh_plugin_tools()
+        plugin_result = safe_execute(lambda: run_tool(low, raw), "")
+        if plugin_result: return _finalize_response(raw, plugin_result)
 
-    if "apply fix" in low:
-        speak("Applying fix")
-        result = safe_execute(lambda: apply_last_fix(ask_model), "Failed to apply project fix.")
-        speak("Re-running project")
-        return _finalize_response(raw, result)
+        # --- LAST RESORT: LLM ---
+        if _phase_at_least("B"):
+            plan = think(raw, ask_model)
+            if any(trigger in low for trigger in ["do this", "execute plan", "automate"]):
+                return _finalize_response(raw, safe_execute(lambda: execute_task(plan, ask_model), "Failed task."))
 
-    # --- Terminal commands — System 1 approval gate + Pillar 4+5 ---
-    if "run command" in low or "execute" in low:
-        cmd = _extract_after(raw, "run command") or _extract_after(raw, "execute")
-        if not cmd:
-            return _finalize_response(raw, "Please specify the command to run.")
+        contextual_prompt = _build_contextual_prompt(raw)
+        agent_result = safe_execute(lambda: run_agent(contextual_prompt, ask_model), "Something went wrong.")
+        return _finalize_response(raw, agent_result)
 
-        # System 1: check if this needs approval before executing
-        action_level = classify_action(cmd)
-        if action_level == "dangerous":
-            log_action(cmd, "dangerous_blocked", undoable=False)
-            return _finalize_response(raw, "⛔ Blocked: That command is too dangerous to execute.")
-        if action_level == "confirm":
-            prompt = safe_execute(lambda: request_approval(cmd), "Failed to queue approval.")
-            return _finalize_response(raw, prompt)
-
-        # SAFE — run immediately through whitelist + safety guard
-        log(f"[Router] safe terminal execution: {cmd}")
-        output = safe_execute(lambda: safe_exec(cmd), "Failed to run the command.")
-        log_action(cmd, "terminal_safe", undoable=False)
-        if _phase_at_least("C") and _looks_like_error(output):
-            fix = _self_heal_command_error(cmd, output)
-            return _finalize_response(raw, f"{output}\n\nSuggested fix:\n{fix}")
-        return _finalize_response(raw, output)
-
-    # --- Code / error tools ---
-    if "explain error" in low or "analyze error" in low:
-        response = safe_execute(lambda: analyze_error(ask_model), "Failed to analyze the error.")
-        return _finalize_response(raw, response)
-
-    if "explain this code" in low or "explain code" in low:
-        response = safe_execute(_explain_clipboard, "Failed to explain clipboard content.")
-        return _finalize_response(raw, response)
-
-    # --- System diagnostics ---
-    if "run diagnostics" in low or "system health" in low:
-        from diagnostics import run_diagnostics
-        results = safe_execute(lambda: run_diagnostics(), "Failed to run diagnostics.")
-        return _finalize_response(raw, f"Diagnostics:\n{json.dumps(results, indent=2)}")
-
-    # --- File tools ---
-    if "open file" in low or "read file" in low:
-        path = _extract_after(raw, "open file") or _extract_after(raw, "read file")
-        if not path:
-            return _finalize_response(raw, "Please specify a file path.")
-        response = safe_execute(lambda: explain_file(path, ask_model), "Failed to open that file.")
-        return _finalize_response(raw, response)
-
-    if "scan project" in low or "analyze project" in low:
-        path = _extract_after(raw, "scan project") or _extract_after(raw, "analyze project")
-        response = safe_execute(lambda: scan_project(path, ask_model), "Failed to scan project.")
-        return _finalize_response(raw, response)
-
-    # --- Screen ---
-    if "what is on my screen" in low or "analyze screen" in low:
-        response = safe_execute(analyze_screen, "Failed to analyze the screen.")
-        return _finalize_response(raw, response)
-
-    # --- System shortcuts Fix #9 + #21 ---
-    system_result = safe_execute(lambda: _run_system_command(low), "")
-    if system_result:
-        return _finalize_response(raw, system_result)
-
-    # --- Plugins ---
-    _refresh_plugin_tools()
-    plugin_result = safe_execute(lambda: run_tool(low, raw), "")
-    if plugin_result:
-        return _finalize_response(raw, plugin_result)
-
-    # --- Memory ---
-    if "remember" in low:
-        parts = raw.replace("remember", "", 1).split("is", 1)
-        if len(parts) == 2:
-            return _finalize_response(raw, remember(parts[0].strip(), parts[1].strip()))
-        return _finalize_response(raw, "Please phrase it as: 'remember [key] is [value]'")
-
-    if low.startswith("what is"):
-        key = raw.replace("what is", "", 1).strip()
-        stored = recall(key)
-        if stored != "I don't know that yet.":
-            return _finalize_response(raw, stored)
-
-    # --- Web search ---
-    if _needs_web_search(low):
-        speak("Searching the web")
-        results = safe_execute(lambda: search_web(raw), [])
-        if results:
-            context = "\n".join(f"{r.get('title','')}: {r.get('body','')}" for r in results[:3])
-            response = _llm(
-                f"{_style_instruction()}\nUse only this information:\n\n{context}\n\nQuestion: {raw}",
-                store_history=False,
-                use_context=False,
-            )
-            return _finalize_response(raw, response)
-        return _finalize_response(raw, "Network unavailable or no results found.")   # Fix #13
-
-    # --- Fix #24: structured planner before raw LLM ---
-    if _phase_at_least("B"):
-        plan = think(raw, ask_model)
-        if any(trigger in low for trigger in ["do this", "step by step", "execute plan", "automate", "workflow"]):
-            task_result = safe_execute(lambda: execute_task(plan, ask_model), "Failed to execute planned steps.")
-            return _finalize_response(raw, task_result)
-
-    # --- LAST RESORT: LLM (Fix #24 — only reaches here if nothing else matched) ---
-    contextual_prompt = _build_contextual_prompt(raw)
-    agent_result = safe_execute(
-        lambda: run_agent(contextual_prompt, ask_model),
-        "Something went wrong. Please try again.",   # Fix #23
-    )
-    return _finalize_response(raw, agent_result)
+    except SherlyError as se:
+        log(f"[RouterError] {se.code}: {se.message}")
+        return f"❌ {se.message}"
+    except Exception as e:
+        log(f"[RouterCritical] {e}")
+        return "I encountered an unexpected internal error."
 
 
 # Fix #19 – future multi-user support hook (placeholder)

@@ -201,6 +201,12 @@ urllib3==2.6.3
     # via requests
 uvicorn==0.45.0
     # via -r requirements.in
+chromadb==0.4.24
+cryptography==42.0.5
+pytest-mock==3.14.0
+pytest-asyncio==0.24.0
+pygetwindow==0.0.9
+keyboard==0.13.5
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

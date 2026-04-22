@@ -312,3 +312,37 @@
 2026-04-22 19:34:12,528 ERROR [MainThread] Error: test error
 2026-04-22 19:34:12,644 WARNING [MainThread] timeout_call: slow exceeded 0.1s
 2026-04-22 19:34:12,645 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-23 01:44:38,781 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 01:44:38,787 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 01:44:38,795 ERROR [MainThread] Error: test error
+2026-04-23 01:44:38,905 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-23 01:44:38,907 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-23 01:44:57,672 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 01:44:57,678 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 01:44:57,687 ERROR [MainThread] Error: test error
+2026-04-23 01:44:57,794 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-23 01:44:57,796 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-23 01:57:33,978 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 01:57:33,983 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 01:57:34,251 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-23 01:57:34,253 INFO [MainThread] LLM timeout for model=openai
+2026-04-23 01:57:34,255 INFO [MainThread] Model error: 500 Server Error
+2026-04-23 01:57:34,256 ERROR [MainThread] Error: test error
+2026-04-23 01:57:34,357 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-23 01:57:34,358 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-23 01:57:48,930 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 01:57:48,934 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 01:57:48,943 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-23 01:57:48,945 INFO [MainThread] LLM timeout for model=openai
+2026-04-23 01:57:48,947 INFO [MainThread] Model error: 500 Server Error
+2026-04-23 01:57:48,948 ERROR [MainThread] Error: test error
+2026-04-23 01:57:49,060 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-23 01:57:49,061 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-23 02:31:30,683 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 02:31:30,688 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 02:31:30,696 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-23 02:31:30,698 INFO [MainThread] LLM timeout for model=openai
+2026-04-23 02:31:30,701 INFO [MainThread] Model error: 500 Server Error
+2026-04-23 02:31:30,702 ERROR [MainThread] Error: test error
+2026-04-23 02:31:30,818 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-23 02:31:30,819 WARNING [MainThread] [TaskQueue] overloaded — task rejected

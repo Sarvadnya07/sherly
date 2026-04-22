@@ -1,152 +1,147 @@
-# 🎙️ Sherly AI: Voice-First Local Dev Copilot
+# 🎙️ Sherly AI: Voice-First Local Dev Orchestrator
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Platform Support](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#)
-[![Aesthetics: Premium](https://img.shields.io/badge/Aesthetics-Glassmorphism-purple.svg)](#)
+[![Platform: Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#)
+[![SOC2 Ready](https://img.shields.io/badge/Security-SOC2%20Ready-green.svg)](#)
+[![Aesthetics: Premium](https://img.shields.io/badge/UI-Premium%20Glassmorphism-purple.svg)](#)
 
-**Sherly AI** is a professional-grade, desktop-native developer assistant designed for the modern era of high-autonomy coding. By blending voice-controlled execution with a strict deterministic safety layer, Sherly empowers developers to manage, debug, and optimize their projects hands-free, without sacrificing control or security.
+**Sherly AI** is a professional-grade, desktop-native developer assistant designed for the era of high-autonomy coding. By blending low-latency voice control with a deterministic safety layer, Sherly empowers engineers to manage, debug, and optimize their projects hands-free, without sacrificing security or machine integrity.
 
 ---
 
 ## 🌟 Overview
-Sherly transforms the developer experience by moving beyond simple chat interfaces. It acts as an **orchestrator** of your local environment—executing terminal commands, analyzing screens, applying multi-file code patches, and self-healing project errors—all while maintaining a human-in-the-loop approval workflow.
 
-### 💎 Why Sherly?
-- **Voice-Native**: Integrated `faster-whisper` ensures low-latency, high-accuracy voice commands even in noisy environments.
-- **Safety First**: A 3-tier classification system (SAFE/CONFIRM/DANGEROUS) protects your machine from destructive AI experiments.
-- **Deterministic Routing**: Known shortcuts execute instantly without LLM involvement, reducing latency and cost.
-- **Total Reversibility**: A built-in Undo Engine lets you revert file writes and system changes with a single word.
+Sherly is not just another chatbot; it is an **orchestrator** of your local development environment. It executes terminal commands, performs multi-monitor visual analysis, applies semantic code patches, and initiates autonomous self-healing loops—all through a strictly controlled human-in-the-loop workflow.
+
+### 💎 Unique Selling Points (USP)
+- **Voice-Native Execution**: Powered by `faster-whisper` for sub-second intent recognition.
+- **Hardware-Aware Intelligence**: Automatically scales models based on available system RAM/VRAM.
+- **Deterministic Routing**: Zero-latency execution for known tasks without unnecessary LLM involvement.
+- **Atomic Undo Engine**: Persistent SQLite-backed history allows full reversibility of every file change.
+- **Secure by Design**: Integrated sandbox execution and SOC2-compliant log sanitization.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Core Features
 
 ### 🛡️ Human-in-the-Loop Safety
-Sherly categorizes every intent before execution:
-- **SAFE**: Information retrieval (e.g., "explain this file") runs immediately.
-- **CONFIRM**: System modifications (e.g., "install dependencies") require distinct user approval.
-- **DANGEROUS**: High-risk commands are blocked by default or require high-level overrides.
+Sherly implements a 3-tier intent firewall to protect your system:
+- **SAFE**: Read-only tasks (e.g., "Explain this file") run instantly.
+- **CONFIRM**: Modifications (e.g., "Install dependencies") require explicit user approval.
+- **DANGEROUS**: High-risk actions are blocked or routed through a containerized sandbox.
 
-### 📂 Git-Style Preview & Patching
-Before any code modification, Sherly generates a structured preview:
-- **Visual Diffs**: See exact line-level additions and removals.
-- **Confidence Scoring**: Real-time introspection on the probable success of a fix.
-- **Atomic Application**: Apply complex, multi-file fixes with `approve <id>`.
-- **Auto-Backups**: Every change is backed up, ensuring you can always roll back.
+### 📂 Semantic Patching & Preview
+Before applying any change, Sherly provides:
+- **Interactive Diff Previews**: Hunk-level approval support for surgical code modifications.
+- **Confidence Scoring**: Real-time probability of fix success based on error analysis.
+- **Automatic Backups**: Every write is preceded by a snapshot for instant recovery.
 
-### 🔄 Self-Healing Debug Loop
-When a project fails, Sherly initiates an autonomous recovery cycle:
+### 🔄 Autonomous Self-Healing
+When a project fails, Sherly initiates a recovery cycle:
 1. **Detection**: Captures runtime errors and stack traces.
-2. **Analysis**: Correlates errors with the codebase to identify the root cause.
-3. **Proposal**: Generates a corrective patch with a success probability score.
-4. **Validation**: Re-runs the project after approval to ensure the fix sticks.
+2. **Analysis**: Correlates errors with the codebase via ChromaDB-backed RAG.
+3. **Proposal**: Generates a corrective patch with a documented rationale.
+4. **Validation**: Re-runs the project to ensure the fix is successful.
 
-### 🧠 Advanced Contextual Memory
-Sherly tracks your project's state across sessions:
-- **Conversation Context**: Keeps track of current tasks and recent discussions.
-- **Preference Persistence**: Remembers your preferred editor, language, and project paths.
-- **Knowledge Brain**: Stores and recalls custom snippets or configuration keys.
+### 🧠 Advanced RAG Memory
+Utilizes **ChromaDB** for deep repository indexing, allowing Sherly to provide architectural insights that simple chat history cannot.
 
 ---
 
 ## 🏗️ Architecture
-Sherly is built on a modular "Pillar" architecture designed for reliability and extensibility.
+
+Sherly utilizes a modular "Sub-Router" architecture to ensure maintainability and performance.
 
 ```mermaid
 graph TD
     A[Voice/Text Input] --> B[Input Validator]
     B --> C{Intent Router}
-    C -->|Shortcut| D[System Execution]
+    C -->|Deterministic| D[System Sub-Router]
     C -->|Complex Task| E[Model Manager]
-    E --> F[Planning Engine]
-    F --> G[Action Manager]
-    G -->|Approval Gate| H[Tool Registry]
-    H --> I[Preview Engine]
-    I --> J[Execution Layer]
-    J --> K[Undo Engine]
-    K --> L[Result Feedback]
+    E --> F[Agent Orchestrator]
+    F --> G[Specialized Agents]
+    G -->|Result| H[Action Manager]
+    H -->|Approval| I[Execution Sandbox]
+    I --> J[Undo Engine]
+    J --> K[Telemetry/Feedback]
 ```
 
 ---
 
 ## 🛠️ Tech Stack
-- **Core**: Python 3.10+, PySide6 (UI), FastAPI (Remote Interface)
-- **AI/ML**: Ollama (Local), Gemini/OpenAI/Groq (Cloud), Faster-Whisper (STT), Pyttsx3 (TTS)
-- **Utilities**: `diff-lib` (Patching), `MSS` (Vision), `DuckDuckGo` (Search), `ntfy` (Notifications)
 
----
-
-## 📂 Folder Structure
-```text
-├── agents/               # Specialized AI agents (Browser, System, Coder)
-├── core/                 # Async task queue and worker engines
-├── sherly_ui/            # PySide6 desktop interface and tray integration
-├── tools/                # Extensible toolset (STT, TTS, Preview, Fix engine)
-├── action_manager.py     # Approval queue and Undo/Redo logic
-├── command_router.py     # Deterministic and LLM-based intent routing
-├── input_validator.py    # Prompt injection and safety filtering
-├── model_manager.py      # LLM orchestration and prompt engineering
-├── runtime_utils.py      # Safe execution and thread-safe logging
-└── requirements.txt      # Project dependencies
-```
+- **UI Framework**: PySide6 (Premium Glassmorphism Design)
+- **Inference Engines**: Ollama (Local), Gemini/OpenAI/Groq (Cloud Fallbacks)
+- **Voice/STT**: Faster-Whisper (Int8 Quantized)
+- **Vector DB**: ChromaDB (Persistent Semantic Memory)
+- **Security**: Fernet Encryption & Regex-based Log Sanitization
+- **Network**: FastAPI (Multi-user Remote Gateway)
 
 ---
 
 ## ⚙️ Installation
 
 ### Prerequisites
-- Python 3.10 or higher
-- [Ollama](https://ollama.ai/) (For local LLM support)
-- Microphone access (For voice features)
+- Python 3.10+
+- [Ollama](https://ollama.ai/) (For local LLM execution)
+- 8GB+ RAM recommended (Sherly scales automatically to lower RAM)
 
-### Setup
+### Step-by-Step Setup
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/yourusername/sherly.git
    cd sherly
    ```
-2. **Install dependencies**:
+2. **Setup Virtual Environment**:
    ```bash
-   pip install -r requirements.txt
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
    ```
-3. **Initialize Configuration**:
-   Create a `config.json` in the root directory (or use the UI to configure models).
-4. **Launch Sherly**:
+3. **Install Dependencies**:
+   ```bash
+   pip install .
+   ```
+4. **Initialize Environment**:
+   Copy `.env.example` to `.env` and add your cloud API keys (optional).
+5. **Launch**:
    ```bash
    python main.py
    ```
 
 ---
 
-## 📖 Usage Guide
+## 📂 Folder Structure
 
-### Voice Commands
-- **Debugging**: *"Sherly, fix my project"* (Triggers the self-healing loop).
-- **Execution**: *"Run my project"* or *"Run command pip install requests"*.
-- **Code Insight**: *"Explain this code"* (Analyzes the current clipboard content).
-- **Vision**: *"What is on my screen?"* (Triggers OCR and visual analysis).
-
-### Control & Admin
-- **Approval**: `approve <id>` (Executes a pending action).
-- **Undo**: `undo last action` (Reverts the most recent file change).
-- **Modes**: `switch to dev mode` (Increases technical verbosity and depth).
+```text
+├── agents/               # Specialized AI agents (Coder, System, Browser)
+├── core/                 # Core engines (RAG, Sandbox, Encryption, Sanitizer)
+├── routers/              # Domain-specific sub-routers (File, Dev, System)
+├── sherly_ui/            # PySide6 desktop interface and assets
+├── tools/                # Extensible toolset (STT, TTS, Screen Analysis)
+├── tests/                # Comprehensive Pytest suites
+├── action_manager.py     # Persistent approval queue and history
+├── command_router.py     # Master intent orchestrator
+├── model_manager.py      # Hardware-aware LLM routing
+└── pyproject.toml        # Modern dependency management
+```
 
 ---
 
-## 🔐 Security & Privacy
-- **Local-First**: By default, Sherly uses local models via Ollama, keeping your code off public servers.
-- **Safety Guards**: All terminal commands pass through a safe-execution whitelist.
-- **Approval Gates**: Critical actions (file writes, deletes, network calls) expire and require explicit tokens.
+## 🔐 Security Considerations
+- **Log Sanitization**: Every telemetry log passes through `core/sanitizer.py` to strip PII and secrets.
+- **At-Rest Encryption**: Sensitive configuration and history are encrypted using `core/encryption.py`.
+- **Sandbox Execution**: High-risk tasks are executed in an isolated temporary environment.
 
 ---
 
 ## 🤝 Contributing
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to submit pull requests and report issues.
+We welcome contributions! Please follow our [CONTRIBUTING.md](CONTRIBUTING.md) and ensure all PRs pass the existing `pytest` suite.
+
+---
 
 ## 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## ✍️ Author
-Designed and maintained by **[Your Name/Organization]**.
-Dedicated to making AI automation safe, fast, and accessible.
+Designed for the next generation of high-autonomy software engineering.

@@ -104,109 +104,115 @@ def extract_json(raw: str) -> dict:
             pass
     return {}
 
-def run(prompt: str, ask_model) -> str:
-    # 1. Ask LLM for the starting URL
-    url_raw = ask_model(_URL_PROMPT.format(goal=prompt), store_history=False, use_context=False)
-    starting_url = url_raw.strip().split()[0]
-    if not starting_url.startswith("http"):
-        starting_url = "https://www.google.com"
+from agents.base_agent import BaseAgent
 
-    # Start the robust browser session
-    try:
-        if 'sync_playwright' not in globals():
-            return "Error: Playwright is not properly installed or imported."
-            
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            context = browser.new_context(viewport={"width": 1280, "height": 800})
-            page = context.new_page()
+class PlaywrightAgent(BaseAgent):
+    def run(self, prompt: str, ask_model=None) -> str:
+        if not ask_model:
+            return "Error: no model provided."
+        # 1. Ask LLM for the starting URL
+        url_raw = ask_model(_URL_PROMPT.format(goal=prompt), store_history=False, use_context=False)
+        starting_url = url_raw.strip().split()[0]
+        if not starting_url.startswith("http"):
+            starting_url = "https://www.google.com"
 
-            try:
-                page.goto(starting_url, timeout=15000)
-                page.wait_for_load_state("networkidle", timeout=10000)
-            except Exception:
-                pass # ignore timeouts and proceed
-
-        max_steps = 10
-        result = "Max steps reached without finishing."
-
-        for step in range(max_steps):
-            
-            # Allow page to settle completely before scraping interactive elements
-            page.wait_for_timeout(3000)
-
-            # Inject JS to label elements and get data
-            elements = []
-            try:
-                elements = page.evaluate(_INJECT_JS)
-            except Exception as e:
-                print(f"Error evaluating JS: {e}")
+        # Start the robust browser session
+        try:
+            if 'sync_playwright' not in globals():
+                return "Error: Playwright is not properly installed or imported."
                 
-            # Format elements for LLM
-            elem_text = ""
-            for el in elements:
-                desc = f"Tag: {el['tag']}"
-                if el['text']: desc += f", Text: '{el['text']}'"
-                if el['type']: desc += f", Type: {el['type']}"
-                elem_text += f"[ID: {el['id']}] {desc}\n"
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=False)
+                context = browser.new_context(viewport={"width": 1280, "height": 800})
+                page = context.new_page()
 
-            if not elem_text:
-                elem_text = "No interactive elements visible."
+                try:
+                    page.goto(starting_url, timeout=15000)
+                    page.wait_for_load_state("networkidle", timeout=10000)
+                except Exception:
+                    pass # ignore timeouts and proceed
 
-            # Construct the current state prompt
-            state_prompt = _AGENT_PROMPT.format(
-                goal=prompt,
-                url=page.url,
-                title=page.title(),
-                elements=elem_text
-            )
+            max_steps = 10
+            result = "Max steps reached without finishing."
 
-            # Get action from LLM
-            raw_response = ask_model(state_prompt, store_history=False, use_context=False)
-            action_json = extract_json(raw_response)
+            for step in range(max_steps):
+                
+                # Allow page to settle completely before scraping interactive elements
+                page.wait_for_timeout(3000)
 
-            if not action_json:
-                print(f"[Browser Agent] Invalid action received: {raw_response}")
-                # Try scrolling down if stuck
-                action_json = {"action": "SCROLL_DOWN"}
-
-            act = action_json.get("action", "")
-            
-            try:
-                if act == "DONE":
-                    result = action_json.get("result", "Finished the task.")
-                    break
-                elif act == "CLICK":
-                    target_id = action_json.get("id")
-                    page.evaluate(f"document.querySelector('[data-sherly-id=\"{target_id}\"]').click()")
-                    # page.wait_for_load_state("networkidle", timeout=5000)
-                elif act == "TYPE":
-                    target_id = action_json.get("id")
-                    text_to_type = action_json.get("text", "")
+                # Inject JS to label elements and get data
+                elements = []
+                try:
+                    elements = page.evaluate(_INJECT_JS)
+                except Exception as e:
+                    print(f"Error evaluating JS: {e}")
                     
-                    # Need to click into it, then fill
-                    # Using evaluate since direct Playwright dispatch might fail if DOM changed slightly
-                    selector = f"[data-sherly-id=\"{target_id}\"]"
-                    page.locator(selector).fill(text_to_type)
-                    page.locator(selector).press("Enter")
-                elif act == "SCROLL_DOWN":
-                    page.evaluate("window.scrollBy(0, window.innerHeight * 0.8)")
-                elif act == "SCROLL_UP":
-                    page.evaluate("window.scrollBy(0, -window.innerHeight * 0.8)")
-                elif act == "GO_BACK":
-                    page.go_back()
-                else:
-                    action_json = {"action": "SCROLL_DOWN"}
-            except Exception as e:
-                print(f"[Browser Agent] Failed action {act}: {e}")
-                
-            page.wait_for_timeout(2000)
+                # Format elements for LLM
+                elem_text = ""
+                for el in elements:
+                    desc = f"Tag: {el['tag']}"
+                    if el['text']: desc += f", Text: '{el['text']}'"
+                    if el['type']: desc += f", Type: {el['type']}"
+                    elem_text += f"[ID: {el['id']}] {desc}\n"
 
-        browser.close()
-        return f"Browser Automation complete: {result}"
-        
-    except Exception as e:
-        import traceback
-        trace = traceback.format_exc()
-        print(f"Playwright Critical Error:\n{trace}")
-        return f"Browser automation failed: {str(e)}"
+                if not elem_text:
+                    elem_text = "No interactive elements visible."
+
+                # Construct the current state prompt
+                state_prompt = _AGENT_PROMPT.format(
+                    goal=prompt,
+                    url=page.url,
+                    title=page.title(),
+                    elements=elem_text
+                )
+
+                # Get action from LLM
+                raw_response = ask_model(state_prompt, store_history=False, use_context=False)
+                action_json = extract_json(raw_response)
+
+                if not action_json:
+                    print(f"[Browser Agent] Invalid action received: {raw_response}")
+                    # Try scrolling down if stuck
+                    action_json = {"action": "SCROLL_DOWN"}
+
+                act = action_json.get("action", "")
+                
+                try:
+                    if act == "DONE":
+                        result = action_json.get("result", "Finished the task.")
+                        break
+                    elif act == "CLICK":
+                        target_id = action_json.get("id")
+                        page.evaluate(f"document.querySelector('[data-sherly-id=\"{target_id}\"]').click()")
+                        # page.wait_for_load_state("networkidle", timeout=5000)
+                    elif act == "TYPE":
+                        target_id = action_json.get("id")
+                        text_to_type = action_json.get("text", "")
+                        
+                        # Need to click into it, then fill
+                        # Using evaluate since direct Playwright dispatch might fail if DOM changed slightly
+                        selector = f"[data-sherly-id=\"{target_id}\"]"
+                        page.locator(selector).fill(text_to_type)
+                        page.locator(selector).press("Enter")
+                    elif act == "SCROLL_DOWN":
+                        page.evaluate("window.scrollBy(0, window.innerHeight * 0.8)")
+                    elif act == "SCROLL_UP":
+                        page.evaluate("window.scrollBy(0, -window.innerHeight * 0.8)")
+                    elif act == "GO_BACK":
+                        page.go_back()
+                    else:
+                        action_json = {"action": "SCROLL_DOWN"}
+                except Exception as e:
+                    print(f"[Browser Agent] Failed action {act}: {e}")
+                    
+                page.wait_for_timeout(2000)
+
+            browser.close()
+            return f"Browser Automation complete: {result}"
+            
+        except Exception as e:
+            import traceback
+            trace = traceback.format_exc()
+            print(f"Playwright Critical Error:\n{trace}")
+            return f"Browser automation failed: {str(e)}"
+

@@ -17,3 +17,10 @@ uvicorn
 pynput
 python-dotenv
 psutil
+chromadb
+cryptography
+pytest
+pytest-mock
+pytest-asyncio
+pygetwindow
+keyboard

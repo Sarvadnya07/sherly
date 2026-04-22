@@ -11,6 +11,16 @@ DEFAULT_CONFIG = {
         "groq": "YOUR_GROQ_KEY",
     },
     "plugins": {},
+    "telemetry_enabled": False,
+    "db_config": {
+        "provider": "sqlite", # Or "postgresql" for scaling
+        "url": "sherly_history.db"
+    },
+    "chroma_config": {
+        "mode": "local", # Or "server" for scaling
+        "host": "localhost",
+        "port": 8000
+    }
 }
 
 

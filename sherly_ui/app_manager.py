@@ -204,6 +204,12 @@ class SherlyApp:
         instance = QApplication.instance()
         self.app: QApplication = instance if isinstance(instance, QApplication) else QApplication(sys.argv)
 
+        # Apply QSS
+        qss_path = Path("sherly_ui/assets/styles.qss")
+        if qss_path.exists():
+            with open(qss_path, "r", encoding="utf-8") as f:
+                self.app.setStyleSheet(f.read())
+
         # Single-instance guard
         self.instance_server = QTcpServer()
         if not self.instance_server.listen(port=49152):

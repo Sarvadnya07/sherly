@@ -40,49 +40,53 @@ def _parse_actions(text: str, ask_model):
     except Exception:
         return []
 
-def run(prompt: str, ask_model=None) -> str:
-    if not ask_model:
-        return run_command(prompt)
-        
-    actions = _parse_actions(prompt, ask_model)
-    if not actions:
-        return run_command(prompt)
-        
-    executed = []
-    
-    for act in actions:
-        try:
-            a_type = act.get("action")
-            if a_type == "open_app":
-                app = act.get("app", "")
-                open_app(app)
-                executed.append(f"Opened {app}")
-            elif a_type == "type_text":
-                text = act.get("text", "")
-                type_text(text)
-                executed.append(f"Typed '{text[:20]}...'")
-            elif a_type == "press_key":
-                key = act.get("key", "")
-                pyautogui.press(key)
-                executed.append(f"Pressed {key}")
-            elif a_type == "media_control":
-                cmd = act.get("command", "")
-                pyautogui.press(cmd)
-                executed.append(f"Media command: {cmd}")
-            elif a_type == "hotkey":
-                keys = act.get("keys", [])
-                if keys:
-                    pyautogui.hotkey(*keys)
-                    executed.append(f"Hotkey {'+'.join(keys)}")
-            elif a_type == "wait":
-                sec = act.get("seconds", 1)
-                time.sleep(float(sec))
-                executed.append(f"Waited {sec}s")
-            elif a_type == "run_command":
-                cmd = act.get("cmd", "")
-                res = run_command(cmd)
-                executed.append(f"Ran '{cmd}'")
-        except Exception as e:
-            executed.append(f"Failed {act}: {e}")
+from agents.base_agent import BaseAgent
+
+class SystemAgent(BaseAgent):
+    def run(self, prompt: str, ask_model=None) -> str:
+        if not ask_model:
+            return run_command(prompt)
             
-    return "\n".join(executed) if executed else "No valid actions performed."
+        actions = _parse_actions(prompt, ask_model)
+        if not actions:
+            return run_command(prompt)
+            
+        executed = []
+        
+        for act in actions:
+            try:
+                a_type = act.get("action")
+                if a_type == "open_app":
+                    app = act.get("app", "")
+                    open_app(app)
+                    executed.append(f"Opened {app}")
+                elif a_type == "type_text":
+                    text = act.get("text", "")
+                    type_text(text)
+                    executed.append(f"Typed '{text[:20]}...'")
+                elif a_type == "press_key":
+                    key = act.get("key", "")
+                    pyautogui.press(key)
+                    executed.append(f"Pressed {key}")
+                elif a_type == "media_control":
+                    cmd = act.get("command", "")
+                    pyautogui.press(cmd)
+                    executed.append(f"Media command: {cmd}")
+                elif a_type == "hotkey":
+                    keys = act.get("keys", [])
+                    if keys:
+                        pyautogui.hotkey(*keys)
+                        executed.append(f"Hotkey {'+'.join(keys)}")
+                elif a_type == "wait":
+                    sec = act.get("seconds", 1)
+                    time.sleep(float(sec))
+                    executed.append(f"Waited {sec}s")
+                elif a_type == "run_command":
+                    cmd = act.get("cmd", "")
+                    res = run_command(cmd)
+                    executed.append(f"Ran '{cmd}'")
+            except Exception as e:
+                executed.append(f"Failed {act}: {e}")
+                
+        return "\n".join(executed) if executed else "No valid actions performed."
+
