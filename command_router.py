@@ -480,6 +480,12 @@ def route_command(text: str) -> str:
         response = safe_execute(_explain_clipboard, "Failed to explain clipboard content.")
         return _finalize_response(raw, response)
 
+    # --- System diagnostics ---
+    if "run diagnostics" in low or "system health" in low:
+        from diagnostics import run_diagnostics
+        results = safe_execute(lambda: run_diagnostics(), "Failed to run diagnostics.")
+        return _finalize_response(raw, f"Diagnostics:\n{json.dumps(results, indent=2)}")
+
     # --- File tools ---
     if "open file" in low or "read file" in low:
         path = _extract_after(raw, "open file") or _extract_after(raw, "read file")

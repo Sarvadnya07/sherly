@@ -57,7 +57,16 @@ def set_current_model(model):
     return f"Model switched to {model}"
 
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def get_api_key(model):
+    env_key_name = f"{model.upper()}_API_KEY"
+    env_key = os.environ.get(env_key_name)
+    if env_key and env_key != f"YOUR_{model.upper()}_KEY":
+        return env_key
     return load_config().get("api_keys", {}).get(model)
 
 

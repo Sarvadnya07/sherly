@@ -68,12 +68,12 @@ def classify_action(cmd: str) -> str:
     Returns 'safe', 'confirm', or 'dangerous'.
     Checks dangerous first (highest priority), then confirm, then safe.
     """
-    low = cmd.lower()
-    if any(k in low for k in _DANGEROUS_KEYWORDS):
+    words = set(cmd.lower().replace('.', '').replace(',', '').split())
+    if any(k in words for k in _DANGEROUS_KEYWORDS):
         return "dangerous"
-    if any(k in low for k in _CONFIRM_KEYWORDS):
+    if any(k in words for k in _CONFIRM_KEYWORDS):
         return "confirm"
-    if any(k in low for k in _SAFE_KEYWORDS):
+    if any(k in words for k in _SAFE_KEYWORDS):
         return "safe"
     return "confirm"   # default to confirm for unknown commands
 
@@ -173,9 +173,29 @@ def list_pending() -> str:
 # ---------------------------------------------------------------------------
 
 _MAX_HISTORY = 5
-
+_HISTORY_FILE = "action_history.json"
 _history_lock = threading.Lock()
-_action_history: deque[dict] = deque(maxlen=_MAX_HISTORY)
+_action_history: list[dict] = []
+
+def _load_history():
+    global _action_history
+    if os.path.exists(_HISTORY_FILE):
+        try:
+            import json
+            with open(_HISTORY_FILE, "r", encoding="utf-8") as f:
+                _action_history = json.load(f)
+        except Exception:
+            _action_history = []
+
+def _save_history():
+    try:
+        import json
+        with open(_HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(_action_history, f, indent=4)
+    except Exception as e:
+        log(f"Failed to save history: {e}")
+
+_load_history()
 
 
 def log_action(
@@ -202,7 +222,10 @@ def log_action(
         "ts":       datetime.now(timezone.utc).isoformat(),
     }
     with _history_lock:
-        _action_history.appendleft(entry)   # newest first
+        _action_history.insert(0, entry)   # newest first
+        if len(_action_history) > _MAX_HISTORY:
+            _action_history.pop()
+        _save_history()
     log(f"[ActionManager] logged: {action}")
 
 
@@ -234,10 +257,8 @@ def undo_last() -> str:
 
         entry = _action_history[undoable_idx]
         # Remove it from history
-        tmp = list(_action_history)
-        tmp.pop(undoable_idx)
-        _action_history.clear()
-        _action_history.extend(tmp)
+        _action_history.pop(undoable_idx)
+        _save_history()
 
     undo_data = entry["undo"]
     action_type = entry["type"]

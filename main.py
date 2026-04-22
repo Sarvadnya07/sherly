@@ -45,9 +45,23 @@ def _check_dependencies() -> None:
         print(f"   pip install {' '.join(missing)}")
         sys.exit(1)
 
+def _check_hardware() -> None:
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        total_gb = mem.total / (1024**3)
+        if total_gb < 8.0:
+            print(f"⚠️  WARNING: Your system has {total_gb:.1f}GB of RAM. "
+                  "Running local LLMs effectively requires at least 8GB. "
+                  "You may experience performance issues or crashes.")
+    except ImportError:
+        pass
+
+
 
 if __name__ == "__main__":
     _check_dependencies()
+    _check_hardware()
 
     # Fix #17: UTC timestamp on startup log
     print(f"[{datetime.now(timezone.utc).isoformat()}] Starting Sherly...")

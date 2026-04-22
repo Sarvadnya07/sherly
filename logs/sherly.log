@@ -292,3 +292,23 @@
 2026-04-16 18:40:51,888 INFO # Generating comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4
 2026-04-16 18:40:51,950 INFO # Generating comtypes.gen.SpeechLib
 2026-04-16 19:11:15,822 INFO Shutting down Sherly.
+2026-04-22 19:33:27,910 INFO [MainThread] [ActionManager] logged: write A
+2026-04-22 19:33:27,911 INFO [MainThread] [ActionManager] logged: write B
+2026-04-22 19:33:27,912 INFO [MainThread] [ActionManager] logged: dangerous action
+2026-04-22 19:33:27,912 INFO [MainThread] [ActionManager] undoing: write B
+2026-04-22 19:33:27,913 INFO [MainThread] [Undo] restored file: B.txt
+2026-04-22 19:33:27,914 INFO [MainThread] [ActionManager] undoing: write A
+2026-04-22 19:33:27,914 INFO [MainThread] [Undo] restored file: A.txt
+2026-04-22 19:33:28,304 ERROR [MainThread] Error: test error
+2026-04-22 19:33:28,413 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-22 19:33:28,414 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-22 19:34:12,520 INFO [MainThread] [ActionManager] logged: write A
+2026-04-22 19:34:12,521 INFO [MainThread] [ActionManager] logged: write B
+2026-04-22 19:34:12,521 INFO [MainThread] [ActionManager] logged: dangerous action
+2026-04-22 19:34:12,522 INFO [MainThread] [ActionManager] undoing: write B
+2026-04-22 19:34:12,522 INFO [MainThread] [Undo] restored file: B.txt
+2026-04-22 19:34:12,523 INFO [MainThread] [ActionManager] undoing: write A
+2026-04-22 19:34:12,524 INFO [MainThread] [Undo] restored file: A.txt
+2026-04-22 19:34:12,528 ERROR [MainThread] Error: test error
+2026-04-22 19:34:12,644 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-22 19:34:12,645 WARNING [MainThread] [TaskQueue] overloaded — task rejected
