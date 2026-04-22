@@ -53,10 +53,10 @@ except ImportError:
             return wrapper
 
 from sherly.config.config_manager import get_api_key, get_current_model
-from memory import add_memory, get_context
-from memory_brain import load_memory
+from sherly.services.memory import add_memory, get_context
+from sherly.services.memory_brain import load_memory
 from sherly.utils.runtime_utils import log
-from web_search import search_web
+from sherly.services.web_search import search_web
 
 # ---------------------------------------------------------------------------
 # Fix #4 – single model lock (only one model loaded at a time)
@@ -236,10 +236,11 @@ def unload_model() -> None:
     if not ACTIVE_MODEL:
         return
     try:
+        # Fix: ensure this request itself has a very short timeout
         requests.post(
             "http://localhost:11434/api/generate",
             json={"model": ACTIVE_MODEL, "keep_alive": 0},
-            timeout=3,
+            timeout=2.0,
         )
         log(f"Unloaded model: {ACTIVE_MODEL}")
     except Exception as exc:
@@ -254,7 +255,7 @@ def _get_optimal_local_model() -> str:
     Automatically select model version based on available RAM.
     """
     try:
-        from diagnostics import run_diagnostics
+        from sherly.core.diagnostics import run_diagnostics
         diag = run_diagnostics()
         total_ram = diag["hardware"]["memory"]["total_gb"]
         

@@ -10,7 +10,7 @@ Two execution surfaces:
 from __future__ import annotations
 
 import subprocess
-from safety_guard import check_command
+from sherly.core.safety_guard import check_command
 
 # ---------------------------------------------------------------------------
 # Whitelist

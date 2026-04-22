@@ -1,6 +1,7 @@
 import pytest
 import time
-from sherly.utils.runtime_utils import safe_execute, timeout_call, add_task, task_queue, _MAX_QUEUE_SIZE
+from sherly.utils.runtime_utils import safe_execute, timeout_call, add_task
+from sherly.core.task_queue import _queue as task_queue, _MAX_QUEUE_SIZE
 
 def test_safe_execute():
     def success():

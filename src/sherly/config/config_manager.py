@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-CONFIG_FILE = Path("config.json")
+CONFIG_FILE = Path(__file__).parent / "config.json"
 DEFAULT_CONFIG = {
     "current_model": "phi3",
     "auto_mode": False,

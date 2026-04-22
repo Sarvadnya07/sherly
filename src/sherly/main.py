@@ -66,5 +66,10 @@ if __name__ == "__main__":
     # Fix #17: UTC timestamp on startup log
     print(f"[{datetime.now(timezone.utc).isoformat()}] Starting Sherly...")
 
+    # Path hack for direct script execution: Add 'src' to sys.path
+    _src = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+    if _src not in sys.path:
+        sys.path.insert(0, _src)
+
     from sherly.ui.app_manager import start_app
     start_app()

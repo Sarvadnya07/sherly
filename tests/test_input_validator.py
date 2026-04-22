@@ -1,5 +1,5 @@
 import pytest
-from input_validator import is_valid_input
+from sherly.core.input_validator import is_valid_input
 
 def test_injection_blocking():
     # Test regex patterns

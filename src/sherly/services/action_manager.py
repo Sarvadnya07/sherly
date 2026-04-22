@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable
 
 from sherly.utils.runtime_utils import log
-from memory import conn
+from sherly.services.memory import conn
 import json
 
 # ---------------------------------------------------------------------------

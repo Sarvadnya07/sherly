@@ -4,7 +4,7 @@ tools = []
 
 
 def register_tool(name, function):
-    tools.append((name.lower(), function))
+    sherly.tools.append((name.lower(), function))
 
 
 def run_tool(text, payload=None):
@@ -16,4 +16,4 @@ def run_tool(text, payload=None):
 
 
 def clear_tools():
-    tools.clear()
+    sherly.tools.clear()

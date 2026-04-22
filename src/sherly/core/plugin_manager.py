@@ -2,8 +2,8 @@ import importlib
 import sys
 from pathlib import Path
 from typing import Dict, Any, Type
-from core.plugin_sdk import BasePlugin
-from config_manager import get_plugin_enabled, set_plugin_enabled as store_plugin_setting
+from sherly.core.plugin_sdk import BasePlugin
+from sherly.config.config_manager import get_plugin_enabled, set_plugin_enabled as store_plugin_setting
 
 plugins: Dict[str, BasePlugin] = {}
 _all_plugins_meta = {}

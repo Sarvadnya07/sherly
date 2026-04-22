@@ -36,7 +36,7 @@ from sherly.config.config_manager import (
     get_api_key, get_auto_mode, get_current_model,
     set_api_key, set_auto_mode, set_current_model,
 )
-from plugin_manager import get_all_plugin_states, set_plugin_enabled
+from sherly.core.plugin_manager import get_all_plugin_states, set_plugin_enabled
 
 
 # ─────────────────────────────────────────────────────────────────────────────

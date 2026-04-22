@@ -2,7 +2,7 @@ import pystray
 from PIL import Image
 import threading
 
-from sherly_core.sherly_loop import start_sherly
+from sherly.sherly_core.sherly_loop import start_sherly
 
 assistant_thread = None
 

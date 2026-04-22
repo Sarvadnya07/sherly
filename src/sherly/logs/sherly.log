@@ -346,3 +346,9 @@
 2026-04-23 02:31:30,702 ERROR [MainThread] Error: test error
 2026-04-23 02:31:30,818 WARNING [MainThread] timeout_call: slow exceeded 0.1s
 2026-04-23 02:31:30,819 WARNING [MainThread] [TaskQueue] overloaded — task rejected
+2026-04-23 02:56:14,394 INFO [MainThread] [Startup] warnings:
+⚠ config.json not found — defaults will be used.
+2026-04-23 02:56:14,432 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-23 02:56:17,066 INFO [SherlyTaskQueue] [RouterError] SECURITY_VIOLATION: Too fast — please wait a moment.
+2026-04-23 02:58:51,384 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-23 03:03:02,990 INFO [SherlyTaskQueue] [RouterError] SECURITY_VIOLATION: Too fast — please wait a moment.

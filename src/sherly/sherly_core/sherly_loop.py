@@ -1,7 +1,7 @@
-from sherly_core.wake_word import SherlyWakeListener
-from sherly_core.speech_to_text import transcribe
-from sherly_core.intent_router import route_intent
-from sherly_core import sherly_speak
+from sherly.sherly_core.wake_word import SherlyWakeListener
+from sherly.sherly_core.speech_to_text import transcribe
+from sherly.sherly_core.intent_router import route_intent
+from sherly.sherly_core import sherly_speak
 
 listener = SherlyWakeListener()
 

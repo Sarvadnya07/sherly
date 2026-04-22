@@ -1,5 +1,5 @@
 import requests
-from core.plugin_sdk import BasePlugin
+from sherly.core.plugin_sdk import BasePlugin
 
 class WeatherPlugin(BasePlugin):
     @property

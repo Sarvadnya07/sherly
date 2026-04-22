@@ -1,147 +1,129 @@
-# 🎙️ Sherly AI: Voice-First Local Dev Orchestrator
+# 🎙️ Sherly AI: The Autonomous Local Dev Orchestrator
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Platform: Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#)
-[![SOC2 Ready](https://img.shields.io/badge/Security-SOC2%20Ready-green.svg)](#)
-[![Aesthetics: Premium](https://img.shields.io/badge/UI-Premium%20Glassmorphism-purple.svg)](#)
-
-**Sherly AI** is a professional-grade, desktop-native developer assistant designed for the era of high-autonomy coding. By blending low-latency voice control with a deterministic safety layer, Sherly empowers engineers to manage, debug, and optimize their projects hands-free, without sacrificing security or machine integrity.
+<div align="center">
+  <img src="src/sherly/ui/assets/sherlyai.png" width="200" alt="Sherly AI Logo">
+  <h3>"Talk to your code. Let the code heal itself."</h3>
+</div>
 
 ---
 
-## 🌟 Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Security: Platinum](https://img.shields.io/badge/Security-Platinum%20Standard-brightgreen.svg)](#)
+[![RAG: Persistent](https://img.shields.io/badge/RAG-Persistent%20Memory-blueviolet.svg)](#)
+[![Tests: 17/17](https://img.shields.io/badge/Tests-17%2F17%20Passing-success.svg)](#)
+
+**Sherly AI** is a professional-grade, desktop-native developer assistant designed for the era of high-autonomy coding. By blending sub-second voice control with a deterministic safety layer and multi-agent orchestration, Sherly empowers engineers to manage, debug, and optimize their projects hands-free.
+
+---
+
+## 🌟 The Orchestrator Concept
 
 Sherly is not just another chatbot; it is an **orchestrator** of your local development environment. It executes terminal commands, performs multi-monitor visual analysis, applies semantic code patches, and initiates autonomous self-healing loops—all through a strictly controlled human-in-the-loop workflow.
 
 ### 💎 Unique Selling Points (USP)
 - **Voice-Native Execution**: Powered by `faster-whisper` for sub-second intent recognition.
-- **Hardware-Aware Intelligence**: Automatically scales models based on available system RAM/VRAM.
-- **Deterministic Routing**: Zero-latency execution for known tasks without unnecessary LLM involvement.
+- **Human-in-the-Loop Safety**: 3-tier intent firewall (SAFE/CONFIRM/DANGEROUS) with **Windows Hello** biometric approval.
 - **Atomic Undo Engine**: Persistent SQLite-backed history allows full reversibility of every file change.
-- **Secure by Design**: Integrated sandbox execution and SOC2-compliant log sanitization.
-
----
-
-## 🚀 Core Features
-
-### 🛡️ Human-in-the-Loop Safety
-Sherly implements a 3-tier intent firewall to protect your system:
-- **SAFE**: Read-only tasks (e.g., "Explain this file") run instantly.
-- **CONFIRM**: Modifications (e.g., "Install dependencies") require explicit user approval.
-- **DANGEROUS**: High-risk actions are blocked or routed through a containerized sandbox.
-
-### 📂 Semantic Patching & Preview
-Before applying any change, Sherly provides:
-- **Interactive Diff Previews**: Hunk-level approval support for surgical code modifications.
-- **Confidence Scoring**: Real-time probability of fix success based on error analysis.
-- **Automatic Backups**: Every write is preceded by a snapshot for instant recovery.
-
-### 🔄 Autonomous Self-Healing
-When a project fails, Sherly initiates a recovery cycle:
-1. **Detection**: Captures runtime errors and stack traces.
-2. **Analysis**: Correlates errors with the codebase via ChromaDB-backed RAG.
-3. **Proposal**: Generates a corrective patch with a documented rationale.
-4. **Validation**: Re-runs the project to ensure the fix is successful.
-
-### 🧠 Advanced RAG Memory
-Utilizes **ChromaDB** for deep repository indexing, allowing Sherly to provide architectural insights that simple chat history cannot.
+- **Hardened Sandbox**: All technical tools execute within isolated Docker containers to prevent environment corruption.
+- **Ghost Mode**: Zero-UI interface that operates entirely within your IDE's gutter and terminal.
 
 ---
 
 ## 🏗️ Architecture
 
-Sherly utilizes a modular "Sub-Router" architecture to ensure maintainability and performance.
+Sherly uses a **Modular Sub-Router Architecture** combined with a **Dependency Injection (DI)** container for enterprise-grade scalability.
 
 ```mermaid
 graph TD
-    A[Voice/Text Input] --> B[Input Validator]
-    B --> C{Intent Router}
-    C -->|Deterministic| D[System Sub-Router]
-    C -->|Complex Task| E[Model Manager]
-    E --> F[Agent Orchestrator]
-    F --> G[Specialized Agents]
-    G -->|Result| H[Action Manager]
-    H -->|Approval| I[Execution Sandbox]
-    I --> J[Undo Engine]
-    J --> K[Telemetry/Feedback]
+    A[Voice/Text Input] --> B[Intent Firewall]
+    B --> C{Orchestrator}
+    C -->|Complex Task| D[Multi-Agent Mesh]
+    C -->|Known Command| E[Deterministic Router]
+    D --> F[Tool Execution]
+    F --> G[Hardened Sandbox]
+    G --> H[Atomic Write Engine]
+    H --> I[P2P State Sync]
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Core Features
 
-- **UI Framework**: PySide6 (Premium Glassmorphism Design)
-- **Inference Engines**: Ollama (Local), Gemini/OpenAI/Groq (Cloud Fallbacks)
-- **Voice/STT**: Faster-Whisper (Int8 Quantized)
-- **Vector DB**: ChromaDB (Persistent Semantic Memory)
-- **Security**: Fernet Encryption & Regex-based Log Sanitization
-- **Network**: FastAPI (Multi-user Remote Gateway)
+### 🩹 Autonomous Self-Healing
+If a command fails, Sherly captures the traceback, performs a RAG-based context lookup, and applies an **AST-Aware Patch** to fix the bug in real-time.
 
----
+### 🧠 Persistent Project Memory
+Sherly maintains a persistent **ChromaDB** vector store of your entire codebase. This allows for sub-second semantic search and intelligent context-aware suggestions without re-indexing.
 
-## ⚙️ Installation
-
-### Prerequisites
-- Python 3.10+
-- [Ollama](https://ollama.ai/) (For local LLM execution)
-- 8GB+ RAM recommended (Sherly scales automatically to lower RAM)
-
-### Step-by-Step Setup
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/sherly.git
-   cd sherly
-   ```
-2. **Setup Virtual Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   ```
-3. **Install Dependencies**:
-   ```bash
-   pip install .
-   ```
-4. **Initialize Environment**:
-   Copy `.env.example` to `.env` and add your cloud API keys (optional).
-5. **Launch**:
-   ```bash
-   python main.py
-   ```
+### 🌐 Encrypted P2P Sync
+Synchronize your development state across multiple machines (e.g., Desktop to Laptop) using Peer-to-Peer encryption. No cloud, no central server, pure privacy.
 
 ---
 
-## 📂 Folder Structure
+## 📦 Installation
+
+```powershell
+# 1. Clone the repository
+git clone https://github.com/Sarvadnya07/sherly.git
+cd sherly
+
+# 2. Install the package in editable mode
+pip install -e .
+
+# 3. Setup environment
+cp .env.example .env
+
+# 4. Launch the Orchestrator
+python src/sherly/main.py
+```
+
+*For detailed instructions, see the [Full User Guide](docs/GUIDE.md).*
+
+---
+
+## 📂 Folder Structure (Platinum Standard)
 
 ```text
-├── agents/               # Specialized AI agents (Coder, System, Browser)
-├── core/                 # Core engines (RAG, Sandbox, Encryption, Sanitizer)
-├── routers/              # Domain-specific sub-routers (File, Dev, System)
-├── sherly_ui/            # PySide6 desktop interface and assets
-├── tools/                # Extensible toolset (STT, TTS, Screen Analysis)
-├── tests/                # Comprehensive Pytest suites
-├── action_manager.py     # Persistent approval queue and history
-├── command_router.py     # Master intent orchestrator
-├── model_manager.py      # Hardware-aware LLM routing
-└── pyproject.toml        # Modern dependency management
+/sherly-ai
+├── src/                    # Source Root
+│   └── sherly/             # Unified Package Namespace
+│       ├── main.py         # Entry Point
+│       ├── core/           # Security, Orchestration, Sandbox, P2P
+│       ├── agents/         # LLM Agents (Coder, Browser, System)
+│       ├── routers/        # Command Routers (Dev, File, System)
+│       ├── services/       # RAG, TTS, STT, Actions, Models
+│       ├── ui/             # PySide6 UI components & Assets
+│       ├── tools/          # AST, Preview, Shell, Screen tools
+│       └── config/         # Config Manager & settings.json
+├── docs/                   # Centralized Documentation (Audits, Roadmap)
+├── tests/                  # Updated Integration Suite (100% Passing)
+└── pyproject.toml          # Packaging & Dependency Config
 ```
 
 ---
 
-## 🔐 Security Considerations
-- **Log Sanitization**: Every telemetry log passes through `core/sanitizer.py` to strip PII and secrets.
-- **At-Rest Encryption**: Sensitive configuration and history are encrypted using `core/encryption.py`.
-- **Sandbox Execution**: High-risk tasks are executed in an isolated temporary environment.
+## 🛡️ Security & Performance
+
+| Feature | Implementation | Standard |
+| :--- | :--- | :--- |
+| **Command Safety** | `shlex` parsing & Shell-False | No Injection |
+| **Data Privacy** | `LogSanitizer` (Entropy-based) | SOC2 Ready |
+| **VRAM Management** | LRU Cache with 5min TTL | No Thrashing |
+| **Code Reliability** | Atomic UUID-based Writes | Zero Corruption |
 
 ---
 
 ## 🤝 Contributing
-We welcome contributions! Please follow our [CONTRIBUTING.md](CONTRIBUTING.md) and ensure all PRs pass the existing `pytest` suite.
+
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## ✍️ Author
-Designed for the next generation of high-autonomy software engineering.
+<div align="center">
+  Developed by <b>Sarvadnya07</b> with a focus on Privacy and Developer Autonomy.
+</div>

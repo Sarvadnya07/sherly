@@ -6,7 +6,7 @@ import urllib.parse
 import webbrowser
 import json
 
-from web_search import search_web
+from sherly.services.web_search import search_web
 
 def _google_url(query: str) -> str:
     return f"https://www.google.com/search?q={urllib.parse.quote_plus(query)}"

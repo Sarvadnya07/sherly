@@ -13,13 +13,9 @@ import threading
 from queue import Queue, Empty
 from typing import Callable, Any
 
+_MAX_QUEUE_SIZE = 10
 _queue: Queue = Queue()
-queue = _queue   # backward-compat alias
-
-
-# ---------------------------------------------------------------------------
-# Worker
-# ---------------------------------------------------------------------------
+_queue_lock = threading.Lock()
 
 def _worker() -> None:
     while True:
@@ -44,13 +40,7 @@ def _worker() -> None:
         finally:
             _queue.task_done()
 
-
 threading.Thread(target=_worker, daemon=True, name="SherlyTaskQueue").start()
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def add_task(
     func: Callable,
@@ -58,16 +48,12 @@ def add_task(
     on_done: Callable[[Any], None] | None = None,
     on_error: Callable[[Exception], None] | None = None,
     **kwargs,
-) -> None:
+) -> str | None:
     """
-    Enqueue *func* to run on the background worker thread.
-
-    Parameters
-    ----------
-    func     : callable to execute
-    *args    : positional arguments for func
-    on_done  : optional callback(result) called after successful execution
-    on_error : optional callback(exc) called on exception
-    **kwargs : keyword arguments for func
+    Enqueue a task. Returns error message if queue is full.
     """
-    _queue.put((func, args, kwargs, on_done, on_error))
+    with _queue_lock:
+        if _queue.qsize() >= _MAX_QUEUE_SIZE:
+            return "System busy. Please wait a moment."
+        _queue.put((func, args, kwargs, on_done, on_error))
+    return None

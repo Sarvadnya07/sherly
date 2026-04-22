@@ -1,6 +1,7 @@
+import json
 from typing import List, Dict, Any
 from sherly.agents.base_agent import BaseAgent
-from sherly.utils.runtime_utils import log
+from sherly.utils.runtime_utils import log, safe_execute
 
 class AgentOrchestrator:
     """
@@ -11,24 +12,52 @@ class AgentOrchestrator:
 
     def execute_objective(self, objective: str) -> str:
         log(f"[Orchestrator] Planning objective: {objective}")
-        # 1. Break objective into sub-tasks (Planning)
-        # 2. Assign tasks to specialized agents
-        # 3. Aggregate results
         
-        # Example logic:
-        tasks = [
-            {"agent": "researcher", "task": f"Research best practices for {objective}"},
-            {"agent": "coder", "task": f"Implement the core logic for {objective}"},
-            {"agent": "tester", "task": f"Validate the implementation of {objective}"}
-        ]
+        # 1. Plan the objective using the Coder agent or a specialized planner
+        planner = self.agents.get("coder")
+        if not planner:
+            return "Error: No planner agent available."
+
+        planning_prompt = f"""
+You are the Orchestrator. Break down this objective into a series of tasks for specialized agents.
+Available agents: {list(self.agents.keys())}
+
+Objective: {objective}
+
+Return strictly in JSON format:
+{{
+  "tasks": [
+    {{ "agent": "agent_name", "task": "specific_task_description" }}
+  ]
+}}
+"""
+        plan_raw = planner.run(planning_prompt)
+        
+        try:
+            # Simple cleanup of AI response
+            if "```json" in plan_raw:
+                plan_raw = plan_raw.split("```json")[1].split("```")[0].strip()
+            elif "```" in plan_raw:
+                plan_raw = plan_raw.split("```")[1].split("```")[0].strip()
+            
+            plan = json.loads(plan_raw)
+            tasks = plan.get("tasks", [])
+        except Exception:
+            # Fallback to default tasks if planning fails
+            tasks = [
+                {"agent": "coder", "task": f"Analyze and implement: {objective}"},
+                {"agent": "system", "task": f"Verify implementation of: {objective}"}
+            ]
         
         results = []
         for t in tasks:
-            agent = self.agents.get(t["agent"])
+            agent_name = t.get("agent")
+            task_desc = t.get("task")
+            agent = self.agents.get(agent_name)
             if agent:
-                log(f"[Orchestrator] Dispatching to {t['agent']}: {t['task']}")
-                res = agent.run(t["task"])
-                results.append(res)
+                log(f"[Orchestrator] Dispatching to {agent_name}: {task_desc}")
+                res = agent.run(task_desc)
+                results.append(f"### {agent_name.capitalize()} Result:\n{res}")
         
         return "\n\n".join(results)
 

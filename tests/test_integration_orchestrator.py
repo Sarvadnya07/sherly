@@ -17,7 +17,7 @@ def orchestrator():
     return AgentOrchestrator(agents)
 
 def test_execute_objective(orchestrator):
-    with patch("core.orchestrator.log") as mock_log:
+    with patch("sherly.core.orchestrator.log") as mock_log:
         result = orchestrator.execute_objective("Test Objective")
         assert "Result for Research best practices for Test Objective" in result
         assert "Result for Implement the core logic for Test Objective" in result

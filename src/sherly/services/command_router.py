@@ -18,30 +18,30 @@ from datetime import datetime, timezone
 
 import pyperclip
 
-from action_manager import (
+from sherly.services.action_manager import (
     approve_action, cancel_action, classify_action,
     get_history, list_pending, log_action, request_approval, undo_last,
 )
-from agent_manager import run_agent
-from config_manager import set_current_model
-from input_validator import is_valid_input, record_command
-from model_manager import ask_model
-from plugin_manager import get_enabled_plugin_names, run_plugin
-from runtime_utils import safe_execute, timeout_call, log
-from safety_guard import check_command, handle_confirmation_reply
-from text_to_speech import speak
-from tool_registry import clear_tools, register_tool, run_tool
-from tools.dictation import start_dictation
-from tools.error_tools import analyze_error
-from tools.file_tools import explain_file
-from tools.project_tools import scan_project
-from tools.screen_tools import analyze_screen
-from tools.terminal_tools import safe_exec, run_command
-from tools.task_engine import execute_task
-from tools.fix_project import apply_last_fix, fix_project
-from web_search import search_web
-from memory_brain import recall, remember
-from conversation_memory import add_to_memory, build_prompt
+from sherly.services.agent_manager import run_agent
+from sherly.config.config_manager import set_current_model
+from sherly.core.input_validator import is_valid_input, record_command
+from sherly.services.model_manager import ask_model
+from sherly.core.plugin_manager import get_enabled_plugin_names, run_plugin
+from sherly.utils.runtime_utils import safe_execute, timeout_call, log
+from sherly.core.safety_guard import check_command, handle_confirmation_reply
+from sherly.services.text_to_speech import speak
+from sherly.core.tool_registry import clear_tools, register_tool, run_tool
+from sherly.tools.dictation import start_dictation
+from sherly.tools.error_tools import analyze_error
+from sherly.tools.file_tools import explain_file
+from sherly.tools.project_tools import scan_project
+from sherly.tools.screen_tools import analyze_screen
+from sherly.tools.terminal_tools import safe_exec, run_command
+from sherly.tools.task_engine import execute_task
+from sherly.tools.fix_project import apply_last_fix, fix_project
+from sherly.services.web_search import search_web
+from sherly.services.memory_brain import recall, remember
+from sherly.services.conversation_memory import add_to_memory, build_prompt
 
 
 # ---------------------------------------------------------------------------
@@ -307,10 +307,10 @@ def _set_mode(low: str) -> str | None:
 # Main router
 # ---------------------------------------------------------------------------
 
-from routers.file_router import handle_file_command
-from routers.dev_router import handle_dev_command
-from routers.system_router import handle_system_command
-from core.errors import SherlyError, ActionError, SecurityError
+from sherly.routers.file_router import handle_file_command
+from sherly.routers.dev_router import handle_dev_command
+from sherly.routers.system_router import handle_system_command
+from sherly.core.errors import SherlyError, ActionError, SecurityError
 
 def route_command(text: str) -> str:
     try:
@@ -322,6 +322,7 @@ def route_command(text: str) -> str:
         record_command(cleaned)
         raw = cleaned
         low = raw.lower().replace(",", "").replace(".", "").replace("?", "").replace("sherly", "").strip()
+        log(f"[Router] routing: '{raw}' (low: '{low}')")
 
         # ── Pillar 5: safety_guard CONFIRMATION REPLY ─────────────────────────
         confirm_reply = handle_confirmation_reply(low)
@@ -332,6 +333,17 @@ def route_command(text: str) -> str:
                 output = safe_execute(lambda: safe_exec(confirmed_cmd), "Failed to run the command.")
                 return _finalize_response(raw, output)
             return confirm_reply
+
+        # ── Help Command ──────────────────────────────────────────────────────
+        if low in {"help", "h", "what can you do", "commands"}:
+            return _finalize_response(raw, (
+                "I can help you with:\n"
+                "- Files: 'explain this file', 'scan project'\n"
+                "- System: 'open chrome', 'lock computer'\n"
+                "- Dev: 'fix this error', 'analyze screen'\n"
+                "- Modes: 'fast mode', 'deep mode', 'dev mode'\n"
+                "Try saying 'open vscode' or 'explain clipboard'."
+            ))
 
         # ── System 1: APPROVAL QUEUE / HISTORY / UNDO ──────────────────────────
         if low.startswith("approve"):

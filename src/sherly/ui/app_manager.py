@@ -22,13 +22,15 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtNetwork import QTcpServer
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
-from command_router import route_command
+from sherly.services.command_router import route_command
 from sherly.core.task_queue import add_task
 from sherly.core.input_validator import is_valid_input, record_command
 from sherly.utils.runtime_utils import log, safe_execute
 from sherly.ui.window import SherlyWindow
 from sherly.services.speech_to_text import transcribe
 from sherly.services.text_to_speech import speak
+from sherly.core.ghost_mode import GhostModeServer
+from sherly.core.p2p_sync import P2PSync
 
 try:
     from pynput import keyboard
@@ -48,7 +50,7 @@ def _startup_checks() -> list[str]:
     warnings: list[str] = []
 
     # Check config.json
-    if not Path("config.json").exists():
+    if not Path("src/sherly/config/config.json").exists():
         warnings.append("config.json not found — defaults will be used.")
 
     # Check Ollama is reachable (only when local model is configured)
@@ -106,17 +108,16 @@ class AssistantWorker(QObject):
     def process_chat_input(self, text: str) -> None:
         if not text:
             return
-        valid, cleaned = is_valid_input(text)
-        if not valid:
-            self.status_changed.emit(cleaned)
-            return
         with self._proc_lock:   # Fix #5
             if self._paused or not self._running or self._is_processing:
                 return
             self._is_processing = True
-        record_command(cleaned)
-        result = add_task(self._process_text, cleaned)   # Fix #14
+
+        # Fix: Move validation to background to avoid UI freeze (Intent Firewall)
+        result = add_task(self._process_text, text)   # Pass raw text
         if result:
+            with self._proc_lock:
+                self._is_processing = False
             self.status_changed.emit(result)
 
     @Slot()
@@ -176,9 +177,17 @@ class AssistantWorker(QObject):
             self.status_changed.emit(result)
 
     def _process_text(self, text: str) -> None:
+        valid, cleaned = is_valid_input(text)
+        if not valid:
+            self.status_changed.emit(cleaned)
+            with self._proc_lock:
+                self._is_processing = False
+            return
+
+        record_command(cleaned)
         self.status_changed.emit("Thinking...")
         response = safe_execute(
-            lambda: route_command(text),
+            lambda: route_command(cleaned),
             "Something went wrong. Please try again.",   # Fix #23
         )
         if not response:
@@ -205,7 +214,9 @@ class SherlyApp:
         self.app: QApplication = instance if isinstance(instance, QApplication) else QApplication(sys.argv)
 
         # Apply QSS
-        qss_path = Path("sherly_ui/assets/styles.qss")
+        # Use Path(__file__) to find assets relative to the UI directory
+        ui_dir = Path(__file__).parent
+        qss_path = ui_dir / "assets/styles.qss"
         if qss_path.exists():
             with open(qss_path, "r", encoding="utf-8") as f:
                 self.app.setStyleSheet(f.read())
@@ -228,7 +239,7 @@ class SherlyApp:
 
         # Tray icon
         self.tray_icon = QSystemTrayIcon(self.app)
-        icon_path = "sherly_ui/assets/brain.png"
+        icon_path = str(ui_dir / "assets/brain.png")
         self.tray_icon.setIcon(QIcon(icon_path))
 
         tray_menu = QMenu()

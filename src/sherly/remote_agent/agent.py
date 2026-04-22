@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from command_router import route_command
-from runtime_utils import safe_execute, send_notification
+from sherly.services.command_router import route_command
+from sherly.utils.runtime_utils import safe_execute, send_notification
 
 app = FastAPI(title="Sherly Local Agent")
 

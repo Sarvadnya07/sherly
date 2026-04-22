@@ -1,0 +1,19 @@
+2026-04-23 02:53:14,933 INFO [MainThread] [Startup] warnings:
+⚠ config.json not found — defaults will be used.
+2026-04-23 02:53:15,085 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-23 02:53:29,241 INFO [MainThread] Active local model set: phi3
+2026-04-23 02:53:44,535 INFO [SherlyTaskQueue] [RouterError] SECURITY_VIOLATION: Already processed that command.
+2026-04-23 02:53:51,033 INFO [SherlyTaskQueue] [RouterError] SECURITY_VIOLATION: Too fast — please wait a moment.
+2026-04-23 03:11:08,904 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-04-23 03:15:59,248 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 03:15:59,283 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 03:15:59,942 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-23 03:16:00,060 ERROR [MainThread] Error: test error
+2026-04-23 03:16:00,165 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-23 03:17:16,726 INFO [MainThread] [ActionManager] logged: test action
+2026-04-23 03:17:16,773 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-23 03:17:16,783 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-23 03:17:16,785 INFO [MainThread] LLM timeout for model=openai
+2026-04-23 03:17:16,787 INFO [MainThread] Model error: 500 Server Error
+2026-04-23 03:17:16,789 ERROR [MainThread] Error: test error
+2026-04-23 03:17:16,902 WARNING [MainThread] timeout_call: slow exceeded 0.1s

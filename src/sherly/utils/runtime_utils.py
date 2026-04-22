@@ -49,40 +49,9 @@ def log(message: str, level: str = "info") -> None:
 
 
 # ---------------------------------------------------------------------------
-# Fix #14 – task queue with overflow guard
+# Task Queue (Moved to sherly.core.task_queue)
 # ---------------------------------------------------------------------------
-_MAX_QUEUE_SIZE = 10
-task_queue: Queue = Queue()
-
-# Fix #5: lock around queue-size check + put (check-then-act race)
-_queue_lock = threading.Lock()
-
-
-def _queue_worker() -> None:
-    while True:
-        func, args, kwargs = task_queue.get()
-        try:
-            func(*args, **kwargs)
-        except Exception as exc:
-            log(f"[TaskQueue] error in {getattr(func, '__name__', '?')}: {exc}", level="error")
-        finally:
-            task_queue.task_done()
-
-
-threading.Thread(target=_queue_worker, daemon=True, name="SherlyTaskQueue").start()
-
-
-def add_task(func: Callable, *args, **kwargs) -> str | None:
-    """
-    Enqueue a task.
-    Fix #14: if the queue already has _MAX_QUEUE_SIZE items, reject with a message.
-    """
-    with _queue_lock:
-        if task_queue.qsize() >= _MAX_QUEUE_SIZE:
-            log("[TaskQueue] overloaded — task rejected", level="warning")
-            return "System busy. Please wait a moment."
-        task_queue.put((func, args, kwargs))
-    return None
+from sherly.core.task_queue import add_task
 
 
 # ---------------------------------------------------------------------------
