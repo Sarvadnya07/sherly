@@ -1,0 +1,16 @@
+agents
+config
+core
+logs
+models
+plugins
+remote_agent
+remote_api
+remote_ui
+sherly_ai
+sherly_commands
+sherly_core
+sherly_ui
+sherly_utils
+tools
+uploads

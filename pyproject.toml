@@ -29,8 +29,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
-packages = {find = {where = ["src"]}}
+packages = {find = {}}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
