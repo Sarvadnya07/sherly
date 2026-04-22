@@ -1,7 +1,9 @@
 """
 agent_manager — classifies user intent and routes to the correct agent.
 """
-from agents import browser_agent, coder_agent, system_agent
+from agents.browser_agent import BrowserAgent
+from agents.coder_agent import CoderAgent
+from agents.system_agent import SystemAgent
 
 # Valid categories (whitelist — anything else falls back to "general")
 _KNOWN_AGENTS = {"coder", "browser", "system", "general"}
@@ -82,13 +84,14 @@ def run_agent(text: str, ask_model) -> str:
     category = _classify(text, ask_model)
 
     if category == "browser":
-        return browser_agent.run(text, ask_model)
+        return BrowserAgent().run(text, ask_model)
 
     if category == "coder":
-        return coder_agent.run(text, ask_model)
+        return CoderAgent().run(text, ask_model)
 
     if category == "system":
-        return system_agent.run(text, ask_model)
+        return SystemAgent().run(text, ask_model)
 
     # "general" → direct, natural LLM answer (no agent wrapping)
     return ask_model(text)
+
