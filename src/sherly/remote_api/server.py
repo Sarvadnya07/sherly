@@ -1,4 +1,5 @@
 import os
+import secrets
 from pathlib import Path
 
 import requests
@@ -21,7 +22,8 @@ app.add_middleware(
 )
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
-API_KEY = os.getenv("SHERLY_REMOTE_API_KEY", "sherly123")
+# Sentinel: Critical fix - remove hardcoded API key fallback
+API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -31,7 +33,11 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")) -> bool:
-    if x_api_key != API_KEY:
+    # Sentinel: Security fix - prevent unauthorized access if API_KEY is not set
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="Server configuration error: API_KEY not set")
+    # Sentinel: Security fix - use compare_digest to prevent timing attacks
+    if not secrets.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 
