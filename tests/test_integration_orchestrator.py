@@ -5,6 +5,8 @@ from sherly.agents.base_agent import BaseAgent
 
 class MockAgent(BaseAgent):
     def run(self, query: str) -> str:
+        if "You are the Orchestrator" in query:
+            return '{"tasks": [{"agent": "researcher", "task": "Research best practices for Test Objective"}, {"agent": "coder", "task": "Implement the core logic for Test Objective"}]}'
         return f"Result for {query}"
 
 @pytest.fixture
@@ -27,4 +29,4 @@ def test_missing_agent(orchestrator):
     # Should not crash if an agent is missing
     orchestrator.agents = {}
     result = orchestrator.execute_objective("Test Objective")
-    assert result == ""
+    assert result == "Error: No planner agent available."
