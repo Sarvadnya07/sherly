@@ -1,7 +1,7 @@
 import json
 import time
 from sherly.tools.automation_tools import open_app, type_text
-from sherly.tools.terminal_tools import run_command
+from sherly.tools.terminal_tools import safe_exec
 import pyautogui
 
 _SYSTEM_PROMPT = """\
@@ -45,11 +45,11 @@ from sherly.agents.base_agent import BaseAgent
 class SystemAgent(BaseAgent):
     def run(self, prompt: str, ask_model=None) -> str:
         if not ask_model:
-            return run_command(prompt)
+            return safe_exec(prompt)
             
         actions = _parse_actions(prompt, ask_model)
         if not actions:
-            return run_command(prompt)
+            return safe_exec(prompt)
             
         executed = []
         
@@ -83,7 +83,7 @@ class SystemAgent(BaseAgent):
                     executed.append(f"Waited {sec}s")
                 elif a_type == "run_command":
                     cmd = act.get("cmd", "")
-                    res = run_command(cmd)
+                    res = safe_exec(cmd)
                     executed.append(f"Ran '{cmd}'")
             except Exception as e:
                 executed.append(f"Failed {act}: {e}")

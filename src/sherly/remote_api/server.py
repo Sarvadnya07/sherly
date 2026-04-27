@@ -37,13 +37,18 @@ def verify_key(x_api_key: str = Header(default="")) -> bool:
 
 
 def _get_upload_path(filename: str) -> Path:
+    # 1. Extract only the filename (strips leading directories)
     safe_filename = Path(filename).name
+    
+    # 2. Prevent empty or relative navigation names
     if safe_filename in {"", ".", ".."}:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
+    # 3. Resolve the path and ensure it sits within the UPLOAD_DIR
     path = (UPLOAD_DIR / safe_filename).resolve()
     if path.parent != UPLOAD_DIR.resolve():
         raise HTTPException(status_code=400, detail="Invalid filename")
+    
     return path
 
 
@@ -60,6 +65,7 @@ def send_command(cmd: Command, _: bool = Depends(verify_key)):
         return {"response": payload.get("response", "")}
     except Exception as exc:
         log(f"Error in send_command: {exc}", level="error")
+        # Returning generic error prevents info leakage of the exception trace
         return {"error": "Internal server error"}
 
 
@@ -68,7 +74,9 @@ async def upload(
     file: UploadFile = File(...),
     _: bool = Depends(verify_key),
 ):
+    # Uses the robust validation from the main branch to prevent Path Traversal
     path = _get_upload_path(file.filename or "")
+    
     content = await file.read()
     with path.open("wb") as f:
         f.write(content)

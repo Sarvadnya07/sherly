@@ -1,14 +1,28 @@
 """
 God-Level Browser Automation Agent using Playwright.
 Provides autonomous DOM interaction, element tagging, and complex web navigation.
+
+FS-#24: playwright is imported lazily inside run() to avoid cold-start overhead.
+        The module is safe to import even when playwright is not installed.
 """
 import json
 import time
 
-try:
-    from playwright.sync_api import sync_playwright
-except ImportError:
-    pass  # Let it crash only when run is called if not installed
+# FS-#24: Lazy import — playwright is only loaded when run() is first called
+_sync_playwright = None
+
+def _get_playwright():
+    global _sync_playwright
+    if _sync_playwright is None:
+        try:
+            from playwright.sync_api import sync_playwright as _sp
+            _sync_playwright = _sp
+        except ImportError:
+            raise ImportError(
+                "playwright is not installed. Run: pip install playwright && playwright install chromium"
+            )
+    return _sync_playwright
+
 
 # The Javascript to run inside the browser page to label all interactive elements
 _INJECT_JS = """
@@ -118,9 +132,7 @@ class PlaywrightAgent(BaseAgent):
 
         # Start the robust browser session
         try:
-            if 'sync_playwright' not in globals():
-                return "Error: Playwright is not properly installed or imported."
-                
+            sync_playwright = _get_playwright()
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=False)
                 context = browser.new_context(viewport={"width": 1280, "height": 800})

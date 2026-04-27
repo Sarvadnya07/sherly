@@ -46,3 +46,26 @@ def build_prompt(user_input: str, session_id: str = "default") -> str:
     for entry in session[-_MAX_TURNS:]:
         history += f"User: {entry['user']}\nAssistant: {entry['assistant']}\n"
     return history + f"User: {user_input}"
+
+
+def get_all_turns(session_id: str = "default") -> list[dict]:
+    """
+    OE-3: Return all stored conversation turns for the given session.
+
+    Each turn is a dict with keys: 'user', 'assistant', 'timestamp'.
+    Turns are returned newest-first for the history panel.
+    """
+    from datetime import datetime, timezone
+    with _lock:
+        session = list(_get_session(session_id))
+
+    result = []
+    for entry in reversed(session):
+        result.append({
+            "user":      entry.get("user", ""),
+            "assistant": entry.get("assistant", ""),
+            "timestamp": entry.get("timestamp",
+                                   datetime.now(timezone.utc).strftime("%H:%M:%S")),
+        })
+    return result
+
