@@ -54,18 +54,33 @@ Sherly tracks your project's state across sessions:
 Sherly is built on a modular "Pillar" architecture designed for reliability and extensibility.
 
 ```mermaid
-graph TD
-    A[Voice/Text Input] --> B[Input Validator]
-    B --> C{Intent Router}
-    C -->|Shortcut| D[System Execution]
-    C -->|Complex Task| E[Model Manager]
-    E --> F[Planning Engine]
-    F --> G[Action Manager]
-    G -->|Approval Gate| H[Tool Registry]
-    H --> I[Preview Engine]
-    I --> J[Execution Layer]
-    J --> K[Undo Engine]
-    K --> L[Result Feedback]
+flowchart TD
+    A[Voice / Text Input] --> B[Intent Firewall<br/>Regex + LLM Semantic Check]
+
+    B -->|SAFE| C[Input Validator<br/>Debounce + Dedup + Noise Filter]
+    B -->|BLOCKED| X[Rejected]
+
+    C --> D{Command Router}
+
+    D -->|Known command| E[Deterministic Handlers<br/>Help + Shortcuts + Mode + Phase]
+    D -->|File ops| F[File Router]
+    D -->|Dev ops| G[Dev Router]
+    D -->|System ops| H[System Router]
+    D -->|Unknown intent| I[LLM Agent<br/>Coder + System + Browser]
+
+    E --> J[Safety Guard<br/>SAFE / CONFIRM / DANGEROUS]
+    F --> J
+    G --> J
+    H --> J
+    I --> J
+
+    J -->|DANGEROUS| X
+    J -->|SAFE| L[Sandbox Executor<br/>Docker or shlex isolated]
+    J -->|CONFIRM| K[Approval Queue<br/>Human-in-the-Loop]
+
+    K -->|Approved| L
+    L --> M[Action History<br/>SQLite Undo Engine]
+    M --> N[Response + TTS]
 ```
 
 ---
