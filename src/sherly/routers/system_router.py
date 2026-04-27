@@ -2,7 +2,6 @@ import json
 from sherly.utils.runtime_utils import safe_execute
 from sherly.core.diagnostics import run_diagnostics
 from sherly.config.config_manager import set_current_model
-from sherly.services.memory_brain import remember
 
 def handle_system_command(low: str, raw: str) -> str | None:
     # --- System diagnostics ---

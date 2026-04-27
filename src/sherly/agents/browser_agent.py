@@ -7,6 +7,7 @@ import webbrowser
 import json
 
 from sherly.services.web_search import search_web
+from sherly.agents.base_agent import BaseAgent
 
 def _google_url(query: str) -> str:
     return f"https://www.google.com/search?q={urllib.parse.quote_plus(query)}"
@@ -195,7 +196,6 @@ def _parse_intent(text: str, ask_model) -> dict:
         is_auto = any(w in text.lower() for w in ["click", "play", "watch", "scroll"])
         return {"query": q, "platform": platform, "action": "autonomous_pilot" if is_auto else "search"}
 
-from sherly.agents.base_agent import BaseAgent
 
 class BrowserAgent(BaseAgent):
     def run(self, prompt: str, ask_model) -> str:
@@ -267,7 +267,7 @@ class BrowserAgent(BaseAgent):
                     use_context=False,
                 )
                 return f"Searched Google for '{query}'.\n{summary}"
-        except Exception as e:
+        except Exception:
             pass
 
         return f"Opened Google search for '{query}'."

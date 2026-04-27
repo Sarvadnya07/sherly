@@ -1,0 +1,97 @@
+name: Release Build
+
+# FS-#33: Triggered on version tags (e.g. v1.0.0, v1.2.3)
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write   # Required to create GitHub releases
+
+jobs:
+  test:
+    name: Pre-release Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install and test
+        run: |
+          pip install -e .
+          pip install pytest pytest-mock
+          pytest tests/ -v --tb=short
+          echo "✅ All tests passed. Proceeding with release build."
+
+  build-windows:
+    name: Build Windows Executable
+    runs-on: windows-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies + PyInstaller
+        run: |
+          pip install -e .
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --name sherly-ai ^
+            --add-data "src/sherly/ui/assets;sherly/ui/assets" ^
+            --add-data "src/sherly/config/config.json;sherly/config" ^
+            src/sherly/main.py
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sherly-ai-windows
+          path: dist/sherly-ai.exe
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-windows]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v8
+        with:
+          name: sherly-ai-windows
+          path: dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: "Sherly AI ${{ github.ref_name }}"
+          body: |
+            ## Sherly AI ${{ github.ref_name }}
+
+            ### What's New
+            See [FUTURE_SCOPE.md](docs/FUTURE_SCOPE.md) for the full roadmap.
+
+            ### Installation
+            Download the `.exe` below and run directly — no Python required.
+
+            ### Full Installation (developers)
+            ```powershell
+            git clone https://github.com/Sarvadnya07/sherly.git
+            cd sherly
+            pip install -e .
+            python src/sherly/main.py
+            ```
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          files: |
+            dist/sherly-ai.exe

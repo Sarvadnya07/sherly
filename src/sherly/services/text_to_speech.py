@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import pyttsx3
 import keyboard
-import json
 from pathlib import Path
 
 _engine = None

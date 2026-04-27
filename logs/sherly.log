@@ -17,6 +17,7 @@
 2026-04-23 03:17:16,787 INFO [MainThread] Model error: 500 Server Error
 2026-04-23 03:17:16,789 ERROR [MainThread] Error: test error
 2026-04-23 03:17:16,902 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+<<<<<<< HEAD
 2026-04-27 01:52:50,152 ERROR [AnyIO worker thread] API key not configured. Failing securely.
 2026-04-27 01:52:50,174 ERROR [AnyIO worker thread] Error in send_command: HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /execute (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=5001): Failed to establish a new connection: [Errno 111] Connection refused"))
 2026-04-27 01:58:30,508 INFO [MainThread] [ActionManager] logged: test action
@@ -34,3 +35,21 @@
 2026-04-27 02:05:08,245 INFO [MainThread] Model error: 500 Server Error
 2026-04-27 02:05:08,247 ERROR [MainThread] Error: test error
 2026-04-27 02:05:08,350 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+=======
+2026-04-24 02:09:02,427 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-24 02:18:02,987 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-28 00:53:24,701 INFO [MainThread] [ActionManager] logged: test action
+2026-04-28 00:53:24,704 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-28 00:53:25,596 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-28 00:53:25,607 INFO [MainThread] LLM timeout for model=openai
+2026-04-28 00:53:25,613 INFO [MainThread] Model error: 500 Server Error
+2026-04-28 00:53:25,617 ERROR [MainThread] Error: test error
+2026-04-28 00:53:25,720 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-28 00:54:13,410 INFO [MainThread] [ActionManager] logged: test action
+2026-04-28 00:54:13,416 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-28 00:54:13,446 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-28 00:54:13,452 INFO [MainThread] LLM timeout for model=openai
+2026-04-28 00:54:13,462 INFO [MainThread] Model error: 500 Server Error
+2026-04-28 00:54:13,465 ERROR [MainThread] Error: test error
+2026-04-28 00:54:13,576 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+>>>>>>> main

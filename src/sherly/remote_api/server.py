@@ -22,6 +22,11 @@ app.add_middleware(
 )
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
+<<<<<<< HEAD
+=======
+# Sentinel [CRITICAL]: Removed hardcoded 'sherly123' fallback — server fails
+# securely when SHERLY_REMOTE_API_KEY is not set in the environment.
+>>>>>>> main
 API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -32,23 +37,36 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")) -> bool:
+<<<<<<< HEAD
     if not API_KEY:
         log("API key not configured. Failing securely.", level="error")
         raise HTTPException(status_code=403, detail="Unauthorized")
 
+=======
+    # Sentinel [CRITICAL]: Fail securely if API key is not configured at all.
+    if not API_KEY:
+        log("SHERLY_REMOTE_API_KEY is not set — rejecting request.", level="error")
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    # Sentinel [CRITICAL]: Use secrets.compare_digest to prevent timing attacks.
+>>>>>>> main
     if not secrets.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 
 
 def _get_upload_path(filename: str) -> Path:
+    # 1. Extract only the filename (strips leading directories)
     safe_filename = Path(filename).name
+    
+    # 2. Prevent empty or relative navigation names
     if safe_filename in {"", ".", ".."}:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
+    # 3. Resolve the path and ensure it sits within the UPLOAD_DIR
     path = (UPLOAD_DIR / safe_filename).resolve()
     if path.parent != UPLOAD_DIR.resolve():
         raise HTTPException(status_code=400, detail="Invalid filename")
+    
     return path
 
 
@@ -65,6 +83,7 @@ def send_command(cmd: Command, _: bool = Depends(verify_key)):
         return {"response": payload.get("response", "")}
     except Exception as exc:
         log(f"Error in send_command: {exc}", level="error")
+        # Returning generic error prevents info leakage of the exception trace
         return {"error": "Internal server error"}
 
 
@@ -73,7 +92,9 @@ async def upload(
     file: UploadFile = File(...),
     _: bool = Depends(verify_key),
 ):
+    # Uses the robust validation from the main branch to prevent Path Traversal
     path = _get_upload_path(file.filename or "")
+    
     content = await file.read()
     with path.open("wb") as f:
         f.write(content)

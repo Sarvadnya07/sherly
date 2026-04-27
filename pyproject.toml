@@ -7,8 +7,13 @@ dependencies = [
     "Pillow>=12.2.0",
     "faster-whisper>=1.2.1",
     "sounddevice>=0.5.5",
+<<<<<<< HEAD
     "numpy>=1.26.0",
     "scipy>=1.11.0",
+=======
+    "numpy>=2.0.0",
+    "scipy>=1.15.0",
+>>>>>>> main
     "pyttsx3>=2.99",
     "requests>=2.33.1",
     "duckduckgo-search>=8.1.1",
@@ -18,7 +23,7 @@ dependencies = [
     "PySide6>=6.11.0",
     "tenacity>=9.1.4",
     "fastapi>=0.136.0",
-    "uvicorn>=0.45.0",
+    "uvicorn>=0.46.0",
     "pynput>=1.8.1",
     "python-dotenv>=1.2.2",
     "psutil>=7.2.2",
@@ -28,6 +33,26 @@ dependencies = [
     "keyboard>=0.13.5",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-mock>=3.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4.0",
+    "pre-commit>=3.0",
+]
+extras = [
+    "structlog>=24.1.0",        # JSON structured logging (FS-#9)
+    "sqlalchemy>=2.0.0",        # PostgreSQL adapter (FS-#16)
+    "psycopg2-binary>=2.9.0",   # PostgreSQL driver (FS-#16)
+    "websockets>=12.0",         # Cloud relay WebSocket (FS-#14)
+    "celery>=5.3.0",            # Distributed task queue (FS-#18)
+    "redis>=5.0.0",             # Celery broker (FS-#18)
+    "wasmtime>=21.0.0",         # WASM sandbox Tier-1 (FS-#11)
+    "winsdk>=1.0.0b10",         # Windows Hello biometrics (RC-2)
+]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = {find = {where = ["src"]}}
@@ -35,6 +60,8 @@ packages = {find = {where = ["src"]}}
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
 requires = ["setuptools>=61.0"]

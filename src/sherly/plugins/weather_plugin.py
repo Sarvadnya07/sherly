@@ -1,4 +1,3 @@
-import requests
 from sherly.core.plugin_sdk import BasePlugin
 
 class WeatherPlugin(BasePlugin):

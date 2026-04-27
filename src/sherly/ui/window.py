@@ -25,11 +25,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     Qt, QTimer, Signal, QObject, QPropertyAnimation, QEasingCurve,
-    QSize,
 )
 from PySide6.QtGui import (
-    QColor, QFont, QLinearGradient, QPainter, QPixmap, QFontDatabase,
-    QKeyEvent,
+    QColor, QLinearGradient, QPainter, QKeyEvent,
 )
 
 from sherly.config.config_manager import (
@@ -725,19 +723,19 @@ class SherlyWindow(QWidget):
 
         if pending:
             hdr = QLabel("⏳ Awaiting Approval")
-            hdr.setStyleSheet(f"color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
+            hdr.setStyleSheet("color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
             self._action_layout.addWidget(hdr)
             has_content = True
 
             for aid, entry in list(pending.items()):
                 card = QFrame()
                 card.setObjectName("PendCard")
-                card.setStyleSheet(f"""
-                    #PendCard {{
+                card.setStyleSheet("""
+                    #PendCard {
                         background: rgba(255,170,51,0.07);
                         border: 1px solid rgba(255,170,51,0.3);
                         border-radius: 8px;
-                    }}
+                    }
                 """)
                 cl = QVBoxLayout(card)
                 cl.setContentsMargins(8, 6, 8, 6)
@@ -819,7 +817,7 @@ class SherlyWindow(QWidget):
         cl.setSpacing(3)
 
         u = QLabel(user[:40] + ("…" if len(user) > 40 else ""))
-        u.setStyleSheet(f"color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
+        u.setStyleSheet("color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
         u.setWordWrap(True)
 
         a = QLabel(ai[:60] + ("…" if len(ai) > 60 else ""))

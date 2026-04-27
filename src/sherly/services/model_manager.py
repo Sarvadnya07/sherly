@@ -7,11 +7,14 @@ Fixes: #3  model deadlock/hang (asyncio-style timeout via concurrent.futures)
 
 from __future__ import annotations
 
+import collections
 import json
+import os
 import threading
 import time
 import functools
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+from typing import Generator
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -65,15 +68,63 @@ _model_lock = threading.Lock()
 ACTIVE_MODEL: str | None = None
 last_used: float = time.time()
 
-MAX_OUTPUT_TOKENS  = 120          # Fix #3: keep response generation fast
-MAX_OUTPUT_CHARS   = 500          # hard char cap
-IDLE_UNLOAD_SECONDS = 300          # Production Audit Fix: 5-minute TTL to prevent VRAM thrashing
+MAX_OUTPUT_TOKENS   = 120          # Fix #3: keep response generation fast
+MAX_OUTPUT_CHARS    = 500          # hard char cap
+IDLE_UNLOAD_SECONDS = 300          # 5-minute TTL to prevent VRAM thrashing
 
-_breaker = CircuitBreaker(fail_max=3, reset_timeout=30)
+_breaker  = CircuitBreaker(fail_max=3, reset_timeout=30)
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="SherlyLLM")
 
 # Fix #3: LLM call timeout
 LLM_TIMEOUT_SECONDS = 15.0
+
+# ---------------------------------------------------------------------------
+# FS-#20 — Per-minute call rate limiter (token bucket)
+# ---------------------------------------------------------------------------
+
+class _RateLimiter:
+    """
+    Simple sliding-window rate limiter for LLM calls.
+    Configured via config.json → llm_rate_limit_per_minute.
+    """
+    def __init__(self):
+        self._timestamps: collections.deque[float] = collections.deque()
+        self._lock = threading.Lock()
+
+    def _get_limit(self) -> int:
+        try:
+            from sherly.config.config_manager import get_llm_rate_limit
+            return get_llm_rate_limit()
+        except Exception:
+            return 20  # safe default
+
+    def check(self) -> str | None:
+        """
+        Returns None if the call is allowed, or an error string if the
+        rate limit is exceeded.
+        """
+        limit = self._get_limit()
+        now   = time.time()
+        with self._lock:
+            # Discard timestamps older than 60 seconds
+            while self._timestamps and now - self._timestamps[0] > 60:
+                self._timestamps.popleft()
+
+            remaining = limit - len(self._timestamps)
+            if remaining <= 0:
+                return (
+                    f"⚠️  Rate limit reached ({limit} calls/min). "
+                    "Please wait a moment before sending another request."
+                )
+            if remaining == 3:
+                log(f"[RateLimit] Approaching limit: {remaining} calls remaining this minute.", level="warning")
+
+            self._timestamps.append(now)
+            return None
+
+
+_rate_limiter = _RateLimiter()
+
 
 SYSTEM_PROMPT = (
     "You are Sherly, a friendly desktop AI assistant.\n"
@@ -284,31 +335,192 @@ def _local_call(prompt: str, target_model: str) -> str:
     r.raise_for_status()
     return r.json()["response"]
 
-def stream_model(user_prompt: str, model_name: str = "local"):
+def stream_model(
+    user_prompt: str,
+    model_name: str = "local",
+    store_history: bool = False,
+) -> Generator[str, None, None]:
     """
-    Generator for streaming model responses (Long-term vision).
+    RC-8 / FS-#22 / FS-#28: Token-streaming generator for all LLM backends.
+
+    Yields string chunks as they arrive from the model.
+    Supports: Ollama (local), OpenAI, Gemini, Groq.
+
+    Used by:
+      - remote_api.py /infer/stream  (SSE endpoint)
+      - Any future streaming UI widget
     """
-    target_model = "phi3" if model_name == "local" else model_name
+
+    # FS-#20: Rate limit guard
+    rate_error = _rate_limiter.check()
+    if rate_error:
+        yield rate_error
+        return
+
+    model = get_current_model() if model_name == "local" else model_name
+    if model == "local":
+        model = "phi3"
+
     system = _build_system(use_context=True)
-    prompt = f"{system}\n\nUser: {user_prompt}\nAssistant:"
-    
-    try:
-        r = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": target_model, "prompt": prompt, "stream": True},
-            stream=True,
-            timeout=10
-        )
-        r.raise_for_status()
-        for line in r.iter_lines():
-            if line:
-                chunk = json.loads(line)
-                yield chunk.get("response", "")
-                if chunk.get("done"):
+
+    # ------------------------------------------------------------------
+    # Ollama streaming (local)
+    # ------------------------------------------------------------------
+    if model not in {"openai", "gemini", "groq"}:
+        if not check_ollama_health():
+            yield (
+                f"❌ Ollama is not running. Please start it with: ollama serve\n"
+                f"   Then pull your model: ollama pull {model}"
+            )
+            return
+
+        prompt = f"{system}\n\nUser: {user_prompt}\nAssistant:"
+        try:
+            r = requests.post(
+                f"{OLLAMA_BASE_URL}/api/generate",
+                json={"model": model, "prompt": prompt, "stream": True},
+                stream=True,
+                timeout=LLM_TIMEOUT_SECONDS,
+            )
+            r.raise_for_status()
+            full_response = ""
+            for line in r.iter_lines():
+                if line:
+                    chunk_data = json.loads(line)
+                    token = chunk_data.get("response", "")
+                    full_response += token
+                    yield token
+                    if chunk_data.get("done"):
+                        break
+            if store_history:
+                add_memory(user_prompt, _limit_response(full_response))
+            return
+        except Exception as exc:
+            log(f"[StreamModel] Ollama streaming error: {exc}", level="error")
+            yield "Streaming failed."
+            return
+
+    # ------------------------------------------------------------------
+    # OpenAI streaming
+    # ------------------------------------------------------------------
+    if model == "openai":
+        api_key = get_api_key("openai")
+        if not api_key or api_key == "YOUR_OPENAI_KEY":
+            yield "OpenAI API key is missing."
+            return
+        messages = [{"role": "system", "content": system},
+                    {"role": "user",   "content": user_prompt}]
+        try:
+            r = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={"model": "gpt-4o-mini", "messages": messages,
+                      "max_tokens": MAX_OUTPUT_TOKENS, "stream": True},
+                stream=True,
+                timeout=LLM_TIMEOUT_SECONDS,
+            )
+            r.raise_for_status()
+            full_response = ""
+            for line in r.iter_lines():
+                if not line:
+                    continue
+                raw = line.decode("utf-8").lstrip("data: ")
+                if raw.strip() == "[DONE]":
                     break
-    except Exception as e:
-        log(f"Streaming error: {e}")
-        yield "Streaming failed."
+                try:
+                    delta = json.loads(raw)["choices"][0]["delta"].get("content", "")
+                    full_response += delta
+                    yield delta
+                except Exception:
+                    continue
+            if store_history:
+                add_memory(user_prompt, _limit_response(full_response))
+        except Exception as exc:
+            log(f"[StreamModel] OpenAI streaming error: {exc}", level="error")
+            yield "OpenAI streaming failed."
+        return
+
+    # ------------------------------------------------------------------
+    # Groq streaming
+    # ------------------------------------------------------------------
+    if model == "groq":
+        api_key = get_api_key("groq")
+        if not api_key or api_key == "YOUR_GROQ_KEY":
+            yield "Groq API key is missing."
+            return
+        messages = [{"role": "system", "content": system},
+                    {"role": "user",   "content": user_prompt}]
+        try:
+            r = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={"model": "llama3-70b-8192", "messages": messages,
+                      "max_tokens": MAX_OUTPUT_TOKENS, "stream": True},
+                stream=True,
+                timeout=LLM_TIMEOUT_SECONDS,
+            )
+            r.raise_for_status()
+            full_response = ""
+            for line in r.iter_lines():
+                if not line:
+                    continue
+                raw = line.decode("utf-8").lstrip("data: ")
+                if raw.strip() == "[DONE]":
+                    break
+                try:
+                    delta = json.loads(raw)["choices"][0]["delta"].get("content", "")
+                    full_response += delta
+                    yield delta
+                except Exception:
+                    continue
+            if store_history:
+                add_memory(user_prompt, _limit_response(full_response))
+        except Exception as exc:
+            log(f"[StreamModel] Groq streaming error: {exc}", level="error")
+            yield "Groq streaming failed."
+        return
+
+    # ------------------------------------------------------------------
+    # Gemini streaming (non-SSE, chunked via REST)
+    # ------------------------------------------------------------------
+    if model == "gemini":
+        api_key = get_api_key("gemini")
+        if not api_key or api_key == "YOUR_GEMINI_KEY":
+            yield "Gemini API key is missing."
+            return
+        try:
+            r = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"gemini-1.5-flash:streamGenerateContent?alt=sse&key={api_key}",
+                json={"contents": [{"role": "user",
+                                    "parts": [{"text": f"{system}\n\n{user_prompt}"}]}],
+                      "generationConfig": {"maxOutputTokens": MAX_OUTPUT_TOKENS}},
+                stream=True,
+                timeout=LLM_TIMEOUT_SECONDS,
+            )
+            r.raise_for_status()
+            full_response = ""
+            for line in r.iter_lines():
+                if not line:
+                    continue
+                raw = line.decode("utf-8").lstrip("data: ")
+                try:
+                    token = (
+                        json.loads(raw)["candidates"][0]["content"]["parts"][0]["text"]
+                    )
+                    full_response += token
+                    yield token
+                except Exception:
+                    continue
+            if store_history:
+                add_memory(user_prompt, _limit_response(full_response))
+        except Exception as exc:
+            log(f"[StreamModel] Gemini streaming error: {exc}", level="error")
+            yield "Gemini streaming failed."
+        return
+
+    yield "Unknown model for streaming."
+
 
 
 @_breaker
@@ -335,11 +547,35 @@ def ask_local(user_prompt: str, model_name: str, use_context: bool = True) -> st
 
 
 # ---------------------------------------------------------------------------
+# FS-#8 — Ollama health check
+# ---------------------------------------------------------------------------
+
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+
+
+def check_ollama_health() -> bool:
+    """
+    FS-#8: Fast pre-call health check for the local Ollama server.
+    Returns True if healthy, False otherwise.
+    """
+    try:
+        r = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2.0)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+# ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
 
 def ask_model(user_prompt: str, store_history: bool = True, use_context: bool = True) -> str:
     global ACTIVE_MODEL, last_used
+
+    # FS-#20: rate limit check
+    rate_error = _rate_limiter.check()
+    if rate_error:
+        return rate_error
 
     _unload_if_idle()
 
@@ -347,7 +583,15 @@ def ask_model(user_prompt: str, store_history: bool = True, use_context: bool = 
     if model == "local":
         model = "phi3"
 
-    # Fix #4: single model lock — enforce one active model at a time
+    # FS-#8: Ollama health check for local models
+    if model not in {"openai", "gemini", "groq"}:
+        if not check_ollama_health():
+            return (
+                "❌ Ollama is not running. Please start it with: ollama serve\n"
+                f"   Then pull your model: ollama pull {model}"
+            )
+
+    # Fix #4: single model lock
     with _model_lock:
         if model not in {"openai", "gemini", "groq"} and ACTIVE_MODEL != model:
             unload_model()

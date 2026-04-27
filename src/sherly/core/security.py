@@ -1,4 +1,3 @@
-import shlex
 from sherly.utils.runtime_utils import log
 
 class IntentFirewall:

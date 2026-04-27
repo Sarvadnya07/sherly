@@ -23,41 +23,72 @@ from sherly.services.action_manager import (
     get_history, list_pending, log_action, request_approval, undo_last,
 )
 from sherly.services.agent_manager import run_agent
-from sherly.config.config_manager import set_current_model
 from sherly.core.input_validator import is_valid_input, record_command
 from sherly.services.model_manager import ask_model
 from sherly.core.plugin_manager import get_enabled_plugin_names, run_plugin
-from sherly.utils.runtime_utils import safe_execute, timeout_call, log
-from sherly.core.safety_guard import check_command, handle_confirmation_reply
+from sherly.utils.runtime_utils import safe_execute, log
+from sherly.core.safety_guard import handle_confirmation_reply
 from sherly.services.text_to_speech import speak
 from sherly.core.tool_registry import clear_tools, register_tool, run_tool
-from sherly.tools.dictation import start_dictation
-from sherly.tools.error_tools import analyze_error
-from sherly.tools.file_tools import explain_file
-from sherly.tools.project_tools import scan_project
-from sherly.tools.screen_tools import analyze_screen
 from sherly.tools.terminal_tools import safe_exec, run_command
 from sherly.tools.task_engine import execute_task
-from sherly.tools.fix_project import apply_last_fix, fix_project
 from sherly.services.web_search import search_web
 from sherly.services.memory_brain import recall, remember
 from sherly.services.conversation_memory import add_to_memory, build_prompt
+
+# Routers and Errors (Moved to top - E402 fix)
+from sherly.routers.file_router import handle_file_command
+from sherly.routers.dev_router import handle_dev_command
+from sherly.routers.system_router import handle_system_command
+from sherly.core.errors import SherlyError, SecurityError
 
 
 # ---------------------------------------------------------------------------
 # Runtime state
 # ---------------------------------------------------------------------------
 
+import pathlib
+
 MODE = "fast"   # fast | deep | dev
 LAST_INTERACTION: dict[str, str] = {"user": "", "assistant": ""}
-FEEDBACK_FILE = "feedback_log.jsonl"
-SHERLY_PHASE = os.getenv("SHERLY_PHASE", "A").strip().upper()
 
+# RC-6: resolve FEEDBACK_FILE relative to this module, not the process CWD
+_LOG_DIR = pathlib.Path(__file__).parent.parent / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+FEEDBACK_FILE = str(_LOG_DIR / "feedback_log.jsonl")
+
+SHERLY_PHASE = os.getenv("SHERLY_PHASE", "A").strip().upper()
 _PHASE_ORDER = {"A": 1, "B": 2, "C": 3}
 
-_stored_phase = recall("phase").strip().upper()
-if _stored_phase in _PHASE_ORDER:
-    SHERLY_PHASE = _stored_phase
+_initialized = False
+
+
+def initialize() -> None:
+    """
+    RC-4: Explicit startup initializer — call from main.py after all modules
+    are fully imported to avoid circular-import / partial-init bugs.
+
+    Replaces the old module-level `recall("phase")` side-effect that ran
+    during import time and could trigger import chains mid-way through
+    Python's module initialization.
+    """
+    global SHERLY_PHASE, _initialized
+    if _initialized:
+        return
+    _initialized = True
+
+    # Restore saved phase (previously ran at import time — RC-4 fix)
+    try:
+        _stored_phase = recall("phase").strip().upper()
+        if _stored_phase in _PHASE_ORDER:
+            SHERLY_PHASE = _stored_phase
+    except Exception:
+        pass  # recall() may fail during testing — safe to skip
+
+
+def get_phase() -> str:
+    """Thread-safe current phase accessor."""
+    return SHERLY_PHASE
 
 
 # ---------------------------------------------------------------------------
@@ -307,10 +338,6 @@ def _set_mode(low: str) -> str | None:
 # Main router
 # ---------------------------------------------------------------------------
 
-from sherly.routers.file_router import handle_file_command
-from sherly.routers.dev_router import handle_dev_command
-from sherly.routers.system_router import handle_system_command
-from sherly.core.errors import SherlyError, ActionError, SecurityError
 
 def route_command(text: str) -> str:
     try:
@@ -373,27 +400,33 @@ def route_command(text: str) -> str:
         
         # System commands (diagnostics, model switching)
         system_res = handle_system_command(low, raw)
-        if system_res: return _finalize_response(raw, system_res)
+        if system_res:
+            return _finalize_response(raw, system_res)
 
         # File commands (read, scan)
         file_res = handle_file_command(low, raw, ask_model)
-        if file_res: return _finalize_response(raw, file_res)
+        if file_res:
+            return _finalize_response(raw, file_res)
 
         # Dev commands (error analysis, fixing)
         dev_res = handle_dev_command(low, raw, ask_model)
-        if dev_res: return _finalize_response(raw, dev_res)
+        if dev_res:
+            return _finalize_response(raw, dev_res)
 
         # --- Phase / Mode / Preferences ---
         phase_res = _set_phase(low)
-        if phase_res: return _finalize_response(raw, phase_res)
+        if phase_res:
+            return _finalize_response(raw, phase_res)
 
         mode_res = _set_mode(low)
-        if mode_res: return _finalize_response(raw, mode_res)
+        if mode_res:
+            return _finalize_response(raw, mode_res)
 
         # --- Terminal commands ---
         if "run command" in low or "execute" in low:
             cmd = _extract_after(raw, "run command") or _extract_after(raw, "execute")
-            if not cmd: return _finalize_response(raw, "Please specify the command to run.")
+            if not cmd:
+                return _finalize_response(raw, "Please specify the command to run.")
             
             action_level = classify_action(cmd)
             if action_level == "dangerous":
@@ -416,10 +449,13 @@ def route_command(text: str) -> str:
                 response = _llm(f"Use this info:\n{context}\n\nQuestion: {raw}")
                 return _finalize_response(raw, response)
 
-        # --- Plugins ---
+        # --- Plugins (FS-#7: async execution via task_queue) ---
         _refresh_plugin_tools()
+
+        # Check for a synchronous fast-path hit first
         plugin_result = safe_execute(lambda: run_tool(low, raw), "")
-        if plugin_result: return _finalize_response(raw, plugin_result)
+        if plugin_result:
+            return _finalize_response(raw, plugin_result)
 
         # --- LAST RESORT: LLM ---
         if _phase_at_least("B"):

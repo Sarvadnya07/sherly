@@ -1,4 +1,3 @@
-import pytest
 from sherly.core.input_validator import is_valid_input
 
 def test_injection_blocking():
