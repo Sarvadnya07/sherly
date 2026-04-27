@@ -1,7 +1,7 @@
 import importlib
 import sys
 from pathlib import Path
-from typing import Dict, Any, Type
+from typing import Dict, Any
 from sherly.core.plugin_sdk import BasePlugin
 from sherly.config.config_manager import get_plugin_enabled, set_plugin_enabled as store_plugin_setting
 
@@ -67,7 +67,6 @@ def _ensure_plugin_venv(plugin_name: str):
     Long-term vision: Isolated Plugin Registry.
     Ensures each plugin has its own virtual environment.
     """
-    import subprocess
     import venv
     
     plugin_data_dir = Path.home() / ".sherly" / "plugins" / plugin_name

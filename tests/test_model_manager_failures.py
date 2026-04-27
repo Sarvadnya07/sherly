@@ -1,6 +1,5 @@
-import pytest
 import requests
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from sherly.services.model_manager import ask_model
 
 @patch("requests.post")

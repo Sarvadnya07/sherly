@@ -12,7 +12,7 @@ import json
 import socket
 import threading
 
-from sherly.utils.runtime_utils import log, safe_execute
+from sherly.utils.runtime_utils import log
 
 
 def _get_ghost_port() -> int:

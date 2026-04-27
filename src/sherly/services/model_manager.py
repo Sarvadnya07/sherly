@@ -14,6 +14,7 @@ import threading
 import time
 import functools
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+from typing import Generator
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -338,7 +339,7 @@ def stream_model(
     user_prompt: str,
     model_name: str = "local",
     store_history: bool = False,
-) -> "Generator[str, None, None]":
+) -> Generator[str, None, None]:
     """
     RC-8 / FS-#22 / FS-#28: Token-streaming generator for all LLM backends.
 
@@ -349,7 +350,6 @@ def stream_model(
       - remote_api.py /infer/stream  (SSE endpoint)
       - Any future streaming UI widget
     """
-    from typing import Generator
 
     # FS-#20: Rate limit guard
     rate_error = _rate_limiter.check()

@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime, timezone
 from sherly.config.config_manager import load_config
 

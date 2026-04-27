@@ -5,8 +5,6 @@ and atomic write integration (PRODUCTION_AUDIT §5.B)
 
 from __future__ import annotations
 
-import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -16,7 +14,6 @@ from sherly.services.action_manager import (
     write_file_safe,
     delete_file_safe,
     shell_command_safe,
-    undo_last,
 )
 from sherly.utils.atomic_writer import atomic_write, atomic_write_bytes
 

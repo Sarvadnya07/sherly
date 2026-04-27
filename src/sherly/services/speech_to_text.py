@@ -8,7 +8,6 @@ Fixes:  #1  audio device chaos (auto-select best mic, fallback to default)
 from __future__ import annotations
 
 import threading
-import time
 
 import numpy as np
 import sounddevice as sd

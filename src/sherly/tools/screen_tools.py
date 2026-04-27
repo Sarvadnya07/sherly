@@ -1,7 +1,6 @@
 import mss
 import pygetwindow as gw
 from PIL import Image
-import os
 from datetime import datetime
 
 def capture_screen(monitor_idx=None, region=None):
@@ -45,7 +44,6 @@ def analyze_screen(mode="active"):
             path = capture_screen(monitor_idx=1 if mode == "primary" else 0)
 
         # Here we would call the model. Using a placeholder for the tool call logic.
-        from sherly.services.model_manager import ask_model
         # Note: LLaVA or other vision models would be used here.
         # Since I'm an agent, I'll return the path and a note for the caller.
         return f"Captured {mode} screen at {path}. (Vision analysis would proceed with this file)"

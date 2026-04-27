@@ -3,25 +3,26 @@ import time
 from sherly.tools.automation_tools import open_app, type_text
 from sherly.tools.terminal_tools import safe_exec
 import pyautogui
+from sherly.agents.base_agent import BaseAgent
 
 _SYSTEM_PROMPT = """\
 You are an AI system automation agent with God-level OS control.
 Convert the user's request into a JSON list of actions to execute on a Windows PC.
 
 Available actions:
-- {{"action": "open_app", "app": "name of application"}} (e.g. notepad, calculator)
-- {{"action": "type_text", "text": "text to type"}}
-- {{"action": "press_key", "key": "key name"}} (e.g. enter, win, esc, tab, space, up, down)
-- {{"action": "media_control", "command": "playpause" | "volumeup" | "volumedown" | "nexttrack" | "prevtrack" | "volumemute"}} 
-- {{"action": "hotkey", "keys": ["ctrl", "c"]}} (presses multiple keys at once)
-- {{"action": "wait", "seconds": 1.5}}
-- {{"action": "run_command", "cmd": "shell command"}}
+- {"action": "open_app", "app": "name of application"} (e.g. notepad, calculator)
+- {"action": "type_text", "text": "text to type"}
+- {"action": "press_key", "key": "key name"} (e.g. enter, win, esc, tab, space, up, down)
+- {"action": "media_control", "command": "playpause" | "volumeup" | "volumedown" | "nexttrack" | "prevtrack" | "volumemute"} 
+- {"action": "hotkey", "keys": ["ctrl", "c"]} (presses multiple keys at once)
+- {"action": "wait", "seconds": 1.5}
+- {"action": "run_command", "cmd": "shell command"}
 
 Examples:
-"play pause video" -> [{{"action": "media_control", "command": "playpause"}}]
-"increase volume" -> [{{"action": "media_control", "command": "volumeup"}}, {{"action": "media_control", "command": "volumeup"}}]
-"copy this" -> [{{"action": "hotkey", "keys": ["ctrl", "c"]}}]
-"open calculator and press 5" -> [{{"action": "open_app", "app": "calculator"}}, {{"action": "wait", "seconds": 1.5}}, {{"action": "type_text", "text": "5"}}]
+"play pause video" -> [{"action": "media_control", "command": "playpause"}]
+"increase volume" -> [{"action": "media_control", "command": "volumeup"}, {"action": "media_control", "command": "volumeup"}]
+"copy this" -> [{"action": "hotkey", "keys": ["ctrl", "c"]}]
+"open calculator and press 5" -> [{"action": "open_app", "app": "calculator"}, {"action": "wait", "seconds": 1.5}, {"action": "type_text", "text": "5"}]
 
 Output strictly JSON and nothing else.
 Request: {text}
@@ -40,7 +41,6 @@ def _parse_actions(text: str, ask_model):
     except Exception:
         return []
 
-from sherly.agents.base_agent import BaseAgent
 
 class SystemAgent(BaseAgent):
     def run(self, prompt: str, ask_model=None) -> str:
@@ -83,10 +83,9 @@ class SystemAgent(BaseAgent):
                     executed.append(f"Waited {sec}s")
                 elif a_type == "run_command":
                     cmd = act.get("cmd", "")
-                    res = safe_exec(cmd)
+                    safe_exec(cmd)
                     executed.append(f"Ran '{cmd}'")
             except Exception as e:
                 executed.append(f"Failed {act}: {e}")
                 
         return "\n".join(executed) if executed else "No valid actions performed."
-

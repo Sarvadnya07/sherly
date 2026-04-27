@@ -1,5 +1,4 @@
 import mss
-import numpy as np
 from PIL import Image
 
 def capture_screen():

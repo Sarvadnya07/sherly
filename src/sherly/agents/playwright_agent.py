@@ -6,7 +6,7 @@ FS-#24: playwright is imported lazily inside run() to avoid cold-start overhead.
         The module is safe to import even when playwright is not installed.
 """
 import json
-import time
+from sherly.agents.base_agent import BaseAgent
 
 # FS-#24: Lazy import — playwright is only loaded when run() is first called
 _sync_playwright = None
@@ -118,7 +118,6 @@ def extract_json(raw: str) -> dict:
             pass
     return {}
 
-from sherly.agents.base_agent import BaseAgent
 
 class PlaywrightAgent(BaseAgent):
     def run(self, prompt: str, ask_model=None) -> str:
@@ -163,8 +162,10 @@ class PlaywrightAgent(BaseAgent):
                 elem_text = ""
                 for el in elements:
                     desc = f"Tag: {el['tag']}"
-                    if el['text']: desc += f", Text: '{el['text']}'"
-                    if el['type']: desc += f", Type: {el['type']}"
+                    if el['text']:
+                        desc += f", Text: '{el['text']}'"
+                    if el['type']:
+                        desc += f", Type: {el['type']}"
                     elem_text += f"[ID: {el['id']}] {desc}\n"
 
                 if not elem_text:
