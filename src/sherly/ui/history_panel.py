@@ -158,9 +158,9 @@ class ConversationHistoryPanel:
 
         try:
             from sherly.services.action_manager import get_history as _get_history
-            history_raw = _get_history()
+            _get_history()
         except Exception:
-            history_raw = ""
+            pass
 
         self._entries.clear()
         for turn in turns:

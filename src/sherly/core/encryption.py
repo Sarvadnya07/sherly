@@ -1,6 +1,4 @@
 import base64
-import os
-from pathlib import Path
 
 try:
     from cryptography.fernet import Fernet

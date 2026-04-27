@@ -320,7 +320,7 @@ pyside6-essentials==6.11.0
     #   pyside6-addons
 pystray==0.19.5
     # via -r requirements.in
-pytest==8.4.2
+pytest==9.0.3
     # via
     #   -r requirements.in
     #   pytest-asyncio

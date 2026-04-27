@@ -11,7 +11,6 @@ Fixes: #5  thread race (state_lock on _is_processing/_is_listening)
 from __future__ import annotations
 
 import platform
-import subprocess
 import sys
 import threading
 import time

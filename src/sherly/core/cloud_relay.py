@@ -204,7 +204,7 @@ async def start_relay_server(
     log(f"[Relay] Token auth: {'enabled' if _RELAY_TOKEN else 'DISABLED (dev mode)'}")
 
     async with websockets.serve(_router, host, port):
-        log(f"[Relay] Listening — daemon path: /daemon, client path: /client")
+        log("[Relay] Listening — daemon path: /daemon, client path: /client")
         await asyncio.Future()   # Run forever
 
 

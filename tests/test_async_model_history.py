@@ -7,11 +7,15 @@ Tests for:
 
 from __future__ import annotations
 
-import asyncio
 import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+from sherly.services.conversation_memory import (
+    add_to_memory, clear_context, get_all_turns,
+)
+from sherly.ui.history_panel import ConversationHistoryPanel
 
 
 # ===========================================================================
@@ -20,7 +24,6 @@ import pytest
 
 from sherly.services.async_model import (
     check_ollama_health,
-    _HEALTH_TTL,
 )
 import sherly.services.async_model as _am
 
@@ -151,9 +154,6 @@ def test_ask_model_async_safe_returns_string():
 # OE-3 — Conversation history: get_all_turns()
 # ===========================================================================
 
-from sherly.services.conversation_memory import (
-    add_to_memory, clear_context, get_all_turns,
-)
 
 
 def test_get_all_turns_empty_session():
@@ -204,7 +204,6 @@ def test_get_all_turns_respects_session_isolation():
 # OE-3 — HistoryPanel (headless / no-Qt)
 # ===========================================================================
 
-from sherly.ui.history_panel import ConversationHistoryPanel
 
 
 def test_history_panel_initializes_without_qt():

@@ -23,12 +23,11 @@ Implements:
 
 from __future__ import annotations
 
-import contextlib
 import os
 import sqlite3
 import threading
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 
 from sherly.utils.runtime_utils import log
 

@@ -61,10 +61,6 @@ def test_persist_theme_does_not_raise() -> None:
 # Cloud Relay — logic tests (no WebSocket server needed)
 # ---------------------------------------------------------------------------
 
-from sherly.core.cloud_relay import (
-    _auth_ok,
-    _RELAY_TOKEN,
-)
 
 
 class _MockHeaders(dict):
@@ -119,7 +115,6 @@ def test_auth_ok_missing_header() -> None:
 
 def test_relay_imports_without_websockets() -> None:
     """cloud_relay.py must be importable even without the websockets package."""
-    import importlib
     try:
         import sherly.core.cloud_relay  # noqa: F401
     except ImportError as exc:

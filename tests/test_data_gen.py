@@ -5,7 +5,6 @@ Tests for core/data_gen.py — Alpaca Training Data Export (FS-#27)
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest

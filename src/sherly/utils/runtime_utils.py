@@ -11,13 +11,10 @@ Fixes / Upgrades:
 
 from __future__ import annotations
 
-import json
 import logging
 import threading
-import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
-from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable
@@ -114,7 +111,6 @@ def log(message: str, level: str = "info", module: str | None = None) -> None:
 # ---------------------------------------------------------------------------
 # Task Queue (Moved to sherly.core.task_queue)
 # ---------------------------------------------------------------------------
-from sherly.core.task_queue import add_task
 
 
 # ---------------------------------------------------------------------------

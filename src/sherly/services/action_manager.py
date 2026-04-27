@@ -29,7 +29,6 @@ import os
 import shutil
 import threading
 import uuid
-from collections import deque
 from datetime import datetime, timezone
 from typing import Any, Callable
 
@@ -430,7 +429,8 @@ def shell_command_safe(cmd: str) -> str:
     Unsupported commands are executed but logged as non-undoable.
     Returns a status string.
     """
-    import subprocess, shlex
+    import subprocess
+    import shlex
 
     inverse = _compute_inverse(cmd)
     undoable = inverse is not None
@@ -463,7 +463,8 @@ def _undo_shell_command(undo_data: tuple) -> str:
     FS-#6: Replay the pre-computed inverse command.
     undo_data = ("run_inverse", inverse_cmd_string)
     """
-    import subprocess, shlex
+    import subprocess
+    import shlex
 
     if not undo_data or len(undo_data) < 2:
         return "No inverse command available for this action."

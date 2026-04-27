@@ -7,7 +7,6 @@ Fixes: #10 file path errors (shlex quoting, path normalization)
 from __future__ import annotations
 
 import os
-import shlex
 from pathlib import Path
 
 _MAX_FILE_CHARS = 3_000   # Fix #11: never pass more than this to the LLM

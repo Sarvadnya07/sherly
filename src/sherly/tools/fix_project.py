@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from sherly.tools.error_fixer import analyze_error, generate_multi_fix
+from sherly.tools.error_fixer import generate_multi_fix
 from sherly.tools.executor import run_project
 from sherly.tools.project_detector import detect_project
 from sherly.tools.preview import generate_multi_diff, save_preview

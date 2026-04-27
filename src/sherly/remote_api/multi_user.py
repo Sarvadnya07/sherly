@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
-from typing import Dict, Optional
+from typing import Dict
 
 app = FastAPI(title="Sherly Multi-User API")
 
