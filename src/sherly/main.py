@@ -151,4 +151,4 @@ if __name__ == "__main__":
             except Exception:
                 pass
 
-        start_app(accessibility=use_accessibility)
+        start_app()
