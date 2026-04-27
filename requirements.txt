@@ -68,7 +68,7 @@ durationpy==0.10
     # via kubernetes
 evdev==1.9.3
     # via pynput
-fastapi==0.136.0
+fastapi==0.136.1
     # via
     #   -r requirements.in
     #   chromadb
@@ -320,7 +320,7 @@ pyside6-essentials==6.11.0
     #   pyside6-addons
 pystray==0.19.5
     # via -r requirements.in
-pytest==9.0.3
+pytest==8.4.2
     # via
     #   -r requirements.in
     #   pytest-asyncio
