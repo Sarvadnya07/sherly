@@ -22,8 +22,11 @@ app.add_middleware(
 )
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
+<<<<<<< HEAD
+=======
 # Sentinel [CRITICAL]: Removed hardcoded 'sherly123' fallback — server fails
 # securely when SHERLY_REMOTE_API_KEY is not set in the environment.
+>>>>>>> main
 API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -34,11 +37,18 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")) -> bool:
+<<<<<<< HEAD
+    if not API_KEY:
+        log("API key not configured. Failing securely.", level="error")
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+=======
     # Sentinel [CRITICAL]: Fail securely if API key is not configured at all.
     if not API_KEY:
         log("SHERLY_REMOTE_API_KEY is not set — rejecting request.", level="error")
         raise HTTPException(status_code=403, detail="Unauthorized")
     # Sentinel [CRITICAL]: Use secrets.compare_digest to prevent timing attacks.
+>>>>>>> main
     if not secrets.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True

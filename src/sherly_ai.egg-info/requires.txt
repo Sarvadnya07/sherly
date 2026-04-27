@@ -2,8 +2,13 @@ pystray>=0.19.5
 Pillow>=12.2.0
 faster-whisper>=1.2.1
 sounddevice>=0.5.5
+<<<<<<< HEAD
+numpy>=1.26.0
+scipy>=1.11.0
+=======
 numpy>=2.4.4
 scipy>=1.17.1
+>>>>>>> main
 pyttsx3>=2.99
 requests>=2.33.1
 duckduckgo-search>=8.1.1

@@ -35,6 +35,17 @@ def test_execute_objective(orchestrator):
     string containing the specific Coder Result header and content.
     """
     with patch("sherly.core.orchestrator.log") as mock_log:
+        # We need the coder agent to return different things on different calls.
+        # First call is planning, second call is the task itself.
+        original_run = orchestrator.agents["coder"].run
+
+        def mock_run(query: str):
+            if "strictly in JSON format" in query:
+                return '{"tasks": [{"agent": "researcher", "task": "Research best practices for Test Objective"}, {"agent": "coder", "task": "Implement the core logic for Test Objective"}]}'
+            return original_run(query)
+
+        orchestrator.agents["coder"].run = MagicMock(side_effect=mock_run)
+
         result = orchestrator.execute_objective("Test Objective")
         
         # RESOLVED: Use the strict assertion from sentinel-fix to ensure output format
@@ -42,6 +53,13 @@ def test_execute_objective(orchestrator):
         assert "Result for" in result
         assert mock_log.called
 
+<<<<<<< HEAD
+def test_missing_agent(orchestrator):
+    # Should not crash if an agent is missing
+    orchestrator.agents = {}
+    result = orchestrator.execute_objective("Test Objective")
+    assert "Error: No planner agent available." in result
+=======
 
 def test_missing_agent():
     """When no agents are registered, return a clear error message."""
@@ -51,3 +69,4 @@ def test_missing_agent():
     result = orch.execute_objective("Test Objective")
     
     assert result == "Error: No planner agent available."
+>>>>>>> main
