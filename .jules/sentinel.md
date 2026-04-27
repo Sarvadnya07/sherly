@@ -1,18 +1,11 @@
-## 2024-05-24 - API Security Fixes (Path Traversal, Auth Bypass, Error Leakage)
-**Vulnerability:**
-1. The `/upload` endpoint lacked authentication entirely, allowing unauthenticated file uploads.
-2. The `/upload` endpoint directly appended `file.filename` to `UPLOAD_DIR` without sanitization, creating a Path Traversal vulnerability where an attacker could upload files to arbitrary locations.
-3. The `/command` endpoint leaked sensitive application state and stack traces by returning `str(exc)` upon exception.
-4. The `/command` endpoint had redundant and unsafe query parameter authentication logic that could potentially bypass or complicate the standard Header-based auth dependency `verify_key`.
+## 2023-10-27 - [Command Injection via Unvalidated System Commands]
+**Vulnerability:** The System Agent (`system_agent.py`) executed arbitrary OS commands via the raw `run_command` function without validation.
+**Learning:** System automation agents that execute parsed LLM output or user input as shell commands must always use a central validation gateway (whitelist/safety guard). Direct calls to raw execution functions bypass security layers.
+**Prevention:** Always use `safe_exec` from `sherly.tools.terminal_tools` instead of `run_command` when dynamically executing shell commands from external inputs or LLM generation.
 
-**Learning:**
-1. Missing authentication on endpoints is a critical risk, especially for actions like file uploads.
-2. User-provided filenames must never be trusted or used directly in file paths, as they can contain `../` or absolute paths.
-3. Returning raw exception messages directly to the client is a significant security risk, as it leaks internal application details that attackers can use to craft more targeted attacks.
-4. Relying on custom inline authentication logic rather than centralized, tested dependency injection (`Depends`) introduces complexity and potential vulnerabilities.
-
+## 2026-04-27 - Hardcoded API Key & Timing Attack in API Authentication
+**Vulnerability:** The API server (`src/sherly/remote_api/server.py`) had a hardcoded default API key (`"sherly123"`) as a fallback if the environment variable was missing. In addition, the authentication check `verify_key` compared the incoming key and expected key using the `!=` operator, making it vulnerable to a timing attack.
+**Learning:** Hardcoded default secrets can be easily exploited if a production environment misses an environment variable configuration. Furthermore, standard string comparison operators in Python evaluate character-by-character and return early upon mismatch. This allows an attacker to brute force the API key by analyzing response times.
 **Prevention:**
-1. Always apply standard authentication dependencies (e.g., `Depends(verify_key)`) to all sensitive endpoints, including file uploads.
-2. Always sanitize user-provided filenames using `Path(filename).name` or `os.path.basename` before using them in file operations.
-3. Catch generic exceptions and return generic, uninformative error messages (e.g., "Internal server error") to the client.
-4. Use standard, framework-provided dependency injection for authentication and avoid custom query parameter-based overrides.
+- Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
+- Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
