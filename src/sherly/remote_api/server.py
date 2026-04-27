@@ -74,7 +74,7 @@ async def upload(
     file: UploadFile = File(...),
     _: bool = Depends(verify_key),
 ):
-    # RESOLVED: Uses the robust validation from the main branch
+    # Uses the robust validation from the main branch to prevent Path Traversal
     path = _get_upload_path(file.filename or "")
     
     content = await file.read()
