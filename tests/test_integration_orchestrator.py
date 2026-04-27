@@ -32,21 +32,22 @@ def test_execute_objective(orchestrator):
     """
     The coder MockAgent returns plain text, not JSON, so the orchestrator
     falls back to its default task list. Verify the result is a non-empty
-    string containing at least one 'Result for' response.
+    string containing the specific Coder Result header and content.
     """
     with patch("sherly.core.orchestrator.log") as mock_log:
         result = orchestrator.execute_objective("Test Objective")
-        # Non-empty result expected
-        assert isinstance(result, str)
-        assert len(result) > 0
-        # At least one agent result in the output
+        
+        # RESOLVED: Use the strict assertion from sentinel-fix to ensure output format
+        assert "### Coder Result:\nResult for Analyze and implement: Test Objective" in result
         assert "Result for" in result
-        # Log was called at least once
         assert mock_log.called
 
 
 def test_missing_agent():
     """When no agents are registered, return a clear error message."""
-    orch   = AgentOrchestrator(agents={})
+    # RESOLVED: Use the main branch's clean initialization 
+    # but the sentinel branch's specific error message assertion.
+    orch = AgentOrchestrator(agents={})
     result = orch.execute_objective("Test Objective")
-    assert "No planner agent" in result or result == ""
+    
+    assert result == "Error: No planner agent available."
