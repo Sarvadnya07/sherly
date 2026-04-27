@@ -6,6 +6,8 @@ _db_lock = threading.Lock()
 conn = sqlite3.connect("sherly_memory.db", check_same_thread=False)
 
 with _db_lock:
+    # RC-3: Enable WAL mode for better concurrent read/write throughput
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("CREATE TABLE IF NOT EXISTS memory (key TEXT UNIQUE, value TEXT)")
     conn.execute("CREATE TABLE IF NOT EXISTS chat_history (id INTEGER PRIMARY KEY, user TEXT, assistant TEXT)")
     conn.execute("CREATE TABLE IF NOT EXISTS action_history (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT, action_type TEXT, undo_data TEXT, undoable INTEGER, timestamp TEXT)")

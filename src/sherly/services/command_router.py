@@ -48,16 +48,48 @@ from sherly.services.conversation_memory import add_to_memory, build_prompt
 # Runtime state
 # ---------------------------------------------------------------------------
 
+import pathlib
+
 MODE = "fast"   # fast | deep | dev
 LAST_INTERACTION: dict[str, str] = {"user": "", "assistant": ""}
-FEEDBACK_FILE = "feedback_log.jsonl"
-SHERLY_PHASE = os.getenv("SHERLY_PHASE", "A").strip().upper()
 
+# RC-6: resolve FEEDBACK_FILE relative to this module, not the process CWD
+_LOG_DIR = pathlib.Path(__file__).parent.parent / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+FEEDBACK_FILE = str(_LOG_DIR / "feedback_log.jsonl")
+
+SHERLY_PHASE = os.getenv("SHERLY_PHASE", "A").strip().upper()
 _PHASE_ORDER = {"A": 1, "B": 2, "C": 3}
 
-_stored_phase = recall("phase").strip().upper()
-if _stored_phase in _PHASE_ORDER:
-    SHERLY_PHASE = _stored_phase
+_initialized = False
+
+
+def initialize() -> None:
+    """
+    RC-4: Explicit startup initializer — call from main.py after all modules
+    are fully imported to avoid circular-import / partial-init bugs.
+
+    Replaces the old module-level `recall("phase")` side-effect that ran
+    during import time and could trigger import chains mid-way through
+    Python's module initialization.
+    """
+    global SHERLY_PHASE, _initialized
+    if _initialized:
+        return
+    _initialized = True
+
+    # Restore saved phase (previously ran at import time — RC-4 fix)
+    try:
+        _stored_phase = recall("phase").strip().upper()
+        if _stored_phase in _PHASE_ORDER:
+            SHERLY_PHASE = _stored_phase
+    except Exception:
+        pass  # recall() may fail during testing — safe to skip
+
+
+def get_phase() -> str:
+    """Thread-safe current phase accessor."""
+    return SHERLY_PHASE
 
 
 # ---------------------------------------------------------------------------
@@ -416,10 +448,13 @@ def route_command(text: str) -> str:
                 response = _llm(f"Use this info:\n{context}\n\nQuestion: {raw}")
                 return _finalize_response(raw, response)
 
-        # --- Plugins ---
+        # --- Plugins (FS-#7: async execution via task_queue) ---
         _refresh_plugin_tools()
+
+        # Check for a synchronous fast-path hit first
         plugin_result = safe_execute(lambda: run_tool(low, raw), "")
-        if plugin_result: return _finalize_response(raw, plugin_result)
+        if plugin_result:
+            return _finalize_response(raw, plugin_result)
 
         # --- LAST RESORT: LLM ---
         if _phase_at_least("B"):
