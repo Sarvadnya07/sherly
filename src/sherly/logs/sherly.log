@@ -1049,3 +1049,84 @@
 2026-04-28 01:57:29,948 INFO [MainThread] [Session] Created: iso_b…
 2026-04-28 01:57:29,954 INFO [MainThread] [Session] Created: pend_a…
 2026-04-28 01:57:29,954 INFO [MainThread] [Session] Created: pend_b…
+2026-04-28 02:08:25,836 INFO [MainThread] [ActionManager] logged: test action
+2026-04-28 02:08:25,841 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-28 02:08:25,842 INFO [MainThread] [ActionManager] undoing: delete C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-10\test_delete_file_safe_creates_0\todelete.txt
+2026-04-28 02:08:25,845 INFO [MainThread] [Undo] restored deleted file: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-10\test_delete_file_safe_creates_0\todelete.txt
+2026-04-28 02:08:25,918 INFO [MainThread] [ActionManager] logged: write C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-11\test_write_file_safe_creates_f0\output.txt
+2026-04-28 02:08:25,936 INFO [MainThread] [ActionManager] logged: write C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-11\test_write_file_safe_overwrite0\existing.txt
+2026-04-28 02:08:26,018 INFO [MainThread] [ActionManager] logged: delete C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-11\test_delete_file_safe_creates_0\todelete.txt
+2026-04-28 02:08:26,036 INFO [MainThread] [AST] Patching function body: greet
+2026-04-28 02:08:26,040 INFO [MainThread] [AST] Patching function body: farewell
+2026-04-28 02:08:26,046 INFO [MainThread] [AST] Patching MyClass.method_b
+2026-04-28 02:08:26,052 INFO [MainThread] [AST] Injected import: import sys
+2026-04-28 02:08:26,057 INFO [MainThread] [AST] Renamed 'greet' → 'welcome'
+2026-04-28 02:08:26,060 INFO [MainThread] [AST] Renamed 'foo' → 'bar'
+2026-04-28 02:08:26,064 INFO [MainThread] [AST] Extracted lines 2–3 into compute_xy()
+2026-04-28 02:08:26,069 INFO [MainThread] [Ollama] Health check: OK
+2026-04-28 02:08:26,073 WARNING [MainThread] [Ollama] Health check failed: refused
+2026-04-28 02:08:26,077 WARNING [MainThread] [Ollama] Health check failed: conn refused
+2026-04-28 02:08:26,081 INFO [MainThread] [Ollama] Health check: OK
+2026-04-28 02:08:26,085 WARNING [MainThread] [Ollama] Health check failed: down
+2026-04-28 02:08:26,088 ERROR [MainThread] [Ollama] Auto-recovery failed: 'ollama' not found in PATH.
+2026-04-28 02:08:26,124 ERROR [MainThread] [AsyncModel] ask_model_async_safe error: fail
+2026-04-28 02:08:26,135 WARNING [MainThread] [HistoryPanel] PySide6 not available — panel disabled.
+2026-04-28 02:08:26,138 WARNING [MainThread] [HistoryPanel] PySide6 not available — panel disabled.
+2026-04-28 02:08:26,140 WARNING [MainThread] [HistoryPanel] PySide6 not available — panel disabled.
+2026-04-28 02:08:26,182 INFO [MainThread] [DataGen] ✅ Exported 2 training samples (2 self-heal, 0 Phase C rated)
+   → C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-11\test_export_creates_output_fil0\train.jsonl
+2026-04-28 02:08:26,192 INFO [MainThread] [DataGen] ✅ Exported 2 training samples (2 self-heal, 0 Phase C rated)
+   → C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-11\test_export_output_is_valid_js0\train.jsonl
+2026-04-28 02:08:26,202 INFO [MainThread] [DataGen] ✅ Exported 1 training samples (2 self-heal, 0 Phase C rated)
+   → C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-11\test_export_deduplication0\dedup.jsonl
+2026-04-28 02:08:26,208 WARNING [MainThread] [DataGen] No samples found.
+2026-04-28 02:08:26,333 INFO [MainThread] [DBAdapter] Using SQLite backend.
+2026-04-28 02:08:26,336 INFO [MainThread] [DBAdapter] Using SQLite backend.
+2026-04-28 02:08:26,339 INFO [MainThread] [DBAdapter] Using SQLite backend.
+2026-04-28 02:08:26,340 INFO [MainThread] [DBAdapter] Using SQLite backend.
+2026-04-28 02:08:26,459 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,463 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,466 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,469 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,472 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,473 ERROR [SherlyWorker_0] [TaskQueue] Task 396c9d0c failed: intentional failure
+2026-04-28 02:08:26,476 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,478 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,480 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,517 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,519 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,522 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,522 INFO [MainThread] [TaskQueue] In-memory queue initialized (4 workers).
+2026-04-28 02:08:26,545 INFO [MainThread] [Federated] Generating private knowledge snippet…
+2026-04-28 02:08:26,545 INFO [MainThread] [Federated] Snippet generated (privacy_score=1.0, type=ImportError)
+2026-04-28 02:08:26,548 INFO [MainThread] [Federated] Generating private knowledge snippet…
+2026-04-28 02:08:26,548 INFO [MainThread] [Federated] Snippet generated (privacy_score=1.0, type=UnknownError)
+2026-04-28 02:08:26,552 INFO [MainThread] [Federated] Generating private knowledge snippet…
+2026-04-28 02:08:26,552 INFO [MainThread] [Federated] Snippet generated (privacy_score=1.0, type=ImportError)
+2026-04-28 02:08:26,554 INFO [MainThread] [Federated] Generating private knowledge snippet…
+2026-04-28 02:08:26,555 INFO [MainThread] [Federated] Snippet generated (privacy_score=1.0, type=TypeError)
+2026-04-28 02:08:26,557 INFO [MainThread] [Federated] Generating private knowledge snippet…
+2026-04-28 02:08:26,557 INFO [MainThread] [Federated] Snippet generated (privacy_score=1.0, type=ValueError)
+2026-04-28 02:08:26,557 INFO [MainThread] [Federated] Snippet verified ✓
+2026-04-28 02:08:26,560 INFO [MainThread] [Federated] Generating private knowledge snippet…
+2026-04-28 02:08:26,561 INFO [MainThread] [Federated] Snippet generated (privacy_score=1.0, type=KeyError)
+2026-04-28 02:08:26,561 WARNING [MainThread] [Federated] Snippet signature INVALID — discarding.
+2026-04-28 02:08:26,563 ERROR [MainThread] [Federated] Snippet verification failed: Expecting value: line 1 column 1 (char 0)
+2026-04-28 02:08:26,581 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-28 02:08:26,586 INFO [MainThread] LLM timeout for model=openai
+2026-04-28 02:08:26,591 INFO [MainThread] Model error: 500 Server Error
+2026-04-28 02:08:26,593 ERROR [MainThread] Error: test error
+2026-04-28 02:08:26,698 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-28 02:08:26,876 INFO [MainThread] [Session] Created: token_a…
+2026-04-28 02:08:26,878 INFO [MainThread] [Session] Created: token_b…
+2026-04-28 02:08:26,881 INFO [MainThread] [Session] Created: user_1…
+2026-04-28 02:08:26,881 INFO [MainThread] [Session] Created: user_2…
+2026-04-28 02:08:26,887 INFO [MainThread] [Session] Created: to_delete…
+2026-04-28 02:08:26,887 INFO [MainThread] [Session] Destroyed: to_delete…
+2026-04-28 02:08:26,890 INFO [MainThread] [Session] Created: count_test_1…
+2026-04-28 02:08:26,890 INFO [MainThread] [Session] Created: count_test_2…
+2026-04-28 02:08:26,893 INFO [MainThread] [Session] Created: list_test…
+2026-04-28 02:08:26,902 INFO [MainThread] [Session] Created: iso_a…
+2026-04-28 02:08:26,903 INFO [MainThread] [Session] Created: iso_b…
+2026-04-28 02:08:26,906 INFO [MainThread] [Session] Created: pend_a…
+2026-04-28 02:08:26,907 INFO [MainThread] [Session] Created: pend_b…
