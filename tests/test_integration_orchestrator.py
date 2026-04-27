@@ -18,6 +18,17 @@ def orchestrator():
 
 def test_execute_objective(orchestrator):
     with patch("sherly.core.orchestrator.log") as mock_log:
+        # We need the coder agent to return different things on different calls.
+        # First call is planning, second call is the task itself.
+        original_run = orchestrator.agents["coder"].run
+
+        def mock_run(query: str):
+            if "strictly in JSON format" in query:
+                return '{"tasks": [{"agent": "researcher", "task": "Research best practices for Test Objective"}, {"agent": "coder", "task": "Implement the core logic for Test Objective"}]}'
+            return original_run(query)
+
+        orchestrator.agents["coder"].run = MagicMock(side_effect=mock_run)
+
         result = orchestrator.execute_objective("Test Objective")
         assert "Result for Research best practices for Test Objective" in result
         assert "Result for Implement the core logic for Test Objective" in result
@@ -27,4 +38,4 @@ def test_missing_agent(orchestrator):
     # Should not crash if an agent is missing
     orchestrator.agents = {}
     result = orchestrator.execute_objective("Test Objective")
-    assert result == ""
+    assert "Error: No planner agent available." in result

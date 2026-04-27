@@ -26,3 +26,11 @@
 2026-04-27 01:58:30,584 INFO [MainThread] Model error: 500 Server Error
 2026-04-27 01:58:30,585 ERROR [MainThread] Error: test error
 2026-04-27 01:58:30,687 WARNING [MainThread] timeout_call: slow exceeded 0.1s
+2026-04-27 02:04:32,336 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-27 02:05:08,211 INFO [MainThread] [ActionManager] logged: test action
+2026-04-27 02:05:08,217 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-27 02:05:08,233 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-27 02:05:08,238 INFO [MainThread] LLM timeout for model=openai
+2026-04-27 02:05:08,245 INFO [MainThread] Model error: 500 Server Error
+2026-04-27 02:05:08,247 ERROR [MainThread] Error: test error
+2026-04-27 02:05:08,350 WARNING [MainThread] timeout_call: slow exceeded 0.1s
