@@ -18,5 +18,5 @@ def get_local_models():
 
         return models
 
-    except Exception:
+    except:
         return []
