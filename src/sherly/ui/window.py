@@ -474,27 +474,32 @@ class SherlyWindow(QWidget):
 
         # ── Action buttons ────────────────────
         self.listen_btn = self._icon_btn("🎙 Listen", accent=True)
+        self.listen_btn.setToolTip("Start Voice Input")
         self.listen_btn.clicked.connect(self.request_single_listen)
         lay.addWidget(self.listen_btn)
 
         self.power_btn = self._icon_btn("⏻")
         self.power_btn.setFixedSize(38, 38)
+        self.power_btn.setToolTip("Power Off/On")
         self.power_btn.setStyleSheet(self._power_style(True))
         self.power_btn.clicked.connect(self.toggle_power)
         lay.addWidget(self.power_btn)
 
         self.settings_btn = self._icon_btn("⚙")
         self.settings_btn.setFixedSize(38, 38)
+        self.settings_btn.setToolTip("Settings")
         self.settings_btn.clicked.connect(self.open_settings_panel)
         lay.addWidget(self.settings_btn)
 
         min_btn = self._icon_btn("–")
         min_btn.setFixedSize(38, 38)
+        min_btn.setToolTip("Minimize")
         min_btn.clicked.connect(self.showMinimized)
         lay.addWidget(min_btn)
 
         close_btn = self._icon_btn("✕", danger=True)
         close_btn.setFixedSize(38, 38)
+        close_btn.setToolTip("Close")
         close_btn.clicked.connect(self.hide)
         lay.addWidget(close_btn)
 

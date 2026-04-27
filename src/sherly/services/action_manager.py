@@ -17,6 +17,10 @@ Implements three tightly-coupled systems:
 
   System 3 – IRREVERSIBILITY GUARD
     Non-undoable action types are marked NON_UNDOABLE and excluded from undo.
+
+Fixes:
+  RC-3  Added _db_write_lock around all SQLite write paths to prevent
+         'database is locked' errors under concurrent load.
 """
 
 from __future__ import annotations
@@ -32,6 +36,9 @@ from typing import Any, Callable
 from sherly.utils.runtime_utils import log
 from sherly.services.memory import conn
 import json
+
+# RC-3 — Dedicated write lock for all SQLite writes in this module
+_db_write_lock = threading.Lock()
 
 # ---------------------------------------------------------------------------
 # 1 ─ ACTION CLASSIFIER
@@ -175,17 +182,28 @@ def list_pending() -> str:
 # ---------------------------------------------------------------------------
 
 def _load_history():
-    pass # No longer needed, DB is live
+    pass  # No longer needed, DB is live
 
-def _save_history(entry):
-    try:
-        conn.execute(
-            "INSERT INTO action_history (action, action_type, undo_data, undoable, timestamp) VALUES (?, ?, ?, ?, ?)",
-            (entry["action"], entry["type"], json.dumps(entry["undo"]), 1 if entry["undoable"] else 0, entry["ts"])
-        )
-        conn.commit()
-    except Exception as e:
-        log(f"Failed to save history: {e}")
+
+def _save_history(entry: dict) -> None:
+    """RC-3: All writes serialized through _db_write_lock."""
+    with _db_write_lock:
+        try:
+            conn.execute(
+                "INSERT INTO action_history "
+                "(action, action_type, undo_data, undoable, timestamp) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (
+                    entry["action"],
+                    entry["type"],
+                    json.dumps(entry["undo"]),
+                    1 if entry["undoable"] else 0,
+                    entry["ts"],
+                ),
+            )
+            conn.commit()
+        except Exception as exc:
+            log(f"[ActionManager] Failed to save history: {exc}", level="error")
 
 
 def log_action(
@@ -221,9 +239,9 @@ def get_history() -> str:
     rows = cursor.fetchall()
     if not rows:
         return "No recent actions."
-    lines = ["📋 Recent actions (newest first):"]
+    lines = ["[HISTORY] Recent actions (newest first):"]
     for i, (action, undoable) in enumerate(rows, 1):
-        flag = "↩" if undoable else "🔒"
+        flag = "[UNDO]" if undoable else "[LOCK]"
         lines.append(f"  {i}. {flag} {action}")
     return "\n".join(lines)
 
@@ -231,18 +249,23 @@ def get_history() -> str:
 def undo_last() -> str:
     """
     Revert the most recent undoable action from history.
+    RC-3: DELETE is also serialized through _db_write_lock.
     """
-    cursor = conn.execute("SELECT id, action, action_type, undo_data FROM action_history WHERE undoable=1 ORDER BY id DESC LIMIT 1")
+    cursor = conn.execute(
+        "SELECT id, action, action_type, undo_data FROM action_history "
+        "WHERE undoable=1 ORDER BY id DESC LIMIT 1"
+    )
     row = cursor.fetchone()
     if not row:
         return "Nothing to undo — recent actions are irreversible."
 
     hid, action, action_type, undo_json = row
     undo_data = json.loads(undo_json)
-    
-    # Remove it from history
-    conn.execute("DELETE FROM action_history WHERE id=?", (hid,))
-    conn.commit()
+
+    # RC-3: serialize the DELETE write
+    with _db_write_lock:
+        conn.execute("DELETE FROM action_history WHERE id=?", (hid,))
+        conn.commit()
 
     log(f"[ActionManager] undoing: {action}")
 
@@ -252,6 +275,8 @@ def undo_last() -> str:
         return _undo_delete_file(undo_data)
     elif action_type == "conversation":
         return _undo_conversation(undo_data)
+    elif action_type == "shell_command":
+        return _undo_shell_command(undo_data)   # FS-#6
     else:
         return f"Undo not implemented for action type '{action_type}'."
 
@@ -267,7 +292,7 @@ def _undo_write_file(undo_data: tuple) -> str:
         with open(path, "w", encoding="utf-8") as f:
             f.write(old_content)
         log(f"[Undo] restored file: {path}")
-        return f"↩️ Restored file: {path}"
+        return f"[UNDO] Restored file: {path}"
     except Exception as exc:
         return f"Undo failed for file write: {exc}"
 
@@ -280,7 +305,7 @@ def _undo_delete_file(undo_data: tuple) -> str:
             return f"Backup not found: {backup_path}. Cannot undo."
         shutil.move(backup_path, path)
         log(f"[Undo] restored deleted file: {path}")
-        return f"↩️ Restored deleted file: {path}"
+        return f"[UNDO] Restored deleted file: {path}"
     except Exception as exc:
         return f"Undo failed for file deletion: {exc}"
 
@@ -290,7 +315,7 @@ def _undo_conversation(undo_data: tuple) -> str:
     try:
         from sherly.services.conversation_memory import clear_context
         clear_context()
-        return "↩️ Conversation context cleared."
+        return "[UNDO] Conversation context cleared."
     except Exception as exc:
         return f"Undo failed for conversation: {exc}"
 
@@ -313,8 +338,8 @@ def write_file_safe(path: str, content: str) -> str:
             pass
 
     try:
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
+        from sherly.utils.atomic_writer import atomic_write
+        atomic_write(path, content)
     except Exception as exc:
         return f"Write failed: {exc}"
 
@@ -349,3 +374,114 @@ def delete_file_safe(path: str) -> str:
         undoable=True,
     )
     return f"Deleted: {path} (backup at {backup})"
+
+
+# ---------------------------------------------------------------------------
+# FS-#6 — Shell Command Undo (whitelisted reversible commands)
+# ---------------------------------------------------------------------------
+
+#: Maps a command prefix to the function that builds its inverse.
+#: Key = canonical first token; value = (inverse_builder_fn, is_undoable)
+_REVERSIBLE_COMMANDS: dict[str, str] = {
+    "mkdir": "rmdir",   # mkdir foo → rmdir foo
+    "rmdir": "mkdir",   # rmdir foo → mkdir foo
+    "cp":    "rm",      # cp src dst → rm dst
+    "copy":  "del",     # Windows copy src dst → del dst
+    "mv":    None,      # mv src dst → mv dst src  (special case)
+    "move":  None,      # Windows move src dst → move dst src
+}
+
+
+def _compute_inverse(cmd: str) -> str | None:
+    """
+    FS-#6: Compute the inverse of a whitelisted shell command.
+    Returns the inverse command string, or None if not invertible.
+    """
+    import shlex
+    try:
+        parts = shlex.split(cmd)
+    except ValueError:
+        return None
+    if not parts:
+        return None
+
+    verb = parts[0].lower()
+
+    if verb in ("mkdir", "rmdir") and len(parts) >= 2:
+        opposite = "rmdir" if verb == "mkdir" else "mkdir"
+        return f"{opposite} {parts[1]}"
+
+    if verb in ("cp", "copy") and len(parts) >= 3:
+        dst = parts[-1]
+        return f"rm {dst}"
+
+    if verb in ("mv", "move") and len(parts) >= 3:
+        src, dst = parts[1], parts[2]
+        return f"{verb} {dst} {src}"
+
+    return None
+
+
+def shell_command_safe(cmd: str) -> str:
+    """
+    FS-#6: Execute a whitelisted, reversible shell command with undo support.
+
+    Supported: mkdir, rmdir, cp/copy, mv/move.
+    Unsupported commands are executed but logged as non-undoable.
+    Returns a status string.
+    """
+    import subprocess, shlex
+
+    inverse = _compute_inverse(cmd)
+    undoable = inverse is not None
+
+    try:
+        result = subprocess.run(
+            shlex.split(cmd),
+            capture_output=True,
+            text=True,
+            timeout=15,
+            shell=False,
+        )
+        output = result.stdout.strip() or result.stderr.strip()
+    except Exception as exc:
+        return f"Shell command failed: {exc}"
+
+    log_action(
+        action=cmd,
+        action_type="shell_command",
+        undo_data=("run_inverse", inverse) if undoable else None,
+        undoable=undoable,
+    )
+
+    suffix = " ([UNDO] undoable)" if undoable else " ([LOCK] not undoable)"
+    return f"Executed: {cmd}{suffix}\n{output}" if output else f"Executed: {cmd}{suffix}"
+
+
+def _undo_shell_command(undo_data: tuple) -> str:
+    """
+    FS-#6: Replay the pre-computed inverse command.
+    undo_data = ("run_inverse", inverse_cmd_string)
+    """
+    import subprocess, shlex
+
+    if not undo_data or len(undo_data) < 2:
+        return "No inverse command available for this action."
+
+    _, inverse_cmd = undo_data[0], undo_data[1]
+    if not inverse_cmd:
+        return "This shell command has no automatic inverse."
+
+    try:
+        result = subprocess.run(
+            shlex.split(inverse_cmd),
+            capture_output=True,
+            text=True,
+            timeout=15,
+            shell=False,
+        )
+        output = result.stdout.strip() or result.stderr.strip()
+        log(f"[Undo] ran inverse command: {inverse_cmd}")
+        return f"[UNDO] Reversed with: {inverse_cmd}\n{output}" if output else f"[UNDO] Reversed with: {inverse_cmd}"
+    except Exception as exc:
+        return f"Undo (shell command) failed: {exc}"

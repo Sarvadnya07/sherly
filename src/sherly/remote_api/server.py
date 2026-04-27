@@ -1,16 +1,15 @@
 import os
 from pathlib import Path
 
-
 import requests
-from fastapi import FastAPI, Header, Query, HTTPException, Depends
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sherly.tools.file_tools import explain_file
+
 from sherly.services.model_manager import ask_model
-from sherly.utils.runtime_utils import send_notification
+from sherly.tools.file_tools import explain_file
+from sherly.utils.runtime_utils import log, send_notification
 
 app = FastAPI(title="Sherly Remote API")
 app.add_middleware(
@@ -31,23 +30,30 @@ class Command(BaseModel):
     text: str
 
 
-def verify_key(x_api_key: str = Header(default="")):
+def verify_key(x_api_key: str = Header(default="")) -> bool:
     if x_api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 
 
-@app.post("/command")
-def send_command(
-    cmd: Command,
-    key: str = Query(default=""),
-    x_api_key: str = Header(default=""),
-    _: bool = Depends(verify_key),
-):
-    provided_key = x_api_key or key
-    if provided_key != API_KEY:
-        return {"error": "Unauthorized"}
+def _get_upload_path(filename: str) -> Path:
+    # 1. Extract only the filename (strips leading directories)
+    safe_filename = Path(filename).name
+    
+    # 2. Prevent empty or relative navigation names
+    if safe_filename in {"", ".", ".."}:
+        raise HTTPException(status_code=400, detail="Invalid filename")
 
+    # 3. Resolve the path and ensure it sits within the UPLOAD_DIR
+    path = (UPLOAD_DIR / safe_filename).resolve()
+    if path.parent != UPLOAD_DIR.resolve():
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    
+    return path
+
+
+@app.post("/command")
+def send_command(cmd: Command, _: bool = Depends(verify_key)):
     try:
         response = requests.post(
             LOCAL_AGENT_URL,
@@ -58,14 +64,19 @@ def send_command(
         payload = response.json()
         return {"response": payload.get("response", "")}
     except Exception as exc:
-        return {"error": str(exc)}
+        log(f"Error in send_command: {exc}", level="error")
+        # Returning generic error prevents info leakage of the exception trace
+        return {"error": "Internal server error"}
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...), _: bool = Depends(verify_key)):
-    # Prevent path traversal by extracting just the filename
-    safe_filename = Path(file.filename).name
-    path = UPLOAD_DIR / safe_filename
+async def upload(
+    file: UploadFile = File(...),
+    _: bool = Depends(verify_key),
+):
+    # RESOLVED: Uses the robust validation from the main branch
+    path = _get_upload_path(file.filename or "")
+    
     content = await file.read()
     with path.open("wb") as f:
         f.write(content)
@@ -73,7 +84,7 @@ async def upload(file: UploadFile = File(...), _: bool = Depends(verify_key)):
     result = explain_file(str(path), ask_model)
     send_notification(result)
 
-    return {"message": f"Processed {file.filename}"}
+    return {"message": f"Processed {path.name}"}
 
 
 app.mount("/", StaticFiles(directory="remote_ui", html=True), name="ui")

@@ -94,8 +94,41 @@ def get_enabled_plugin_names():
 def get_all_plugin_states():
     return {name: meta["enabled"] for name, meta in _all_plugins_meta.items()}
 
+
 def set_plugin_enabled(name: str, enabled: bool):
     store_plugin_setting(name, bool(enabled))
     load_plugins()
+
+
+# ---------------------------------------------------------------------------
+# OE-4 — Plugin Marketplace Stub (opt-in, disabled by default)
+# ---------------------------------------------------------------------------
+
+def fetch_marketplace(url: str = "https://sherly-plugins.example.com/registry.json") -> list[dict]:
+    """
+    OE-4: Fetch a list of community plugins from the marketplace registry.
+
+    Returns a list of plugin dicts:
+      [{"name": ..., "description": ..., "install": ..., "version": ...}]
+
+    Only active when config.json → plugin_marketplace = true.
+    Completely safe to call; silently returns [] if disabled or unreachable.
+    """
+    try:
+        from sherly.config.config_manager import get_plugin_marketplace_enabled
+        if not get_plugin_marketplace_enabled():
+            return []
+
+        import requests
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        plugins_list = data if isinstance(data, list) else data.get("plugins", [])
+        print(f"[PluginMarketplace] Found {len(plugins_list)} plugins in registry.")
+        return plugins_list
+    except Exception as err:
+        print(f"[PluginMarketplace] Could not fetch registry: {err}")
+        return []
+
 
 load_plugins()
