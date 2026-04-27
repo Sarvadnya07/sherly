@@ -320,7 +320,7 @@ pyside6-essentials==6.11.0
     #   pyside6-addons
 pystray==0.19.5
     # via -r requirements.in
-pytest==9.0.3
+pytest==8.4.2
     # via
     #   -r requirements.in
     #   pytest-asyncio
@@ -443,7 +443,7 @@ urllib3==2.6.3
     # via
     #   kubernetes
     #   requests
-uvicorn[standard]==0.45.0
+uvicorn[standard]==0.46.0
     # via
     #   -r requirements.in
     #   chromadb
