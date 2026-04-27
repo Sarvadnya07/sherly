@@ -19,3 +19,10 @@
 2026-04-23 03:17:16,902 WARNING [MainThread] timeout_call: slow exceeded 0.1s
 2026-04-27 01:52:50,152 ERROR [AnyIO worker thread] API key not configured. Failing securely.
 2026-04-27 01:52:50,174 ERROR [AnyIO worker thread] Error in send_command: HTTPConnectionPool(host='127.0.0.1', port=5001): Max retries exceeded with url: /execute (Caused by NewConnectionError("HTTPConnection(host='127.0.0.1', port=5001): Failed to establish a new connection: [Errno 111] Connection refused"))
+2026-04-27 01:58:30,508 INFO [MainThread] [ActionManager] logged: test action
+2026-04-27 01:58:30,513 INFO [MainThread] [ActionManager] logged: permanent action
+2026-04-27 01:58:30,574 INFO [MainThread] [Orchestrator] Planning objective: Test Objective
+2026-04-27 01:58:30,580 INFO [MainThread] LLM timeout for model=openai
+2026-04-27 01:58:30,584 INFO [MainThread] Model error: 500 Server Error
+2026-04-27 01:58:30,585 ERROR [MainThread] Error: test error
+2026-04-27 01:58:30,687 WARNING [MainThread] timeout_call: slow exceeded 0.1s
