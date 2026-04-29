@@ -9,3 +9,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-05-24 - Fix hardcoded API key and timing attack vulnerability
+**Vulnerability:** A hardcoded API key (`"sherly123"`) was present as a fallback for authentication, and the verification used direct string comparison (`!=`), creating a timing attack vulnerability.
+**Learning:** Hardcoded default secrets create universal backdoors if deployed as-is. Standard string comparison allows attackers to infer the key one character at a time by measuring response times.
+**Prevention:** Always require secrets to be injected via secure environment variables with no hardcoded fallback, and use `secrets.compare_digest` for secure, constant-time string comparison in authentication logic.
