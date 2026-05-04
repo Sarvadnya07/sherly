@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2024-05-27 - TestClient Requires Context Manager for Lifespan Events
+**Vulnerability:** Not a direct vulnerability, but a critical failure in testing security enhancements. A FastAPI application using `lifespan` to enforce security conditions (like environment variables) on startup will cause tests to fail cryptically or skip the lifespan block entirely if `TestClient` is used without a context manager.
+**Learning:** When adding startup security validations via FastAPI's `lifespan`, tests that directly call `client.post` without a `with TestClient(app) as client:` block will fail to execute the lifespan event correctly, leading to false positives or 500 errors during security test execution.
+**Prevention:** Always use `TestClient` as a context manager (`with TestClient(app) as client:`) when testing FastAPI applications, especially when they rely on `lifespan` events for critical security initialization.

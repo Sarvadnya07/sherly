@@ -1,6 +1,7 @@
 import os
+import secrets
 from pathlib import Path
-
+from contextlib import asynccontextmanager
 
 import requests
 from fastapi import FastAPI, Header, Query, HTTPException, Depends
@@ -12,7 +13,13 @@ from tools.file_tools import explain_file
 from model_manager import ask_model
 from runtime_utils import send_notification
 
-app = FastAPI(title="Sherly Remote API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if not API_KEY:
+        raise RuntimeError("SHERLY_REMOTE_API_KEY environment variable is required and must be explicitly set.")
+    yield
+
+app = FastAPI(title="Sherly Remote API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,7 +29,10 @@ app.add_middleware(
 )
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
-API_KEY = os.getenv("SHERLY_REMOTE_API_KEY", "sherly123")
+
+# 🛡️ Sentinel: Removed hardcoded API key and enforcing explicit configuration
+API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
+
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -32,7 +42,8 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")):
-    if x_api_key != API_KEY:
+    # 🛡️ Sentinel: Use constant-time comparison to prevent timing attacks
+    if not secrets.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 
