@@ -9,3 +9,10 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2024-05-05 - [Hardcoded API Key and Timing Attack Vulnerability in FastAPI Server]
+**Vulnerability:** The `API_KEY` was configured with a fallback to a hardcoded string `"sherly123"` if the environment variable `SHERLY_REMOTE_API_KEY` was missing. Additionally, the string comparison to verify the API key used the `!=` operator, leaving it vulnerable to timing attacks.
+**Learning:** Hardcoded default secrets are dangerous as they might end up in a production environment if the configuration is omitted. Failing securely (raising an error) is safer than falling back to an insecure default. Also, standard string comparison operators evaluate strings character-by-character, allowing attackers to infer correct characters based on response time differences.
+**Prevention:**
+1. Avoid providing fallbacks for sensitive environment variables. Fail securely by raising a `RuntimeError` or similar exception.
+2. Use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
