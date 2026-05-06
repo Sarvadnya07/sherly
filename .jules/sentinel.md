@@ -9,3 +9,10 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2026-05-06 - Missing Timing Attack Protection in API Authentication
+**Vulnerability:** The API server (`remote_api/server.py`) checked the API key using a standard string comparison (`x_api_key != API_KEY`), which is vulnerable to timing attacks. It also had a hardcoded default fallback for the `SHERLY_REMOTE_API_KEY`.
+**Learning:** Using `!=` for token or key comparisons evaluates characters sequentially, allowing attackers to infer correct characters based on response times. Hardcoded defaults for API keys allow trivial circumvention if the environment is not configured.
+**Prevention:**
+- Always use `secrets.compare_digest()` for comparing security tokens, keys, or passwords.
+- Fail securely when expected security environment variables are missing (e.g. by raising a `RuntimeError`) rather than falling back to default strings.
