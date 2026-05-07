@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2026-05-07 - [Hardcoded API Key & Timing Attack]
+**Vulnerability:** The API server `remote_api/server.py` had a hardcoded default API key `"sherly123"`, exposing it when the environment variable was missing. Moreover, the key comparison used standard inequality `!=`, which makes it vulnerable to a timing attack.
+**Learning:** Hardcoded default credentials allow attackers to trivially bypass authentication if misconfigured. Simple equality checks allow timing attacks since the comparison stops as soon as a character mismatch occurs.
+**Prevention:** Remove fallback secrets and enforce explicit configuration by crashing the server if missing. Use constant-time comparisons like `secrets.compare_digest` for validating authentication tokens.
