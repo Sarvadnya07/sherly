@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2025-05-08 - Fallback Hardcoded API Key and Timing Attack Vulnerability
+**Vulnerability:** The API server (`remote_api/server.py`) had a hardcoded default API key `"sherly123"` as a fallback, and validated the incoming header against it using a direct inequality comparison (`!=`).
+**Learning:** Providing a hardcoded fallback API key creates an immediate security gap in production if the environment variable goes unset. Using equality operators (`!=`, `==`) for secret comparisons opens up timing attack vectors, as Python stops comparing at the first mismatched character.
+**Prevention:** Remove default fallback values for secrets; raise exceptions (e.g. `RuntimeError`) during initialization if the necessary environment variables are absent. Always use `secrets.compare_digest` for secret comparisons to ensure a constant-time check.
