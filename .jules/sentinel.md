@@ -9,3 +9,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-04-27 - In-Memory File Upload Dos Risk
+**Vulnerability:** The API server (`src/sherly/remote_api/server.py`) read the entirety of an uploaded file into memory using `await file.read()`, making it vulnerable to Denial of Service attacks when large files are uploaded.
+**Learning:** Loading full payloads into memory before persistence can lead to application failure and resource starvation, particularly on concurrent systems like FastAPI.
+**Prevention:** Stream file content directly from the input object to disk using `shutil.copyfileobj(file.file, f)` and define the endpoint synchronously (`def`) to offload I/O to a background threadpool.
