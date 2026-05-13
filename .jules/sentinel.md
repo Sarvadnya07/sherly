@@ -1,11 +1,10 @@
-## 2023-10-27 - [Command Injection via Unvalidated System Commands]
-**Vulnerability:** The System Agent (`system_agent.py`) executed arbitrary OS commands via the raw `run_command` function without validation.
-**Learning:** System automation agents that execute parsed LLM output or user input as shell commands must always use a central validation gateway (whitelist/safety guard). Direct calls to raw execution functions bypass security layers.
-**Prevention:** Always use `safe_exec` from `sherly.tools.terminal_tools` instead of `run_command` when dynamically executing shell commands from external inputs or LLM generation.
+## 2024-05-13 - [CRITICAL] Fix hardcoded API key fallback and timing attack in remote API
 
-## 2026-04-27 - Hardcoded API Key & Timing Attack in API Authentication
-**Vulnerability:** The API server (`src/sherly/remote_api/server.py`) had a hardcoded default API key (`"sherly123"`) as a fallback if the environment variable was missing. In addition, the authentication check `verify_key` compared the incoming key and expected key using the `!=` operator, making it vulnerable to a timing attack.
-**Learning:** Hardcoded default secrets can be easily exploited if a production environment misses an environment variable configuration. Furthermore, standard string comparison operators in Python evaluate character-by-character and return early upon mismatch. This allows an attacker to brute force the API key by analyzing response times.
+**Vulnerability:**
+The `remote_api/server.py` had a hardcoded default API key `"sherly123"` using `os.getenv("SHERLY_REMOTE_API_KEY", "sherly123")`. Additionally, it compared the incoming API key using a standard `!=` string comparison instead of a constant-time comparison, opening it up to timing attacks.
+
+**Learning:**
+Relying on hardcoded fallbacks for critical secrets nullifies environment-based configuration security. Simple string equality operators on secrets leak comparison time, potentially allowing an attacker to deduce the correct key byte-by-byte. This pattern is common in quick development iterations but must be replaced for production.
+
 **Prevention:**
-- Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
-- Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+Always read secrets from the environment *without* a fallback, and immediately raise a loud exception (e.g., `RuntimeError`) on startup if the secret is missing to "fail securely". Always use `secrets.compare_digest(a, b)` for comparing secure tokens or passwords to prevent timing attacks.
