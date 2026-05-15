@@ -3,7 +3,9 @@ from pathlib import Path
 
 
 import requests
-from fastapi import FastAPI, Header, Query, HTTPException, Depends
+import secrets
+import shutil
+from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -22,7 +24,11 @@ app.add_middleware(
 )
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
-API_KEY = os.getenv("SHERLY_REMOTE_API_KEY", "sherly123")
+API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
+if not API_KEY:
+    raise RuntimeError(
+        "SHERLY_REMOTE_API_KEY environment variable is required but not set."
+    )
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -32,7 +38,7 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")):
-    if x_api_key != API_KEY:
+    if not secrets.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 
@@ -56,15 +62,14 @@ def send_command(
 
 
 @app.post("/upload")
-async def upload(
+def upload(
     file: UploadFile = File(...),
     _: bool = Depends(verify_key),
 ):
     safe_filename = Path(file.filename).name
     path = UPLOAD_DIR / safe_filename
-    content = await file.read()
     with path.open("wb") as f:
-        f.write(content)
+        shutil.copyfileobj(file.file, f)
 
     result = explain_file(str(path), ask_model)
     send_notification(result)
