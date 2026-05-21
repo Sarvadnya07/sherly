@@ -61,7 +61,7 @@ def send_command(cmd: Command, _: bool = Depends(verify_key)):
         return {"response": payload.get("response", "")}
     except Exception as exc:
         log(f"Error in send_command: {exc}", level="error")
-        return {"error": "Internal server error"}
+        return {"error": "An internal error occurred."}
 
 
 @app.post("/upload")

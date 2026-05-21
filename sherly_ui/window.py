@@ -4,7 +4,7 @@ Sherly Assistant – main window (complete redesign)
 Layout
 ──────
 ┌────────────────────────────────────────────────────────┐
-│  Header: logo · title/status · Listen · Power · Settings · – · ✕  │
+│  Header: logo · title/status · Listen · Power · Settings · – · ✕   │
 ├────────────┬───────────────────────────────────────────┤
 │  Sidebar   │  Chat area (scrollable bubbles)           │
 │ (history / │                                           │
@@ -50,7 +50,7 @@ C_ACCENT2     = "#00ffcc"
 C_TEXT        = "#e8e8f0"
 C_MUTED       = "rgba(255,255,255,0.35)"
 C_USER_BG     = "rgba(108,99,255,0.18)"
-C_AI_BG       = "rgba(0,255,204,0.08)"
+C_AI_BG        = "rgba(0,255,204,0.08)"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -693,7 +693,7 @@ class SherlyWindow(QWidget):
     def _refresh_action_panel(self):
         """
         Rebuild the sidebar action panel with current pending approvals
-        and the last 5 action history entries.  Called on the GUI thread via signal.
+        and the last 5 action history entries. Called on the GUI thread via signal.
         """
         try:
             from action_manager import _pending_actions, _action_history
@@ -795,7 +795,6 @@ class SherlyWindow(QWidget):
             ph.setStyleSheet(f"color: {C_MUTED}; font-size: 10px;")
             ph.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self._action_layout.addWidget(ph)
-
 
 
     def _add_history_card(self, user: str, ai: str):

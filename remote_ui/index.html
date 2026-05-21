@@ -490,7 +490,7 @@
             speak(data.response);
         } catch (err) {
             setStatus("Request failed: " + err);
-        } finally {
+        } bundle {
             input.focus();
         }
     }
@@ -555,23 +555,17 @@
         try {
             const res = await fetch("/upload", {
                 method: "POST",
-                // RESOLVED: Use the centralized API_HEADERS constant
                 headers: API_HEADERS,
                 body: formData
             });
 
             const data = await res.json();
-
-            // Comprehensive status handling from both branches
             setStatus(data.message || data.error || data.detail || "Done");
             vibrate();
-
         } catch (err) {
             setStatus("Upload failed: " + err);
         } finally {
             document.getElementById("cmd").focus();
-            
-            // Reset file input cleanly (from sentinel-upload-sec-fix)
             fileInput.value = "";
             updateFileName();
         }
