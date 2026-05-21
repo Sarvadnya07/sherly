@@ -3,14 +3,14 @@ from pathlib import Path
 
 
 import requests
-from fastapi import FastAPI, Header, Query, HTTPException, Depends
+from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from tools.file_tools import explain_file
 from model_manager import ask_model
-from runtime_utils import send_notification
+from runtime_utils import send_notification, log
 
 app = FastAPI(title="Sherly Remote API")
 app.add_middleware(
@@ -51,8 +51,9 @@ def send_command(
         response.raise_for_status()
         payload = response.json()
         return {"response": payload.get("response", "")}
-    except Exception:
-        return {"error": "Internal server error"}
+    except Exception as exc:
+        log(f"Error in send_command: {exc}", level="error")
+        return {"error": "An internal error occurred."}
 
 
 @app.post("/upload")

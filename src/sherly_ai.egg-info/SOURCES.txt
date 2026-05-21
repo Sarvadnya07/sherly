@@ -117,10 +117,6 @@ tests/test_classify_action.py
 tests/test_input_validator.py
 tests/test_integration_orchestrator.py
 tests/test_model_manager_failures.py
-<<<<<<< HEAD
-tests/test_runtime_utils.py
-=======
 tests/test_runtime_utils.py
 tests/test_safety_guard.py
 tests/test_sanitizer.py
->>>>>>> main

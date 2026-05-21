@@ -561,7 +561,7 @@
             });
 
             const data = await res.json();
-            
+
             // Comprehensive status handling from both branches
             setStatus(data.message || data.error || data.detail || "Done");
             vibrate();
