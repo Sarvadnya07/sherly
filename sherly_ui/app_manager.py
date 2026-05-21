@@ -123,6 +123,9 @@ class AssistantWorker(QObject):
         self._running = False
 
     def run(self) -> None:
+        self.run_loop()
+
+    def run_loop(self) -> None:
         self.status_changed.emit("Idle")
         while self._running:
             if self._paused:

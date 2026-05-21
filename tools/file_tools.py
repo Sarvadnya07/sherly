@@ -1,7 +1,7 @@
 """
 FILE TOOLS — tools/file_tools.py
 Fixes: #10 file path errors (shlex quoting, path normalization)
-        #11 large file crash (chunked read, 3000-char cap)
+       #11 large file crash (chunked read, 3000-char cap)
 """
 
 from __future__ import annotations

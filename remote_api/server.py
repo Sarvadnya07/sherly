@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 import requests
 from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,7 +31,7 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")):
-    if x_api_key != API_KEY:
+    if not x_api_key or x_api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 

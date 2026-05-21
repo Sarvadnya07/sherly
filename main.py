@@ -1,5 +1,5 @@
 """
-MAIN ENTRY POINT — main.py
+MAIN ENTRY POINT — src/sherly/main.py
 Fixes:
   RC-6  Startup pre-flight checks before Qt launch
   OE-1  --headless CLI flag (skips Qt, starts Ghost Mode server)
@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 _os = platform.system()
 if _os == "Windows":
     os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
-    os.environ["QT_LOGGING_RULES"]          = "qt.qpa.window=false"
+    os.environ["QT_LOGGING_RULES"] = "qt.qpa.window=false"
 
 
 # ---------------------------------------------------------------------------
@@ -45,17 +45,15 @@ def _check_dependencies() -> None:
             missing.append(pip_name)
 
     if missing:
-        print("Missing required packages. Run:")
+        print("❌ Missing required packages. Run:")
         print(f"  pip install {' '.join(missing)}")
         sys.exit(1)
 
-<<<<<<<< HEAD:main.py
-========
 
 def _check_hardware() -> None:
     try:
         import psutil
-        mem      = psutil.virtual_memory()
+        mem = psutil.virtual_memory()
         total_gb = mem.total / (1024 ** 3)
         if total_gb < 8.0:
             print(
@@ -75,7 +73,7 @@ def _print_model_advisory() -> None:
     try:
         from sherly.services.model_manager import _get_optimal_local_model
         import psutil
-        mem      = psutil.virtual_memory()
+        mem = psutil.virtual_memory()
         total_gb = mem.total / (1024 ** 3)
         recommended = _get_optimal_local_model()
         print(
@@ -85,7 +83,6 @@ def _print_model_advisory() -> None:
         )
     except Exception:
         pass  # Non-fatal; advisory only
->>>>>>>> main:src/sherly/main.py
 
 
 # ---------------------------------------------------------------------------
@@ -119,15 +116,6 @@ def _parse_args() -> argparse.Namespace:
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-<<<<<<<< HEAD:main.py
-    _check_dependencies()
-
-    # Fix #17: UTC timestamp on startup log
-    print(f"[{datetime.now(timezone.utc).isoformat()}] Starting Sherly...")
-
-    from sherly_ui.app_manager import start_app
-    start_app()
-========
     args = _parse_args()
 
     # Path hack for direct script execution
@@ -135,6 +123,7 @@ if __name__ == "__main__":
     if _src not in sys.path:
         sys.path.insert(0, _src)
 
+    # Fix #17: UTC timestamp on startup log
     print(f"[{datetime.now(timezone.utc).isoformat()}] Starting Sherly...")
 
     # RC-4: Explicit router initialization (eliminates circular-import side-effects)
@@ -164,4 +153,3 @@ if __name__ == "__main__":
                 pass
 
         start_app()
->>>>>>>> main:src/sherly/main.py
