@@ -1,0 +1,7 @@
+Collecting scipy
+  Downloading scipy-1.15.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+Requirement already satisfied: numpy<2.5,>=1.23.5 in /home/jules/.pyenv/versions/3.10.20/lib/python3.10/site-packages (from scipy) (2.2.6)
+Downloading scipy-1.15.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (37.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 37.7/37.7 MB 31.1 MB/s  0:00:01
+Installing collected packages: scipy
+Successfully installed scipy-1.15.3

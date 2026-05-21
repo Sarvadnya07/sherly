@@ -67,7 +67,7 @@ last_used: float = time.time()
 
 MAX_OUTPUT_TOKENS  = 120          # Fix #3: keep response generation fast
 MAX_OUTPUT_CHARS   = 500          # hard char cap
-IDLE_UNLOAD_SECONDS = 300          # Production Audit Fix: 5-minute TTL to prevent VRAM thrashing
+IDLE_UNLOAD_SECONDS = 60          # Fix #4: aggressive idle unload
 
 _breaker = CircuitBreaker(fail_max=3, reset_timeout=30)
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="SherlyLLM")
@@ -248,24 +248,6 @@ def unload_model() -> None:
         ACTIVE_MODEL = None
 
 
-def _get_optimal_local_model() -> str:
-    """
-    Long-Term Vision: Model Quantization.
-    Automatically select model version based on available RAM.
-    """
-    try:
-        from diagnostics import run_diagnostics
-        diag = run_diagnostics()
-        total_ram = diag["hardware"]["memory"]["total_gb"]
-        
-        if total_ram >= 16.0:
-            return "llama3:8b"      # Larger, more capable model
-        if total_ram >= 8.0:
-            return "phi3"           # Standard capable model
-        return "tinyllama"          # Ultra-lightweight for low-RAM systems
-    except Exception:
-        return "phi3"               # Safe default
-
 def _unload_if_idle() -> None:
     if ACTIVE_MODEL and time.time() - last_used > IDLE_UNLOAD_SECONDS:
         with _model_lock:   # Fix #4: lock before mutating ACTIVE_MODEL
@@ -282,32 +264,6 @@ def _local_call(prompt: str, target_model: str) -> str:
     )
     r.raise_for_status()
     return r.json()["response"]
-
-def stream_model(user_prompt: str, model_name: str = "local"):
-    """
-    Generator for streaming model responses (Long-term vision).
-    """
-    target_model = "phi3" if model_name == "local" else model_name
-    system = _build_system(use_context=True)
-    prompt = f"{system}\n\nUser: {user_prompt}\nAssistant:"
-    
-    try:
-        r = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": target_model, "prompt": prompt, "stream": True},
-            stream=True,
-            timeout=10
-        )
-        r.raise_for_status()
-        for line in r.iter_lines():
-            if line:
-                chunk = json.loads(line)
-                yield chunk.get("response", "")
-                if chunk.get("done"):
-                    break
-    except Exception as e:
-        log(f"Streaming error: {e}")
-        yield "Streaming failed."
 
 
 @_breaker

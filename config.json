@@ -1,0 +1,26 @@
+{
+    "current_model": "phi3",
+    "auto_mode": true,
+    "api_keys": {
+        "openai": "YOUR_OPENAI_KEY",
+        "gemini": "YOUR_GEMINI_KEY",
+        "groq": "YOUR_GROQ_KEY"
+    },
+    "plugins": {
+        "weather": false
+    },
+    "telemetry_enabled": false,
+    "ghost_mode_port": 5555,
+    "llm_rate_limit_per_minute": 20,
+    "plugin_marketplace": false,
+    "db_config": {
+        "provider": "sqlite",
+        "url": "sherly_history.db"
+    },
+    "chroma_config": {
+        "mode": "local",
+        "host": "localhost",
+        "port": 8000
+    },
+    "theme": "default"
+}

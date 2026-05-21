@@ -1,129 +1,86 @@
-# 🎙️ Sherly AI: The Autonomous Local Dev Orchestrator
+# Sherly AI – Voice-First Local Dev Copilot
 
-<div align="center">
-  <img src="src/sherly/ui/assets/sherlyai.png" width="200" alt="Sherly AI Logo">
-  <h3>"Talk to your code. Let the code heal itself."</h3>
-</div>
+![Sherly AI](sherly_ui/assets/sherlyai.png)
 
----
+## Overview
+Sherly is a desktop-native, voice-controlled developer copilot that transforms how you interact with your code. It runs, debugs, and explains your projects hands-free using high-performance local models, sophisticated safety guards, and a Git-style approval workflow.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Security: Platinum](https://img.shields.io/badge/Security-Platinum%20Standard-brightgreen.svg)](#)
-[![RAG: Persistent](https://img.shields.io/badge/RAG-Persistent%20Memory-blueviolet.svg)](#)
-[![Tests: 17/17](https://img.shields.io/badge/Tests-17%2F17%20Passing-success.svg)](#)
+## 🧠 The Sherly Core Foundation
+Sherly is built on 6 pillars of reliability and safety:
+1. **Input Layer**: 5-gate STT filter with noise rejection and prompt injection guards.
+2. **Execution Layer**: Deterministic routing first, LLM fallback only when necessary.
+3. **AI Layer**: Optimized 15s timeouts, single-model RAM locking, and 5-turn context caps.
+4. **System Layer**: Strict whitelist of safe terminal commands under `safe_exec`.
+5. **Control Layer**: 3-tier action classification (SAFE/CONFIRM/DANGEROUS).
+6. **Runtime Layer**: Thread-safe logging, task queue overflow protection, and atomic JSON writes.
 
-**Sherly AI** is a professional-grade, desktop-native developer assistant designed for the era of high-autonomy coding. By blending sub-second voice control with a deterministic safety layer and multi-agent orchestration, Sherly empowers engineers to manage, debug, and optimize their projects hands-free.
+## 🚀 Key Features
 
----
+### 🛡️ Safety & Control (Human-in-the-Loop)
+Sherly never acts blindly. Every critical action follows a strict 3-tier safety protocol:
+- **SAFE**: Information retrieval and explanation (executed directly).
+- **CONFIRM**: System changes, file writes, and tool execution (requires approval).
+- **DANGEROUS**: Destructive commands (blocked or requires high-level override).
 
-## 🌟 The Orchestrator Concept
+### 📁 Git-Style Preview System
+Before applying any code fix, Sherly generates a **Multi-File Preview**:
+- **Inline Diffs**: Clean `➕ Added` / `➖ Removed` visualization directly in the chat.
+- **Confidence Scoring**: Sherly introspects her own solutions and warns you if confidence is low (<60%).
+- **Patch System**: Apply complex fixes across multiple files with a single `approve <id>` command.
+- **Auto-Backups**: Every patch creates an automatic restorable copy in the `backups/` directory.
 
-Sherly is not just another chatbot; it is an **orchestrator** of your local development environment. It executes terminal commands, performs multi-monitor visual analysis, applies semantic code patches, and initiates autonomous self-healing loops—all through a strictly controlled human-in-the-loop workflow.
+### ↩️ Action History & Undo Engine
+Total reversibility. Sherly tracks your recent interactions in a bounded history stack:
+- **Undo last**: Revert file writes, restorations, or even clear conversation context.
+- **Action History**: View a chronological log of all executed commands and their undoable status.
 
-### 💎 Unique Selling Points (USP)
-- **Voice-Native Execution**: Powered by `faster-whisper` for sub-second intent recognition.
-- **Human-in-the-Loop Safety**: 3-tier intent firewall (SAFE/CONFIRM/DANGEROUS) with **Windows Hello** biometric approval.
-- **Atomic Undo Engine**: Persistent SQLite-backed history allows full reversibility of every file change.
-- **Hardened Sandbox**: All technical tools execute within isolated Docker containers to prevent environment corruption.
-- **Ghost Mode**: Zero-UI interface that operates entirely within your IDE's gutter and terminal.
+### 🔁 Self-Healing Auto-Fix Loop
+Sherly handles the entire debugging cycle:
+1. **Run**: Executes your project and captures error logs.
+2. **Fix**: AI calculates a multi-file patch with a confidence score.
+3. **Preview**: Shows you the exact changes for approval.
+4. **Iterate**: If the fix fails, Sherly immediately analyzes the *new* error and proposes a secondary patch.
 
----
+## 📸 UI
+The PySide6 Desktop Panel features:
+- **Glassmorphism Design**: Premium modern aesthetic with dark/light mode toggle.
+- **Action Panel**: Dedicate sidebar area for pending approvals and recent history.
+- **Visual Feedback**: Real-time status indicators (Listening, Thinking, Executing).
 
-## 🏗️ Architecture
+## ⚙️ How It Works
+Voice/Text → Input Validator → Intent Router → [Action Manager (Approval Gate)] → Agent/Tool → Preview Engine → Execution → Result → Undo Logger
 
-Sherly uses a **Modular Sub-Router Architecture** combined with a **Dependency Injection (DI)** container for enterprise-grade scalability.
-
-```mermaid
-graph TD
-    A[Voice/Text Input] --> B[Intent Firewall]
-    B --> C{Orchestrator}
-    C -->|Complex Task| D[Multi-Agent Mesh]
-    C -->|Known Command| E[Deterministic Router]
-    D --> F[Tool Execution]
-    F --> G[Hardened Sandbox]
-    G --> H[Atomic Write Engine]
-    H --> I[P2P State Sync]
+## Architecture / Folder Structure
+```
+agents/               # coder/browser/system agents
+core/                 # worker.py (run_async), task_queue.py
+remote_agent/         # Local FastAPI executor
+remote_api/           # Public FastAPI proxy + PWA mount
+sherly_ui/            # PySide6 window, Tray, UI Signals
+tools/                # STT/TTS, Preview, Fix Project, Task Engine
+action_manager.py     # Approval queue, History stack, Undo engine
+command_router.py     # Main intent router with safety gates
+input_validator.py    # Prompt injection & STT filters
+runtime_utils.py      # Thread-safe logging, safe_execute
+model_manager.py      # Prompt builder, Model routing, Timeouts
 ```
 
----
-
-## 🚀 Core Features
-
-### 🩹 Autonomous Self-Healing
-If a command fails, Sherly captures the traceback, performs a RAG-based context lookup, and applies an **AST-Aware Patch** to fix the bug in real-time.
-
-### 🧠 Persistent Project Memory
-Sherly maintains a persistent **ChromaDB** vector store of your entire codebase. This allows for sub-second semantic search and intelligent context-aware suggestions without re-indexing.
-
-### 🌐 Encrypted P2P Sync
-Synchronize your development state across multiple machines (e.g., Desktop to Laptop) using Peer-to-Peer encryption. No cloud, no central server, pure privacy.
-
----
-
-## 📦 Installation
-
-```powershell
-# 1. Clone the repository
-git clone https://github.com/Sarvadnya07/sherly.git
-cd sherly
-
-# 2. Install the package in editable mode
-pip install -e .
-
-# 3. Setup environment
-cp .env.example .env
-
-# 4. Launch the Orchestrator
-python src/sherly/main.py
+## Installation & Setup
+```bash
+pip install -r requirements.txt
+# Start desktop app
+python main.py
 ```
+*Prereqs: Python 3.10+, Ollama (local LLM), Microphone access.*
 
-*For detailed instructions, see the [Full User Guide](docs/GUIDE.md).*
+## Usage
+- **Fix Project**: Say "fix my project". Sherly will run it, find the error, and show a preview.
+- **Approve**: Type/Say `approve <id>` to execute a staged patch or terminal command.
+- **Undo**: Say `undo last action` to revert the most recent change.
+- **History**: Say `show action history` to see what Sherly has done.
 
----
+## Tech Stack
+Python, PySide6, FastAPI, faster-whisper, pyttsx3, diff-lib, Ollama, DuckDuckGo Search, ntfy.
 
-## 📂 Folder Structure (Platinum Standard)
-
-```text
-/sherly-ai
-├── src/                    # Source Root
-│   └── sherly/             # Unified Package Namespace
-│       ├── main.py         # Entry Point
-│       ├── core/           # Security, Orchestration, Sandbox, P2P
-│       ├── agents/         # LLM Agents (Coder, Browser, System)
-│       ├── routers/        # Command Routers (Dev, File, System)
-│       ├── services/       # RAG, TTS, STT, Actions, Models
-│       ├── ui/             # PySide6 UI components & Assets
-│       ├── tools/          # AST, Preview, Shell, Screen tools
-│       └── config/         # Config Manager & settings.json
-├── docs/                   # Centralized Documentation (Audits, Roadmap)
-├── tests/                  # Updated Integration Suite (100% Passing)
-└── pyproject.toml          # Packaging & Dependency Config
-```
-
----
-
-## 🛡️ Security & Performance
-
-| Feature | Implementation | Standard |
-| :--- | :--- | :--- |
-| **Command Safety** | `shlex` parsing & Shell-False | No Injection |
-| **Data Privacy** | `LogSanitizer` (Entropy-based) | SOC2 Ready |
-| **VRAM Management** | LRU Cache with 5min TTL | No Thrashing |
-| **Code Reliability** | Atomic UUID-based Writes | Zero Corruption |
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-  Developed by <b>Sarvadnya07</b> with a focus on Privacy and Developer Autonomy.
-</div>
+## License
+MIT License.
