@@ -1,3 +1,8 @@
+## 2024-05-18 - Hardcoded API Key and Timing Attack Vulnerability in FastAPI Auth
+**Vulnerability:** The FastAPI application used a hardcoded default API key (`"sherly123"`) if the environment variable was missing. Additionally, the string comparison for the API key was vulnerable to timing attacks.
+**Learning:** Hardcoded fallback values for secrets undermine security configuration. Direct string comparison for secrets leaks information through execution time.
+**Prevention:** Remove default fallbacks for secrets, fail securely if not configured. Always use `secrets.compare_digest` for secret comparison.
+
 ## 2024-05-24 - API Security Refactoring
 **Vulnerability:** Path traversal via unsanitized file upload name (`file.filename`), missing authentication on the `/upload` endpoint, and information disclosure through stack traces in the `/command` endpoint. Also exposed API keys via URL query params (`key`).
 **Learning:** These vulnerabilities expose internal systems and file structures. Path traversal allows writing files to arbitrary locations. Unauthenticated uploads allow unauthorized data ingestion. Query params are often logged, leaking secrets. Unhandled exceptions disclose internal architecture.
