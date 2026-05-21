@@ -1,9 +1,0 @@
-[
-    {
-        "action": "dangerous action",
-        "type": "shutdown",
-        "undo": null,
-        "undoable": false,
-        "ts": "2026-04-22T14:04:12.521479+00:00"
-    }
-]
