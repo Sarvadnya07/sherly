@@ -11,7 +11,6 @@ Fixes: #5  thread race (state_lock on _is_processing/_is_listening)
 from __future__ import annotations
 
 import platform
-import subprocess
 import sys
 import threading
 import time
@@ -124,6 +123,9 @@ class AssistantWorker(QObject):
         self._running = False
 
     def run(self) -> None:
+        self.run_loop()
+
+    def run_loop(self) -> None:
         self.status_changed.emit("Idle")
         while self._running:
             if self._paused:

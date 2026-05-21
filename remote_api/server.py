@@ -1,9 +1,8 @@
 import os
 from pathlib import Path
 
-
 import requests
-from fastapi import FastAPI, Header, Query, HTTPException, Depends
+from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -52,13 +51,17 @@ def send_command(
         payload = response.json()
         return {"response": payload.get("response", "")}
     except Exception as exc:
-        log(f"Error in send_command: {exc}")
-        return {"error": "Internal server error"}
+        log(f"Error in send_command: {exc}", level="error")
+        return {"error": "An internal error occurred."}
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...), _: bool = Depends(verify_key)):
-    path = UPLOAD_DIR / Path(file.filename).name
+async def upload(
+    file: UploadFile = File(...),
+    _: bool = Depends(verify_key),
+):
+    safe_filename = Path(file.filename).name
+    path = UPLOAD_DIR / safe_filename
     content = await file.read()
     with path.open("wb") as f:
         f.write(content)
@@ -66,7 +69,7 @@ async def upload(file: UploadFile = File(...), _: bool = Depends(verify_key)):
     result = explain_file(str(path), ask_model)
     send_notification(result)
 
-    return {"message": f"Processed {file.filename}"}
+    return {"message": f"Processed {safe_filename}"}
 
 
 app.mount("/", StaticFiles(directory="remote_ui", html=True), name="ui")

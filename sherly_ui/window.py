@@ -4,7 +4,7 @@ Sherly Assistant – main window (complete redesign)
 Layout
 ──────
 ┌────────────────────────────────────────────────────────┐
-│  Header: logo · title/status · Listen · Power · Settings · – · ✕  │
+│  Header: logo · title/status · Listen · Power · Settings · – · ✕   │
 ├────────────┬───────────────────────────────────────────┤
 │  Sidebar   │  Chat area (scrollable bubbles)           │
 │ (history / │                                           │
@@ -25,11 +25,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     Qt, QTimer, Signal, QObject, QPropertyAnimation, QEasingCurve,
-    QSize,
 )
 from PySide6.QtGui import (
-    QColor, QFont, QLinearGradient, QPainter, QPixmap, QFontDatabase,
-    QKeyEvent,
+    QColor, QLinearGradient, QPainter, QKeyEvent,
 )
 
 from config_manager import (
@@ -52,7 +50,7 @@ C_ACCENT2     = "#00ffcc"
 C_TEXT        = "#e8e8f0"
 C_MUTED       = "rgba(255,255,255,0.35)"
 C_USER_BG     = "rgba(108,99,255,0.18)"
-C_AI_BG       = "rgba(0,255,204,0.08)"
+C_AI_BG        = "rgba(0,255,204,0.08)"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -474,27 +472,32 @@ class SherlyWindow(QWidget):
 
         # ── Action buttons ────────────────────
         self.listen_btn = self._icon_btn("🎙 Listen", accent=True)
+        self.listen_btn.setToolTip("Start Voice Input")
         self.listen_btn.clicked.connect(self.request_single_listen)
         lay.addWidget(self.listen_btn)
 
         self.power_btn = self._icon_btn("⏻")
         self.power_btn.setFixedSize(38, 38)
+        self.power_btn.setToolTip("Power Off/On")
         self.power_btn.setStyleSheet(self._power_style(True))
         self.power_btn.clicked.connect(self.toggle_power)
         lay.addWidget(self.power_btn)
 
         self.settings_btn = self._icon_btn("⚙")
         self.settings_btn.setFixedSize(38, 38)
+        self.settings_btn.setToolTip("Settings")
         self.settings_btn.clicked.connect(self.open_settings_panel)
         lay.addWidget(self.settings_btn)
 
         min_btn = self._icon_btn("–")
         min_btn.setFixedSize(38, 38)
+        min_btn.setToolTip("Minimize")
         min_btn.clicked.connect(self.showMinimized)
         lay.addWidget(min_btn)
 
         close_btn = self._icon_btn("✕", danger=True)
         close_btn.setFixedSize(38, 38)
+        close_btn.setToolTip("Close")
         close_btn.clicked.connect(self.hide)
         lay.addWidget(close_btn)
 
@@ -690,7 +693,7 @@ class SherlyWindow(QWidget):
     def _refresh_action_panel(self):
         """
         Rebuild the sidebar action panel with current pending approvals
-        and the last 5 action history entries.  Called on the GUI thread via signal.
+        and the last 5 action history entries. Called on the GUI thread via signal.
         """
         try:
             from action_manager import _pending_actions, _action_history
@@ -720,19 +723,19 @@ class SherlyWindow(QWidget):
 
         if pending:
             hdr = QLabel("⏳ Awaiting Approval")
-            hdr.setStyleSheet(f"color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
+            hdr.setStyleSheet("color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
             self._action_layout.addWidget(hdr)
             has_content = True
 
             for aid, entry in list(pending.items()):
                 card = QFrame()
                 card.setObjectName("PendCard")
-                card.setStyleSheet(f"""
-                    #PendCard {{
+                card.setStyleSheet("""
+                    #PendCard {
                         background: rgba(255,170,51,0.07);
                         border: 1px solid rgba(255,170,51,0.3);
                         border-radius: 8px;
-                    }}
+                    }
                 """)
                 cl = QVBoxLayout(card)
                 cl.setContentsMargins(8, 6, 8, 6)
@@ -794,7 +797,6 @@ class SherlyWindow(QWidget):
             self._action_layout.addWidget(ph)
 
 
-
     def _add_history_card(self, user: str, ai: str):
         card = QFrame()
         card.setObjectName("HCard")
@@ -814,7 +816,7 @@ class SherlyWindow(QWidget):
         cl.setSpacing(3)
 
         u = QLabel(user[:40] + ("…" if len(user) > 40 else ""))
-        u.setStyleSheet(f"color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
+        u.setStyleSheet("color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
         u.setWordWrap(True)
 
         a = QLabel(ai[:60] + ("…" if len(ai) > 60 else ""))

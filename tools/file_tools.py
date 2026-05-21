@@ -1,13 +1,12 @@
 """
 FILE TOOLS — tools/file_tools.py
 Fixes: #10 file path errors (shlex quoting, path normalization)
-        #11 large file crash (chunked read, 3000-char cap)
+       #11 large file crash (chunked read, 3000-char cap)
 """
 
 from __future__ import annotations
 
 import os
-import shlex
 from pathlib import Path
 
 _MAX_FILE_CHARS = 3_000   # Fix #11: never pass more than this to the LLM
