@@ -25,11 +25,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     Qt, QTimer, Signal, QObject, QPropertyAnimation, QEasingCurve,
-    QSize,
 )
 from PySide6.QtGui import (
-    QColor, QFont, QLinearGradient, QPainter, QPixmap, QFontDatabase,
-    QKeyEvent,
+    QColor, QLinearGradient, QPainter, QKeyEvent,
 )
 
 from config_manager import (
@@ -474,27 +472,32 @@ class SherlyWindow(QWidget):
 
         # ── Action buttons ────────────────────
         self.listen_btn = self._icon_btn("🎙 Listen", accent=True)
+        self.listen_btn.setToolTip("Start Voice Input")
         self.listen_btn.clicked.connect(self.request_single_listen)
         lay.addWidget(self.listen_btn)
 
         self.power_btn = self._icon_btn("⏻")
         self.power_btn.setFixedSize(38, 38)
+        self.power_btn.setToolTip("Power Off/On")
         self.power_btn.setStyleSheet(self._power_style(True))
         self.power_btn.clicked.connect(self.toggle_power)
         lay.addWidget(self.power_btn)
 
         self.settings_btn = self._icon_btn("⚙")
         self.settings_btn.setFixedSize(38, 38)
+        self.settings_btn.setToolTip("Settings")
         self.settings_btn.clicked.connect(self.open_settings_panel)
         lay.addWidget(self.settings_btn)
 
         min_btn = self._icon_btn("–")
         min_btn.setFixedSize(38, 38)
+        min_btn.setToolTip("Minimize")
         min_btn.clicked.connect(self.showMinimized)
         lay.addWidget(min_btn)
 
         close_btn = self._icon_btn("✕", danger=True)
         close_btn.setFixedSize(38, 38)
+        close_btn.setToolTip("Close")
         close_btn.clicked.connect(self.hide)
         lay.addWidget(close_btn)
 
@@ -720,19 +723,19 @@ class SherlyWindow(QWidget):
 
         if pending:
             hdr = QLabel("⏳ Awaiting Approval")
-            hdr.setStyleSheet(f"color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
+            hdr.setStyleSheet("color: #ffaa33; font-size: 9px; font-weight: 900; letter-spacing: 2px;")
             self._action_layout.addWidget(hdr)
             has_content = True
 
             for aid, entry in list(pending.items()):
                 card = QFrame()
                 card.setObjectName("PendCard")
-                card.setStyleSheet(f"""
-                    #PendCard {{
+                card.setStyleSheet("""
+                    #PendCard {
                         background: rgba(255,170,51,0.07);
                         border: 1px solid rgba(255,170,51,0.3);
                         border-radius: 8px;
-                    }}
+                    }
                 """)
                 cl = QVBoxLayout(card)
                 cl.setContentsMargins(8, 6, 8, 6)
@@ -814,7 +817,7 @@ class SherlyWindow(QWidget):
         cl.setSpacing(3)
 
         u = QLabel(user[:40] + ("…" if len(user) > 40 else ""))
-        u.setStyleSheet(f"color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
+        u.setStyleSheet("color: rgba(108,99,255,0.9); font-size: 10px; font-weight: 700;")
         u.setWordWrap(True)
 
         a = QLabel(ai[:60] + ("…" if len(ai) > 60 else ""))

@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 import requests
-from fastapi import FastAPI, Header, Query, HTTPException, Depends
+from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
@@ -57,7 +57,10 @@ def send_command(
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...), _: bool = Depends(verify_key)):
+async def upload(
+    file: UploadFile = File(...),
+    _: bool = Depends(verify_key),
+):
     safe_filename = Path(file.filename).name
     path = UPLOAD_DIR / safe_filename
     content = await file.read()
@@ -67,7 +70,7 @@ async def upload(file: UploadFile = File(...), _: bool = Depends(verify_key)):
     result = explain_file(str(path), ask_model)
     send_notification(result)
 
-    return {"message": f"Processed {file.filename}"}
+    return {"message": f"Processed {safe_filename}"}
 
 
 app.mount("/", StaticFiles(directory="remote_ui", html=True), name="ui")
