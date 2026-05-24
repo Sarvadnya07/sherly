@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-06-20 - Command Injection via subprocess.run(shell=True)
+**Vulnerability:** The internal code execution wrappers (`run_command` in `terminal_tools.py` and `run_project` in `executor.py`) passed unvalidated strings to `subprocess.run` with `shell=True`, allowing arbitrary command execution by chaining commands (e.g., using `;` or `&&`).
+**Learning:** Even if a command string is prefix-validated, an attacker can append destructive commands if it is executed in a shell. Relying solely on `ALLOWED_PREFIXES` is insufficient because the shell interpreter processes meta-characters.
+**Prevention:** Never use `shell=True` for dynamic commands. Always use `shell=False` and tokenized argument lists. Use `shlex.split(command, posix=(platform.system() != "Windows"))` to safely parse command strings into token arrays for execution.

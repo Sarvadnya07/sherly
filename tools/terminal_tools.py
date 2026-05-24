@@ -10,6 +10,8 @@ Two execution surfaces:
 from __future__ import annotations
 
 import subprocess
+import shlex
+import platform
 from safety_guard import check_command
 
 # ---------------------------------------------------------------------------
@@ -52,9 +54,10 @@ def run_command(command: str) -> str:
         return "Please specify a command to run."
 
     try:
+        args = shlex.split(command, posix=(platform.system() != 'Windows'))
         completed = subprocess.run(
-            command,
-            shell=True,
+            args,
+            shell=False,
             capture_output=True,
             text=True,
             check=False,
