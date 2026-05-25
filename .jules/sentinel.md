@@ -19,3 +19,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2024-05-25 - Bypassing security layers in System Agent
+**Vulnerability:** The System Agent (`agents/system_agent.py`) executed arbitrary OS commands via the raw `run_command` function directly, which bypasses the whitelist and safety guard protections when executing commands output by the LLM or given by the user.
+**Learning:** Using raw execution functions like `run_command` bypasses critical security layers (whitelist, confirm prompts).
+**Prevention:** Always use `safe_exec` instead of `run_command` when dynamically executing shell commands from external inputs or LLM generation.
