@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2023-10-28 - Incomplete Security Patching Leads to Runtime Errors
+**Vulnerability:** A security patch replaced a vulnerable `run_command` with a safe alternative `safe_exec`, but failed to ensure the newly imported `safe_exec` was implemented or available in the module imported from, which would cause an `ImportError` in runtime.
+**Learning:** Renaming an import or method call without verifying its availability in the dependency tree will break code execution. Testing is critical to ensure both security logic is correctly applied and the application continues to run without missing dependency exceptions.
+**Prevention:** Verify all imported modules exist and are available in the scope they are used. Run the appropriate tests to ensure application runs flawlessly after refactoring.
