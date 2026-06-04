@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-06-04 - Command Injection via shell=True in project executor
+**Vulnerability:** The `run_project` function in `tools/executor.py` executed arbitrary OS commands provided as arguments using `subprocess.run(command, shell=True, ...)` without passing through the central `safety_guard` whitelist validation.
+**Learning:** Any backend execution module that bypasses the central command router's safety guards is extremely vulnerable if it utilizes `shell=True`. Attackers can append arbitrary shell commands using operators like `;`, `&&`, or `|`.
+**Prevention:** In modules bypassing central input validation, always strictly use `shell=False` in `subprocess` calls. Tokenize the command string into a list using `shlex.split(command, posix=(platform.system() != 'Windows'))` before execution to ensure secure argument parsing across OSes.

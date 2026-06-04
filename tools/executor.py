@@ -1,12 +1,17 @@
-﻿import subprocess
-
+import subprocess
+import shlex
+import platform
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
     try:
+        # Prevent command injection by tokenizing and avoiding shell=True
+        posix = platform.system() != 'Windows'
+        command_args = shlex.split(command, posix=posix)
+
         result = subprocess.run(
-            command,
-            shell=True,
+            command_args,
+            shell=False,
             capture_output=True,
             text=True,
             timeout=timeout,
