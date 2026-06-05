@@ -1,12 +1,15 @@
-﻿import subprocess
+import platform
+import shlex
+import subprocess
 
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
     try:
+        cmd_args = shlex.split(command, posix=(platform.system() != 'Windows'))
         result = subprocess.run(
-            command,
-            shell=True,
+            cmd_args,
+            shell=False,
             capture_output=True,
             text=True,
             timeout=timeout,
