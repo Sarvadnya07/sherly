@@ -19,3 +19,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2025-06-06 - Command Injection via Architectural Bypass
+**Vulnerability:** Command injection vulnerability existed in `tools/executor.py` because it executed commands directly with `shell=True` and no input validation.
+**Learning:** The system has an architectural gap: while commands sent through the central command router go through a `safety_guard`, direct execution modules like `executor.py` bypass this guard entirely.
+**Prevention:** Any module executing system commands directly MUST use `shell=False` and properly tokenize the command string (e.g. using `shlex.split`) to prevent execution of arbitrary shell payloads.
