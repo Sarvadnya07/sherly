@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-06-08 - Unvalidated Command Execution in System Agent
+**Vulnerability:** The System Agent (`agents/system_agent.py`) executed system commands directly using the raw `run_command` from `tools.terminal_tools` which bypassed the central validation layers, leading to a command injection risk since the prompt content wasn't validated before execution.
+**Learning:** Components handling external or model-generated system commands must utilize the designated secure execution pathways that enforce whitelists and safety guards.
+**Prevention:** Consistently use `safe_exec` instead of `run_command` in automation agents to ensure commands are safely verified against `safety_guard` logic before reaching the underlying `subprocess` call.
