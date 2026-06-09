@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-06-09 - Hardcoded Picovoice Porcupine API Key in `wake_word.py`
+**Vulnerability:** A third-party API key for `pvporcupine` was hardcoded directly in the `sherly_core/wake_word.py` source code. This exposes the secret to anyone who has access to the repository, potentially leading to unauthorized usage or billing issues on the compromised account.
+**Learning:** Hardcoding any secrets (API keys, passwords, database URLs, etc.) directly into source code is extremely insecure. Third-party vendor API keys must be protected identically to internal service credentials to prevent compromise.
+**Prevention:** Avoid hardcoding secrets. Always retrieve sensitive configuration options from securely-managed environment variables (e.g., using `os.getenv()`) and explicitly handle cases where they are absent by raising a clear error at runtime or fallback gracefully if possible.
