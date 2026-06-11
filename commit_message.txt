@@ -1,0 +1,5 @@
+🚨 Severity: CRITICAL
+💡 Vulnerability: Command injection in `system_agent.py` due to using `run_command` without validation on LLM output.
+🎯 Impact: An attacker or malicious model could inject arbitrary OS commands that bypass safety guards.
+🔧 Fix: Replaced `run_command` with the `safe_exec` wrapper to enforce whitelisting and safety checking.
+✅ Verification: Ran static analysis and verified the mocked module successfully loads.
