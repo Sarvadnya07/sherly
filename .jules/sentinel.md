@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-06-13 - Command Injection via Project Executor
+**Vulnerability:** The `run_project` function in `tools/executor.py` executed dynamic commands using `subprocess.run` with `shell=True` without any validation against the central safety guards.
+**Learning:** Specialized command executors that handle their own logic (like timeouts or return codes) can inadvertently bypass central safety checks if not explicitly integrated. This creates an architectural gap where LLM-generated or user-provided input can inject malicious commands via shell operators.
+**Prevention:** Always validate shell commands using a centralized safety gateway (e.g., `check_command` from `safety_guard.py`) before executing them with `shell=True`, even in specialized executor modules.
