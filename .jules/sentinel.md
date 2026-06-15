@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-06-15 - Unchecked Execution in Project Executor
+**Vulnerability:** `tools/executor.py` directly invoked `subprocess.run` with `shell=True` without validating the command string against `safety_guard.check_command`, allowing unrestricted command injection.
+**Learning:** Secondary or internal command execution modules can bypass the central safety mechanisms if they try to implement their own error and output handling instead of reusing `safe_exec`.
+**Prevention:** If `safe_exec` is too high-level, ensure internal executors import `check_command` and validate the command string before continuing to raw `subprocess` calls.
