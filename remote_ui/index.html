@@ -380,8 +380,21 @@
 </div>
 
 <script>
-    const API_KEY = "sherly123";
-    const API_HEADERS = {"x-api-key": API_KEY};
+    function getApiKey() {
+        let key = localStorage.getItem("API_KEY");
+        if (!key) {
+            key = prompt("Please enter the API Key to connect to Sherly:");
+            if (key) {
+                localStorage.setItem("API_KEY", key);
+            }
+        }
+        return key;
+    }
+
+    function getApiHeaders() {
+        const key = getApiKey() || "";
+        return {"x-api-key": key};
+    }
 
     function toggleTheme() {
         const root = document.documentElement;
@@ -479,7 +492,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    ...API_HEADERS,
+                    ...getApiHeaders(),
                 },
                 body: JSON.stringify({text})
             });
@@ -490,7 +503,7 @@
             speak(data.response);
         } catch (err) {
             setStatus("Request failed: " + err);
-        } bundle {
+        } finally {
             input.focus();
         }
     }
@@ -555,7 +568,7 @@
         try {
             const res = await fetch("/upload", {
                 method: "POST",
-                headers: API_HEADERS,
+                headers: getApiHeaders(),
                 body: formData
             });
 
