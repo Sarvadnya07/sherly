@@ -36,7 +36,7 @@ from tools.error_tools import analyze_error
 from tools.file_tools import explain_file
 from tools.project_tools import scan_project
 from tools.screen_tools import analyze_screen
-from tools.terminal_tools import safe_exec, run_command
+from tools.terminal_tools import safe_exec
 from tools.task_engine import execute_task
 from tools.fix_project import apply_last_fix, fix_project
 from web_search import search_web
@@ -285,7 +285,8 @@ Return:
 def _run_project_action() -> str:
     preferred_lang = recall("language").lower()
     if "python" in preferred_lang or preferred_lang == "i don't know that yet.":
-        output = run_command("python main.py")
+        # Sentinel Fix: Prevent command injection by using validated safe_exec
+        output = safe_exec("python main.py")
         if _phase_at_least("C") and _looks_like_error(output):
             fix = _self_heal_command_error("python main.py", output)
             return f"Project run failed.\n\n{output}\n\nSuggested fix:\n{fix}"

@@ -19,3 +19,9 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-06-17 - Command Injection via Raw subprocess.run with shell=True
+**Vulnerability:** The project executor (`tools/executor.py`) utilized `subprocess.run(command, shell=True)` directly without any validation against the centralized safety guard or whitelist. This allowed potential command injection when executing dynamic or unvalidated project commands. Additionally, `run_command` was still being directly used in `agents/system_agent.py` and `command_router.py`.
+**Learning:** Any backend module or agent that triggers system commands using `shell=True` or raw executors bypasses top-level security filters (e.g., `safe_exec`). Distributed execution logic must explicitly integrate with the central safety layer (`check_command`).
+**Prevention:**
+- Always import and call `check_command` from `safety_guard` before using `subprocess.run(shell=True)` if a dedicated executor must be maintained (like `run_project` which handles its own timeout/return codes).
+- Standardize all other direct system command executions to use `safe_exec` from `tools.terminal_tools` instead of `run_command` to enforce both whitelist and risk level checking.
