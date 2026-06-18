@@ -1,8 +1,15 @@
 ﻿import subprocess
+from safety_guard import check_command
 
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
+    # Sentinel Security Fix: Validate command against dangerous patterns
+    # before execution to prevent command injection risks when shell=True is used.
+    guard_result = check_command(command)
+    if guard_result is not None:
+        return ("error", guard_result)
+
     try:
         result = subprocess.run(
             command,
