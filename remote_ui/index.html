@@ -380,8 +380,16 @@
 </div>
 
 <script>
-    const API_KEY = "sherly123";
-    const API_HEADERS = {"x-api-key": API_KEY};
+    let apiKey = localStorage.getItem("sherly_api_key");
+    if (!apiKey) {
+        apiKey = prompt("Please enter your API Key:");
+        if (apiKey) {
+            localStorage.setItem("sherly_api_key", apiKey);
+        } else {
+            alert("API Key is required to use this application.");
+        }
+    }
+    const API_HEADERS = {"x-api-key": apiKey};
 
     function toggleTheme() {
         const root = document.documentElement;
