@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-06-21 - [Command Injection via Isolated Subprocess Wrapping]
+**Vulnerability:** The project executor (`tools/executor.py`) wrapped `subprocess.run` with `shell=True` without incorporating the central `check_command` validation from `safety_guard.py`.
+**Learning:** Even when utility scripts intentionally bypass central safety guards (e.g. `safe_exec`) to handle custom error reporting, timeouts, or return codes, they MUST still manually invoke the core safety classification (`check_command`) before execution. Otherwise, they become a secondary attack surface for command injection.
+**Prevention:** Any wrapper around `subprocess` that enables `shell=True` must import and execute `check_command(cmd)` first, propagating any "DANGEROUS" or "CONFIRM" responses back up the call stack.
