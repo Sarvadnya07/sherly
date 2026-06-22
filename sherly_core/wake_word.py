@@ -1,16 +1,19 @@
+import os
 import pvporcupine
 import pyaudio
 import struct
-
-ACCESS_KEY = "Zz/U5F+h4KHgbupOmaDU8qGYLnK8HWU20+8s8IJCrGwrnaRav9Qsqg=="
 
 
 class WakeWordDetector:
 
     def __init__(self):
 
+        access_key = os.getenv("PVPORCUPINE_ACCESS_KEY")
+        if not access_key:
+            raise ValueError("PVPORCUPINE_ACCESS_KEY environment variable is not set. Cannot initialize wake word detector.")
+
         self.porcupine = pvporcupine.create(
-            access_key=ACCESS_KEY,
+            access_key=access_key,
             keywords=["jarvis"]
         )
 
