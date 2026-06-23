@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-06-23 - [Critical] Command Injection via Direct Subprocess Execution
+**Vulnerability:** `tools/executor.py` bypassed the central `safety_guard` input validations and used `subprocess.run` with `shell=True`, allowing for potential command injection.
+**Learning:** Direct backend execution modules might bypass central safety checks. When `shell=True` functionality is required (e.g. to support project shell features like pipes or `&&`), the input command must be validated locally.
+**Prevention:** Always invoke `check_command` from `safety_guard.py` before executing commands using `subprocess.run(..., shell=True)` when maintaining direct backend functionality.

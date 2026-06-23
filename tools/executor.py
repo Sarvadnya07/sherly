@@ -1,9 +1,14 @@
-﻿import subprocess
-
+import subprocess
+from safety_guard import check_command
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
     try:
+        # Validate the command before execution
+        check_result = check_command(command)
+        if check_result is not None:
+            return ("error", check_result)
+
         result = subprocess.run(
             command,
             shell=True,
