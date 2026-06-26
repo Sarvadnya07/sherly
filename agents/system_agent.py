@@ -1,7 +1,7 @@
 import json
 import time
 from tools.automation_tools import open_app, type_text
-from tools.terminal_tools import run_command
+from tools.terminal_tools import safe_exec
 import pyautogui
 
 _SYSTEM_PROMPT = """\
@@ -42,11 +42,11 @@ def _parse_actions(text: str, ask_model):
 
 def run(prompt: str, ask_model=None) -> str:
     if not ask_model:
-        return run_command(prompt)
+        return safe_exec(prompt)
 
     actions = _parse_actions(prompt, ask_model)
     if not actions:
-        return run_command(prompt)
+        return safe_exec(prompt)
 
     executed = []
 
@@ -80,7 +80,7 @@ def run(prompt: str, ask_model=None) -> str:
                 executed.append(f"Waited {sec}s")
             elif a_type == "run_command":
                 cmd = act.get("cmd", "")
-                res = run_command(cmd)
+                res = safe_exec(cmd)
                 executed.append(f"Ran '{cmd}'")
         except Exception as e:
             executed.append(f"Failed {act}: {e}")
