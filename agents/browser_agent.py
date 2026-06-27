@@ -172,20 +172,20 @@ Request: {text}
 
 def _parse_intent(text: str, ask_model) -> dict:
     raw = ask_model(_BROWSER_PROMPT.format(text=text), store_history=False, use_context=False)
-    
+
     # Aggressively clean LLM markdown artifacts
     raw = raw.replace("```json", "").replace("```", "").strip()
-    
+
     start = raw.find("{")
     end = raw.rfind("}")
     if start != -1 and end != -1:
         raw = raw[start:end+1]
-        
+
     # Fix common local LLM trailing comma issues
     import re
     raw = re.sub(r',\s*}', '}', raw)
     raw = re.sub(r',\s*\]', ']', raw)
-    
+
     try:
         return json.loads(raw)
     except Exception:

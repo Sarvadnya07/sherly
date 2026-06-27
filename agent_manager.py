@@ -20,7 +20,7 @@ _CODER_TRIGGERS = [
 _SYSTEM_TRIGGERS = [
     "open app", "close app", "run command", "type ", "execute ",
     "launch ", "start app", "shutdown", "restart", "lock ",
-    "write ", "open ", "pause", "resume", "mute", "volume", 
+    "write ", "open ", "pause", "resume", "mute", "volume",
     "increase ", "decrease ", "next track", "previous track",
     "play pause", "ope "
 ]

@@ -77,11 +77,11 @@ def apply_last_fix(ask_model):
         return f"I found a potential fix, but confidence is too low ({confidence}%). I will not queue it.\n\nReason: {reason}"
 
     prepared_changes = []
-    
+
     for change in changes:
         target_file = change["file"]
         new_code = change["new"]
-        
+
         # Sometimes the AI tries to guess the relative path, resolve it explicitly if it matches a known file
         if not os.path.isabs(target_file):
             for t_file in target_files:
@@ -93,13 +93,13 @@ def apply_last_fix(ask_model):
             continue
 
         original_code = _read_text(target_file)
-        
+
         prepared_changes.append({
             "file": target_file,
             "old": original_code,
             "new": new_code,
         })
-        
+
     if not prepared_changes:
         return "I generated a fix, but it targets files I cannot locate safely."
 

@@ -18,7 +18,7 @@ def generate_diff(old: str, new: str) -> str:
 
 def format_preview(change: dict, confidence: int = None, reason: str = "") -> str:
     diff = generate_diff(change["old"], change["new"])
-    
+
     # Extract only additions and subtractions for inline preview
     lines = []
     for line in diff.split("\n"):
@@ -26,11 +26,11 @@ def format_preview(change: dict, confidence: int = None, reason: str = "") -> st
             lines.append(f"➕ {line[1:100]}")
         elif line.startswith("-") and not line.startswith("---"):
             lines.append(f"➖ {line[1:100]}")
-            
+
     clean = "\n".join(lines[:15]) # limit lines
     if len(lines) > 15:
         clean += "\n... (truncated)"
-        
+
     out = f"📄 {change['file']}\n\nChange:\n{clean}"
     if reason:
         out += f"\n\nWhy: {reason}"
