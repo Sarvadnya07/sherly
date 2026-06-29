@@ -23,6 +23,10 @@ app.add_middleware(
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
 API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
+
+if not API_KEY:
+    raise RuntimeError("SHERLY_REMOTE_API_KEY environment variable is missing. Failing securely.")
+
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 

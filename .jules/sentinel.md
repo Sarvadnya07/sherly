@@ -19,3 +19,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2025-02-14 - [CRITICAL] Hardcoded UI Secret & Insecure Server Startup
+**Vulnerability:** A hardcoded API key ("sherly123") was present in the frontend UI (`remote_ui/index.html`), and the backend (`remote_api/server.py`) started without verifying that the `SHERLY_REMOTE_API_KEY` was configured, leading to a silent failure state rather than a secure failure.
+**Learning:** Hardcoded credentials on the client side completely bypass access control, allowing anyone with the UI source to authenticate. Server startup should not proceed in an insecure state (missing API key) as it leaves the deployment vulnerable to misconfiguration without immediate feedback.
+**Prevention:** Never embed secrets in client-side code; dynamically load or prompt for them. Always validate critical security environment variables on startup and fail explicitly (raise errors) if they are missing.
