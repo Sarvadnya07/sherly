@@ -18,4 +18,7 @@
 **Learning:** Hardcoded default secrets can be easily exploited if a production environment misses an environment variable configuration. Furthermore, standard string comparison operators in Python evaluate character-by-character and return early upon mismatch. This allows an attacker to brute force the API key by analyzing response times.
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
-- Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+- Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.## 2026-07-01 - Fix hardcoded API key in frontend UI
+**Vulnerability:** A hardcoded API key (`"sherly123"`) was present in `remote_ui/index.html` and used for all requests to the backend server.
+**Learning:** Even internal or local UIs can expose credentials if hardcoded in static HTML/JS files served to the browser.
+**Prevention:** Avoid hardcoding secrets in source code. For client-side UI connecting to a secured API, prompt the user for the key and store it locally (e.g., in `localStorage`), defaulting to dynamic configuration over static assignment.
