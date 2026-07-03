@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-07-03 - Command Injection via Unvalidated System Commands in command_router.py
+**Vulnerability:** The Command Router (`command_router.py`) executed arbitrary OS commands via the raw `run_command` function without validation in `_run_project_action`.
+**Learning:** System automation agents and routers that execute parsed LLM output or user input as shell commands must always use a central validation gateway (whitelist/safety guard). Direct calls to raw execution functions bypass security layers.
+**Prevention:** Always use `safe_exec` from `sherly.tools.terminal_tools` instead of `run_command` when dynamically executing shell commands from external inputs or LLM generation.
