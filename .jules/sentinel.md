@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-06-03 - Command Injection in Specialized Execution Modules
+**Vulnerability:** The `tools/executor.py` module executed arbitrary project commands via `subprocess.run` with `shell=True` without any validation or safety guard checks.
+**Learning:** Specialized execution modules that manage their own process lifecycle (like timeouts, exception handling) often bypass standard utility wrappers like `safe_exec`. If they require `shell=True` for complex commands, they introduce hidden command injection vectors.
+**Prevention:** Modules that cannot use standard safe execution wrappers must explicitly import and use the central validation gateway (e.g., `check_command` from `safety_guard`) before executing commands.
