@@ -380,8 +380,18 @@
 </div>
 
 <script>
-    const API_KEY = "sherly123";
-    const API_HEADERS = {"x-api-key": API_KEY};
+    function getApiKey() {
+        let key = localStorage.getItem("sherly_api_key");
+        if (!key) {
+            key = prompt("Please enter your API Key to use Sherly Remote:");
+            if (key) {
+                localStorage.setItem("sherly_api_key", key);
+            }
+        }
+        return key || "";
+    }
+
+    const API_HEADERS = {"x-api-key": getApiKey()};
 
     function toggleTheme() {
         const root = document.documentElement;
