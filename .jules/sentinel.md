@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-07-14 - Command Injection Risk in Backend Executors
+**Vulnerability:** The project executor module (`tools/executor.py`) utilized `subprocess.run(shell=True)` directly without routing commands through the central safety guard (`safety_guard.py`), opening the application to command injection.
+**Learning:** Any module executing arbitrary shell commands needs to be protected, even if shell features are required. Bypassing central validation for specific backend features breaks the application's defense in depth.
+**Prevention:** For modules requiring `shell=True` to retain shell operator functionality, the input command MUST be validated via `check_command()` upstream or immediately before execution.
