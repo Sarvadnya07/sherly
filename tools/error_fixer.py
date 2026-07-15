@@ -41,7 +41,7 @@ Return pure JSON only, in this exact format:
 }}
 """
     response = ask_model(prompt, store_history=False, use_context=False)
-    
+
     # Clean up markdown JSON block if present
     response = response.strip()
     if response.startswith("```json"):
@@ -50,7 +50,7 @@ Return pure JSON only, in this exact format:
         response = response[3:]
     if response.endswith("```"):
         response = response[:-3]
-        
+
     try:
         return json.loads(response.strip())
     except Exception as exc:

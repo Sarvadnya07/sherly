@@ -273,7 +273,7 @@ class SherlyWindow(QWidget):
         self.setWindowTitle("Sherly AI Desktop")
         from PySide6.QtGui import QIcon
         self.setWindowIcon(QIcon("sherly_ui/assets/brain.png"))
-        
+
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
             Qt.WindowType.WindowStaysOnTopHint

@@ -220,7 +220,7 @@
             background: var(--border-color);
             transform: translateY(-2px);
         }
-        
+
         button.btn:active {
             transform: translateY(0);
         }
@@ -343,7 +343,7 @@
 
     <div class="input-group">
         <input id="cmd" type="text" placeholder="Type a command..." autofocus onkeypress="handleKeyPress(event)" aria-label="Command input" />
-        
+
         <div class="file-upload-wrapper">
             <input type="file" id="file" onchange="updateFileName()" aria-label="Upload file" />
             <div class="file-upload-display" id="file-display">
@@ -501,11 +501,11 @@
             setStatus("Speech recognition not supported in this browser.");
             return;
         }
-        
+
         const micBtn = document.getElementById('mic');
         const recognition = new webkitSpeechRecognition();
         recognition.lang = "en-US";
-        
+
         recognition.onstart = function() {
             micBtn.classList.add("recording");
             setStatus("Listening...");
