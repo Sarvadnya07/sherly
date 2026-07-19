@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-07-19 - Command Injection via Raw subprocess Execution in Executor
+**Vulnerability:** The `run_project` function in `tools/executor.py` executed commands with `shell=True` without validating them against `safety_guard.check_command`, allowing potential command injection bypass for modules using `run_project`.
+**Learning:** Direct backend execution modules (like `tools/executor.py`) that implement their own timeouts and return code logic often bypass centralized safety guards (like `safe_exec`). If `shell=True` is required for project shell features, the command string must be explicitly validated.
+**Prevention:** Direct backend execution modules must validate commands using `check_command` from `safety_guard.py` before executing them with `subprocess.run(shell=True)` to prevent command injection without breaking project shell features.
