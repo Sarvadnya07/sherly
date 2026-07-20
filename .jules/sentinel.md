@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-07-20 - Command Injection in Project Executor
+**Vulnerability:** `tools/executor.py` executed arbitrary project commands via `subprocess.run(shell=True)` without any upstream validation or checking against safety guardrails.
+**Learning:** Utilities that wrap subprocess execution with `shell=True` to support operators like pipes or logical AND must enforce input validation, especially when part of a broader tool registry or command router ecosystem. Unvalidated execution functions represent a severe command injection vector.
+**Prevention:** Integrate a safety validation gateway (like `check_command` from `safety_guard.py`) directly at the entry point of the execution function to classify and block dangerous patterns before the shell processes the command.
