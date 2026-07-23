@@ -1,9 +1,19 @@
-﻿import subprocess
+import os
+import sys
+import subprocess
 
+# Add project root to path for resolving root-level modules
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from safety_guard import check_command
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
     try:
+        # Validate the command using safety_guard before executing
+        guard_result = check_command(command)
+        if guard_result is not None:
+            return ("error", guard_result)
+
         result = subprocess.run(
             command,
             shell=True,

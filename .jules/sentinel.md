@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2025-02-18 - [Command Injection Risk in Background Executors]
+**Vulnerability:** The `run_project` function in `tools/executor.py` directly executed unchecked inputs via `subprocess.run(shell=True)`.
+**Learning:** Even internal backend services and distributed task runners that require `shell=True` (for pipeline support) must validate input commands explicitly rather than relying entirely on upstream sanitization. The gap occurred because the executor was detached from the main input flow where the safety guard typically ran.
+**Prevention:** Integrate the explicit whitelist and safety check (`check_command` from `safety_guard.py`) directly within all functions that invoke `subprocess.Popen` or `subprocess.run` with `shell=True`, regardless of their position in the system architecture.
