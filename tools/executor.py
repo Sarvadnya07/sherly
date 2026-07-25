@@ -1,8 +1,19 @@
-﻿import subprocess
+import os
+import subprocess
+import sys
+
+# Dynamically add the project root to sys.path to allow importing safety_guard
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from safety_guard import check_command
 
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
+    # 🛡️ Sentinel: Validate command before execution to prevent command injection
+    guard_result = check_command(command)
+    if guard_result is not None:
+        return ("error", guard_result)
+
     try:
         result = subprocess.run(
             command,
