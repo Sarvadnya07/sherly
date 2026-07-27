@@ -1,8 +1,19 @@
 ﻿import subprocess
+import os
+import sys
+
+# Dynamically add the root directory to sys.path to resolve imports properly
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from safety_guard import check_command
 
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
+    # SECURITY FIX: Validate the command using the safety guard to prevent command injection
+    guard_result = check_command(command)
+    if guard_result is not None:
+        return ("error", guard_result)
+
     try:
         result = subprocess.run(
             command,
