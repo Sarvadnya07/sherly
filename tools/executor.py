@@ -1,8 +1,17 @@
 ﻿import subprocess
+import sys
+import os
 
+# Ensure the root directory is in the Python path to import safety_guard
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from safety_guard import check_command
 
 def run_project(command, timeout=15):
     """Run a project command and capture output safely."""
+    guard_result = check_command(command)
+    if guard_result is not None:
+        return ("error", guard_result)
+
     try:
         result = subprocess.run(
             command,
