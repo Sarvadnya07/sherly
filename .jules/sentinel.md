@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2026-08-03 - [CRITICAL] Hardcoded API Key in Frontend UI
+**Vulnerability:** A hardcoded API key ("sherly123") was present in the frontend source code (`remote_ui/index.html`).
+**Learning:** Hardcoding secrets in frontend code exposes them to anyone who can view the source, bypassing authentication completely. It's a critical vulnerability that allows unauthorized access to the backend API.
+**Prevention:** Never hardcode secrets or API keys in client-side code. Secrets should be loaded dynamically (e.g., via user prompt and stored securely like in localStorage, or served via environment configurations).
