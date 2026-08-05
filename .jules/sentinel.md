@@ -19,3 +19,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2024-05-01 - Remove Hardcoded Third-Party API Key
+**Vulnerability:** A hardcoded Picovoice Porcupine `ACCESS_KEY` was found in `sherly_core/wake_word.py`.
+**Learning:** Hardcoded vendor API keys in client-side code or source control expose the project to unauthorized usage and potential financial liability. Third-party vendor API keys must never be hardcoded in the source code.
+**Prevention:** Always load API keys securely via environment variables (e.g., `os.getenv('PVPORCUPINE_ACCESS_KEY')`) and ensure the application fails securely by explicitly raising an error if the key is missing.

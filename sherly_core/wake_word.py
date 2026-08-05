@@ -1,8 +1,12 @@
+import os
 import pvporcupine
 import pyaudio
 import struct
 
-ACCESS_KEY = "Zz/U5F+h4KHgbupOmaDU8qGYLnK8HWU20+8s8IJCrGwrnaRav9Qsqg=="
+# SECURITY: API keys must be loaded securely via environment variables, never hardcoded.
+ACCESS_KEY = os.getenv("PVPORCUPINE_ACCESS_KEY")
+if not ACCESS_KEY:
+    raise ValueError("PVPORCUPINE_ACCESS_KEY environment variable is missing")
 
 
 class WakeWordDetector:
