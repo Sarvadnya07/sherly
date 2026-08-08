@@ -380,8 +380,17 @@
 </div>
 
 <script>
-    const API_KEY = "sherly123";
-    const API_HEADERS = {"x-api-key": API_KEY};
+    let API_KEY = localStorage.getItem("sherly_api_key");
+    if (!API_KEY) {
+        API_KEY = prompt("Please enter your API Key:");
+        if (API_KEY) {
+            localStorage.setItem("sherly_api_key", API_KEY);
+        }
+    }
+
+    function getApiHeaders() {
+        return {"x-api-key": localStorage.getItem("sherly_api_key") || ""};
+    }
 
     function toggleTheme() {
         const root = document.documentElement;
@@ -479,7 +488,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    ...API_HEADERS,
+                    ...getApiHeaders(),
                 },
                 body: JSON.stringify({text})
             });
@@ -555,7 +564,7 @@
         try {
             const res = await fetch("/upload", {
                 method: "POST",
-                headers: API_HEADERS,
+                headers: getApiHeaders(),
                 body: formData
             });
 
