@@ -59,3 +59,8 @@ def speak(text: str) -> None:
             pass
     finally:
         mark_speaking(False)
+
+
+def sherly_speak(text: str) -> None:
+    """Compatibility wrapper used by sherly_core callers."""
+    speak(text)

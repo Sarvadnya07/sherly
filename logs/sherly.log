@@ -292,3 +292,15 @@
 2026-04-16 18:40:51,888 INFO # Generating comtypes.gen._C866CA3A_32F7_11D2_9602_00C04F8EE628_0_5_4
 2026-04-16 18:40:51,950 INFO # Generating comtypes.gen.SpeechLib
 2026-04-16 19:11:15,822 INFO Shutting down Sherly.
+2026-08-09 00:17:15,086 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-08-09 13:02:12,684 INFO [MainThread] [Startup] warnings:
+⚠ Ollama is not reachable. Make sure it's running if you use local models.
+2026-08-09 13:02:12,855 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-08-09 13:03:24,932 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-08-09 13:11:23,427 INFO [MainThread] [ModelScanner] Found 1 local model(s): qwen2.5-coder:3b
+2026-08-09 13:11:23,429 INFO [MainThread] [ModelScanner] Auto-selected: qwen2.5-coder:3b (reason: coding-optimized model)  [was: phi3]
+2026-08-09 13:45:34,210 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-08-09 13:50:59,360 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).
+2026-08-09 13:56:17,951 INFO [Thread-3] [Hotkey] Listen Once triggered
+2026-08-09 13:56:26,357 INFO [Thread-3] [Hotkey] Toggle Power → False
+2026-08-09 13:56:45,710 INFO [MainThread] Global hotkeys enabled (Ctrl+Shift+L / Ctrl+Shift+P).

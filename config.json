@@ -1,6 +1,10 @@
 {
-    "current_model": "phi3",
     "auto_mode": true,
+    "model_selection": {
+        "mode": "auto",
+        "current_model": "qwen2.5-coder:3b",
+        "pinned_model": null
+    },
     "api_keys": {
         "openai": "YOUR_OPENAI_KEY",
         "gemini": "YOUR_GEMINI_KEY",

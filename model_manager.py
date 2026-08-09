@@ -268,7 +268,7 @@ def _local_call(prompt: str, target_model: str) -> str:
 
 @_breaker
 def run_model(user_prompt: str, model_name: str, use_context: bool = True) -> str:
-    target_model = "phi3" if model_name == "local" else model_name
+    target_model = model_name
     system = _build_system(use_context)
     prompt = system + "\n\n"
 
@@ -299,8 +299,9 @@ def ask_model(user_prompt: str, store_history: bool = True, use_context: bool = 
     _unload_if_idle()
 
     model = get_current_model()
-    if model == "local":
-        model = "phi3"
+
+    if not model:
+        return "No model is configured. Please ensure Ollama is running with a model installed."
 
     # Fix #4: single model lock — enforce one active model at a time
     with _model_lock:
@@ -338,5 +339,7 @@ def ask_model(user_prompt: str, store_history: bool = True, use_context: bool = 
         return "Sorry, I ran into an error. Please try again."   # Fix #23
 
 
-def ensure_model_running(model_name: str = "phi3") -> None:
+def ensure_model_running(model_name: str | None = None) -> None:
+    if model_name is None:
+        model_name = get_current_model()
     log(f"Skipping eager preload for {model_name} in ultra-light mode.")

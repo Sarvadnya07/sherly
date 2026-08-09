@@ -9,11 +9,15 @@ Every command is classified before execution:
 
 Use `classify_command()` to get the class, then `check_command()` to get an
 executable decision string or None.
+
+Fixes:
+  - Thread-safety: `_pending_confirmation` dict now protected by a lock.
 """
 
 from __future__ import annotations
 
 import re
+import threading
 from enum import Enum
 
 # ---------------------------------------------------------------------------
@@ -54,12 +58,11 @@ _CONFIRM_PATTERNS: list[str] = [
     r"\bwrite to\b.*system",
 ]
 
-# Everything not matching DANGEROUS or CONFIRM is SAFE.
-
 # ---------------------------------------------------------------------------
-# Confirmation state (single pending command)
+# Confirmation state (single pending command) — thread-safe
 # ---------------------------------------------------------------------------
 
+_confirm_lock = threading.Lock()
 _pending_confirmation: dict[str, str] = {}   # {"cmd": <original cmd>}
 
 
@@ -97,7 +100,8 @@ def check_command(text: str) -> str | None:
         )
 
     if level == RiskLevel.CONFIRM:
-        _pending_confirmation["cmd"] = text
+        with _confirm_lock:
+            _pending_confirmation["cmd"] = text
         return (
             f"⚠️  This action requires confirmation: '{text}'\n"
             "Reply 'confirm' to proceed or 'cancel' to abort."
@@ -111,15 +115,16 @@ def handle_confirmation_reply(low: str) -> str | None:
     Call this near the top of route_command() to handle pending
     confirmation replies. Returns a response string or None.
     """
-    if "cmd" not in _pending_confirmation:
-        return None
+    with _confirm_lock:
+        if "cmd" not in _pending_confirmation:
+            return None
 
-    if low.strip() in {"confirm", "yes", "y", "proceed", "ok"}:
-        cmd = _pending_confirmation.pop("cmd")
-        return f"__CONFIRMED__:{cmd}"   # sentinel for the router to re-execute
+        if low.strip() in {"confirm", "yes", "y", "proceed", "ok"}:
+            cmd = _pending_confirmation.pop("cmd")
+            return f"__CONFIRMED__:{cmd}"   # sentinel for the router to re-execute
 
-    if low.strip() in {"cancel", "no", "n", "abort", "stop"}:
-        _pending_confirmation.pop("cmd", None)
-        return "Action cancelled."
+        if low.strip() in {"cancel", "no", "n", "abort", "stop"}:
+            _pending_confirmation.pop("cmd", None)
+            return "Action cancelled."
 
     return None   # not a confirmation reply — ignore pending state

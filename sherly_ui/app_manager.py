@@ -11,13 +11,14 @@ Fixes: #5  thread race (state_lock on _is_processing/_is_listening)
 from __future__ import annotations
 
 import platform
+import signal
 import sys
 import threading
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QCoreApplication, Signal, Slot, Qt
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtCore import QObject, QCoreApplication, QTimer, Signal, Slot, Qt
+from PySide6.QtGui import QAction, QFont, QIcon
 from PySide6.QtNetwork import QTcpServer
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
@@ -200,8 +201,12 @@ class AssistantWorker(QObject):
 
 class SherlyApp:
     def __init__(self) -> None:
+        self._shutting_down = False
         instance = QApplication.instance()
         self.app: QApplication = instance if isinstance(instance, QApplication) else QApplication(sys.argv)
+        self.app.setFont(QFont("Segoe UI", 10))
+        self.app.aboutToQuit.connect(self._cleanup)
+        self._install_interrupt_handler()
 
         # Single-instance guard
         self.instance_server = QTcpServer()
@@ -259,6 +264,14 @@ class SherlyApp:
 
         self.window.show()
 
+    def _install_interrupt_handler(self) -> None:
+        signal.signal(signal.SIGINT, lambda *_: self.quit_app())
+
+        # Let Python process Ctrl+C while Qt owns the event loop.
+        self._signal_timer = QTimer()
+        self._signal_timer.timeout.connect(lambda: None)
+        self._signal_timer.start(200)
+
     def _setup_hotkeys(self) -> None:
         if not keyboard:
             return
@@ -282,11 +295,18 @@ class SherlyApp:
             log(f"[Hotkey] Error: {exc}")
 
     def quit_app(self) -> None:
-        log("Shutting down Sherly.")
-        self.worker.stop()
-        self.worker_thread.join(timeout=2)
+        self._cleanup()
         QCoreApplication.quit()
-        sys.exit(0)
+
+    def _cleanup(self) -> None:
+        if self._shutting_down:
+            return
+        self._shutting_down = True
+        log("Shutting down Sherly.")
+        if hasattr(self, "worker"):
+            self.worker.stop()
+        if hasattr(self, "worker_thread") and self.worker_thread.is_alive():
+            self.worker_thread.join(timeout=2)
 
     def run(self) -> int:
         return self.app.exec()
@@ -294,7 +314,11 @@ class SherlyApp:
 
 def start_app() -> None:
     app = SherlyApp()
-    sys.exit(app.run())
+    try:
+        sys.exit(app.run())
+    except KeyboardInterrupt:
+        app.quit_app()
+        sys.exit(0)
 
 
 if __name__ == "__main__":
