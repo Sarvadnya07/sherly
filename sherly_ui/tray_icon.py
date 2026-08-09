@@ -2,7 +2,7 @@ import pystray
 from PIL import Image
 import threading
 
-from sherly_core.sherly_loop import start_sherly
+# from sherly_core.sherly_loop import start_sherly
 
 assistant_thread = None
 
@@ -13,11 +13,11 @@ def start_assistant(icon, item):
 
     if assistant_thread is None:
 
-        assistant_thread = threading.Thread(target=start_sherly)
-        assistant_thread.daemon = True
-        assistant_thread.start()
+        # assistant_thread = threading.Thread(target=start_sherly)
+        # assistant_thread.daemon = True
+        # assistant_thread.start()
 
-        print("Sherly started")
+        print("Sherly started (Legacy loop removed)")
 
 
 def stop_assistant(icon, item):

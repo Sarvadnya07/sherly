@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from sherly.core.safety_guard import (
+from safety_guard import (
     RiskLevel,
     check_command,
     classify_command,

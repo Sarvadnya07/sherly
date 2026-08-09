@@ -1,2 +1,26 @@
 __pycache__/
 *.pyc
+
+# Runtime data
+logs/
+*.log
+sherly_memory.db
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+!tests/fixtures/**/*.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Python Build
+build/
+dist/
+*.egg-info/
