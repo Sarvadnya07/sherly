@@ -19,3 +19,7 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+## 2024-05-28 - Command Injection via os.system for System Commands
+**Vulnerability:** The lock screen system command (`command_router.py`) used `os.system("rundll32.exe user32.dll,LockWorkStation")`. Although hardcoded in this specific instance, `os.system` runs a shell, which is inherently risky if any part of the command string is ever influenced by dynamic inputs (e.g., arguments passed to rundll32 in future extensions).
+**Learning:** `os.system` and `subprocess.Popen(..., shell=True)` pass strings directly to the system shell, allowing attackers to append malicious commands (e.g., via `;` or `&&`).
+**Prevention:** Always use `subprocess.run([...])` or `subprocess.Popen([...])` with a list of arguments and `shell=False` (default) for deterministic execution paths, explicitly separating the executable from its arguments to completely bypass shell interpretation.
