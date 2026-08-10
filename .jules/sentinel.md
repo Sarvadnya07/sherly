@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2026-08-10 - [System Agent Command Injection]
+**Vulnerability:** The System Agent (`agents/system_agent.py`) executed arbitrary OS commands via the raw `run_command` function without validation.
+**Learning:** This bypassed the security whitelist and safety guard protections provided by `safe_exec`, allowing for potential command injection.
+**Prevention:** Always use `safe_exec` instead of `run_command` for executing OS commands to ensure validation against the whitelist and safety guards.
