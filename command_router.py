@@ -211,7 +211,7 @@ def _run_system_command(low: str) -> str | None:
 
     if "lock computer" in low or "lock screen" in low:
         if platform.system() == "Windows":
-            os.system("rundll32.exe user32.dll,LockWorkStation")
+            subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], check=False)
             return "Locking your computer."
         return "Lock screen is only supported on Windows."
 

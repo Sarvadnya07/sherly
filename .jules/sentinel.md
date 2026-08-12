@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2024-05-18 - [Fix Command Injection in Windows Lock Screen Function]
+**Vulnerability:** The `os.system("rundll32.exe user32.dll,LockWorkStation")` call in `command_router.py` passes commands through a shell on Windows, posing a risk of command injection if the input string can be manipulated.
+**Learning:** `os.system` delegates execution to the system shell (`cmd.exe` on Windows, `/bin/sh` on POSIX), which parses the string and executes it, handling shell metacharacters (e.g., `&`, `|`, `;`). The safer alternative is `subprocess.run(["command", "args"])` without `shell=True`, which bypasses the shell entirely.
+**Prevention:** Avoid `os.system` and `shell=True` entirely for executing commands. Use `subprocess.run` (or `subprocess.Popen`) with a list of arguments and `shell=False`. Only use `shell=True` if you absolutely need shell builtins, and only with static strings.
