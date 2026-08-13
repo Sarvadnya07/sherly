@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-
+import secrets
 
 import requests
 from fastapi import FastAPI, Header, Query, HTTPException, Depends
@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 LOCAL_AGENT_URL = "http://127.0.0.1:5001/execute"
-API_KEY = os.getenv("SHERLY_REMOTE_API_KEY", "sherly123")
+API_KEY = os.getenv("SHERLY_REMOTE_API_KEY")
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -32,7 +32,7 @@ class Command(BaseModel):
 
 
 def verify_key(x_api_key: str = Header(default="")):
-    if x_api_key != API_KEY:
+    if not API_KEY or not x_api_key or not secrets.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=403, detail="Unauthorized")
     return True
 
