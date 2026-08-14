@@ -24,7 +24,7 @@ def run_system_command(text):
         return "Opening Downloads"
 
     if "shutdown computer" in text:
-        os.system("shutdown /s /t 1")
+        subprocess.run(["shutdown", "/s", "/t", "1"], check=False)
         return "Shutting down computer"
 
     return None

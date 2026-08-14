@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2026-08-14 - [Command Injection via os.system]
+**Vulnerability:** The command dispatcher `sherly_commands/system_commands.py` used `os.system` to execute system-level operations (e.g., shutdown).
+**Learning:** `os.system` invokes a subshell which can interpret characters like `&&` or `;` as command separators. If input variables are ever passed to `os.system` without proper sanitization, it leads to command injection vulnerabilities. Even for hardcoded static commands, it's safer to avoid shell invocation.
+**Prevention:** Always use `subprocess.run` with a list of command arguments (e.g., `["shutdown", "/s", "/t", "1"]`) instead of `os.system`. Avoid `shell=True` unless explicitly necessary for shell pipes/built-ins, and properly sanitize inputs if arguments are dynamic.
