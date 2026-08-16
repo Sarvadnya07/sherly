@@ -9,3 +9,8 @@
 **Prevention:**
 - Do not provide a fallback for sensitive environment variables; fail securely when required secrets are not provided.
 - Always use constant-time comparison methods like `secrets.compare_digest` from the built-in `secrets` module when verifying security credentials, tokens, or API keys.
+
+## 2024-05-24 - [Command Injection via shell=True in Subprocess Calls]
+**Vulnerability:** Execution functions `run_project` in `tools/executor.py` and `run_command` in `tools/terminal_tools.py` invoked `subprocess.run` with `shell=True`.
+**Learning:** Using `shell=True` allows user or AI input to trigger command injection, where shell metacharacters (e.g., `;`, `|`, `&&`) can be used to run unintended OS commands. This codebase relies on `shlex.split` combined with `shell=False` as the architectural pattern for secure command invocation.
+**Prevention:** Always use `shell=False` in `subprocess.run` and safely tokenize commands using `shlex.split(command, posix=(platform.system() != 'Windows'))` before execution.
