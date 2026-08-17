@@ -14,3 +14,8 @@
 **Vulnerability:** Execution functions `run_project` in `tools/executor.py` and `run_command` in `tools/terminal_tools.py` invoked `subprocess.run` with `shell=True`.
 **Learning:** Using `shell=True` allows user or AI input to trigger command injection, where shell metacharacters (e.g., `;`, `|`, `&&`) can be used to run unintended OS commands. This codebase relies on `shlex.split` combined with `shell=False` as the architectural pattern for secure command invocation.
 **Prevention:** Always use `shell=False` in `subprocess.run` and safely tokenize commands using `shlex.split(command, posix=(platform.system() != 'Windows'))` before execution.
+
+## 2025-02-20 - [Hardcoded API Key and Timing Attack Vulnerability in FastAPI]
+**Vulnerability:** The FastAPI server in `remote_api/server.py` had a hardcoded default fallback API key (`sherly123`) and used a vulnerable non-constant time string comparison (`!=`) for authenticating the `x-api-key` header.
+**Learning:** Hardcoded default credentials provide an easy bypass for unauthenticated attackers if environment variables are not set. Furthermore, using `!=` or `==` for secrets enables timing attacks, allowing attackers to guess characters of the token based on early returns during string comparison.
+**Prevention:** Remove hardcoded fallback credentials and reject authentication by default if the key is empty/unset. Always use `secrets.compare_digest` when verifying authentication tokens, API keys, and passwords to ensure comparisons take a constant amount of time regardless of match length.
