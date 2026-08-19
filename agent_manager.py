@@ -81,5 +81,6 @@ def run_agent(text: str, ask_model) -> str:
     if category == "system":
         return system_agent.run(text, ask_model)
 
-    # "general" → direct, natural LLM answer (no agent wrapping)
-    return ask_model(text)
+    # "general" → closed-loop capability agent
+    from tools.agent_tool_loop import run_tool_agent_loop
+    return run_tool_agent_loop(text, ask_model)

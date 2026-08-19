@@ -8,8 +8,14 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import logging
+from pathlib import Path
 from typing import Any, Optional
+
+_ROOT = str(Path(__file__).resolve().parent.parent)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
 
 from tools.capabilities import ToolSpec, ToolResult, ToolRisk, registry
 from safety_guard import classify_command, RiskLevel
