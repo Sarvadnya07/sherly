@@ -20,7 +20,6 @@ if _ROOT not in sys.path:
 
 from backend.api.routes import chat, models, voice, files, actions, settings
 from backend.api.websocket.ws_manager import manager
-from model_scanner import scan_ollama_models
 from sherly_core.model_resolver import resolve_model
 import config_manager
 import model_scanner

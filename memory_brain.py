@@ -38,16 +38,18 @@ def save_memory(mem: dict) -> None:
     so a crash mid-write never corrupts the live file.
     """
     dir_ = MEMORY_FILE.parent
+    tmp_path: str | None = None
     try:
         fd, tmp_path = tempfile.mkstemp(dir=dir_, suffix=".json.tmp", text=True)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(mem, f, indent=2, ensure_ascii=False)
         os.replace(tmp_path, MEMORY_FILE)   # atomic on POSIX; near-atomic on Windows
     except Exception as exc:
-        print(f"[MemoryBrain] save error: {exc}")
+        from runtime_utils import log
+        log(f"[MemoryBrain] save error: {exc}", level="error")
         # Clean up orphan temp file if it exists
         try:
-            if os.path.exists(tmp_path):
+            if tmp_path and os.path.exists(tmp_path):
                 os.unlink(tmp_path)
         except Exception:
             pass

@@ -5,6 +5,8 @@ Fixes: #13 network latency / failure (timeout + graceful fallback)
 
 from __future__ import annotations
 
+from runtime_utils import log
+
 _SEARCH_TIMEOUT = 4   # seconds before we give up
 
 
@@ -18,10 +20,10 @@ def search_web(query: str, max_results: int = 5) -> list[dict]:
         return []
 
     try:
-        from ddgs import DDGS
-        with DDGS() as ddgs:
+        from duckduckgo_search import DDGS
+        with DDGS(timeout=_SEARCH_TIMEOUT) as ddgs:
             results = list(ddgs.text(query.strip(), max_results=max_results))
         return results
     except Exception as exc:
-        print(f"[WebSearch] failed: {exc}")
-        return []   # Fix #13: graceful empty-list fallback
+        log(f"[WebSearch] failed: {exc}", level="warning")
+        return []   # Fix #13: graceful empty-list fallback

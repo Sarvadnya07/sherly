@@ -6,7 +6,9 @@ Handles chat messages, command routing, and conversation memory.
 from __future__ import annotations
 
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException
+
+from fastapi.concurrency import run_in_threadpool
 
 from backend.api.schemas.contracts import ChatRequest, ChatResponse, ChatHistoryResponse
 from backend.api.websocket.ws_manager import manager
@@ -18,7 +20,7 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 
 @router.post("", response_model=ChatResponse)
-async def send_chat(req: ChatRequest, bg: BackgroundTasks):
+async def send_chat(req: ChatRequest):
     valid, cleaned = is_valid_input(req.prompt)
     if not valid:
         raise HTTPException(status_code=400, detail=cleaned)
@@ -28,12 +30,17 @@ async def send_chat(req: ChatRequest, bg: BackgroundTasks):
     # Broadcast thinking state
     await manager.broadcast_event("status", {"status": "thinking", "prompt": cleaned})
 
-    # Route command to real Sherly execution engine
+    # Route command in thread pool; always broadcast ready in finally so clients
+    # never get stuck in the "thinking" state if route_command raises.
     full_prompt = f"File: {req.file_attachment}\n{cleaned}" if req.file_attachment else cleaned
-    response_text = route_command(full_prompt)
-
-    # Broadcast idle/ready state
-    await manager.broadcast_event("status", {"status": "ready"})
+    try:
+        response_text = await run_in_threadpool(route_command, full_prompt)
+    except Exception as exc:
+        await manager.broadcast_event("status", {"status": "ready"})
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        # Broadcast ready unconditionally (guard against double-broadcast on error path)
+        await manager.broadcast_event("status", {"status": "ready"})
 
     time_str = datetime.now().strftime("%I:%M %p")
     return ChatResponse(

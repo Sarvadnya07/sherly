@@ -69,8 +69,16 @@ MAX_OUTPUT_TOKENS  = 120          # Fix #3: keep response generation fast
 MAX_OUTPUT_CHARS   = 500          # hard char cap
 IDLE_UNLOAD_SECONDS = 60          # Fix #4: aggressive idle unload
 
-_breaker = CircuitBreaker(fail_max=3, reset_timeout=30)
-_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="SherlyLLM")
+_breakers: dict[str, CircuitBreaker] = {}
+
+
+def _get_breaker(name: str) -> CircuitBreaker:
+    if name not in _breakers:
+        _breakers[name] = CircuitBreaker(fail_max=3, reset_timeout=30)
+    return _breakers[name]
+
+
+_executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="SherlyLLM")
 
 # Fix #3: LLM call timeout
 LLM_TIMEOUT_SECONDS = 15.0
@@ -83,8 +91,23 @@ SYSTEM_PROMPT = (
     "- For greetings, just greet back warmly.\n"
     "- Never explain your own internal classification or reasoning.\n"
     "- Do not hallucinate facts.\n"
-    "- Never execute destructive actions based on user phrasing alone.\n"   # Fix #8
+    "- Never execute destructive actions based on user phrasing alone.\n"
 )
+
+# ---------------------------------------------------------------------------
+# Background Idle Unloader Thread (SH-AI-001)
+# ---------------------------------------------------------------------------
+
+def _idle_unload_loop():
+    while True:
+        time.sleep(10)
+        if ACTIVE_MODEL and (time.time() - last_used > IDLE_UNLOAD_SECONDS):
+            with _model_lock:
+                if ACTIVE_MODEL and (time.time() - last_used > IDLE_UNLOAD_SECONDS):
+                    unload_model()
+
+
+threading.Thread(target=_idle_unload_loop, daemon=True, name="SherlyIdleUnloader").start()
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -100,8 +123,8 @@ def _get_background_info() -> str:
         return ""
 
 
-def _get_history_messages(limit: int = 5) -> list:
-    # Fix #7: hard limit on context window to prevent context drift
+def _get_history_messages(limit: int = 5) -> list[dict]:
+    """Retrieve structured message history array (SH-AI-004)."""
     try:
         context = get_context(limit=limit)
     except Exception:
@@ -115,7 +138,7 @@ def _get_history_messages(limit: int = 5) -> list:
             messages.append({"role": "user", "content": line[6:]})
         elif line.startswith("Assistant: "):
             messages.append({"role": "assistant", "content": line[11:]})
-    return messages[-10:]   # Fix #7: cap at last 10 message turns
+    return messages[-10:]
 
 
 def _limit_response(text: str) -> str:
@@ -123,7 +146,6 @@ def _limit_response(text: str) -> str:
 
 
 def _extract_web_fallback(query: str) -> str:
-    """Fix #13: fast web fallback with short timeout."""
     try:
         results = search_web(query)
         if not results:
@@ -144,10 +166,6 @@ def _build_system(use_context: bool) -> str:
 
 
 def _timed_call(fn, *args, timeout: float = LLM_TIMEOUT_SECONDS) -> str:
-    """
-    Fix #3: run *fn(*args)* with a hard timeout.
-    Raises TimeoutError if exceeded so callers can fall back.
-    """
     future = _executor.submit(fn, *args)
     try:
         return future.result(timeout=timeout)
@@ -167,6 +185,9 @@ def ask_openai(user_prompt: str, api_key: str, use_context: bool = True) -> str:
         messages.extend(_get_history_messages())
     messages.append({"role": "user", "content": user_prompt})
 
+    breaker = _get_breaker("openai")
+
+    @breaker
     def _call():
         r = requests.post(
             "https://api.openai.com/v1/chat/completions",
@@ -192,6 +213,9 @@ def ask_gemini(user_prompt: str, api_key: str, use_context: bool = True) -> str:
             contents.append({"role": role, "parts": [{"text": h["content"]}]})
     contents.append({"role": "user", "parts": [{"text": f"{system}\n\n{user_prompt}"}]})
 
+    breaker = _get_breaker("gemini")
+
+    @breaker
     def _call():
         r = requests.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
@@ -213,6 +237,9 @@ def ask_groq(user_prompt: str, api_key: str, use_context: bool = True) -> str:
         messages.extend(_get_history_messages())
     messages.append({"role": "user", "content": user_prompt})
 
+    breaker = _get_breaker("groq")
+
+    @breaker
     def _call():
         r = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -227,11 +254,11 @@ def ask_groq(user_prompt: str, api_key: str, use_context: bool = True) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Local (Ollama) model   Fix #3 + #4
+# Local (Ollama) model   Fix #3 + #4 + SH-AI-004 (/api/chat)
 # ---------------------------------------------------------------------------
 
 def unload_model() -> None:
-    """Fix #4: release the active model from Ollama RAM."""
+    """Release active model from Ollama VRAM."""
     global ACTIVE_MODEL
     if not ACTIVE_MODEL:
         return
@@ -250,38 +277,41 @@ def unload_model() -> None:
 
 def _unload_if_idle() -> None:
     if ACTIVE_MODEL and time.time() - last_used > IDLE_UNLOAD_SECONDS:
-        with _model_lock:   # Fix #4: lock before mutating ACTIVE_MODEL
+        with _model_lock:
             unload_model()
 
 
 @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-def _local_call(prompt: str, target_model: str) -> str:
+def _local_chat_call(messages: list[dict], target_model: str) -> str:
+    """Invoke Ollama using structured /api/chat endpoint (SH-AI-004)."""
     r = requests.post(
-        "http://localhost:11434/api/generate",
-        json={"model": target_model, "prompt": prompt, "stream": False,
-              "options": {"num_predict": MAX_OUTPUT_TOKENS}},
-        timeout=20,   # Fix #3: hard request timeout
+        "http://localhost:11434/api/chat",
+        json={
+            "model": target_model,
+            "messages": messages,
+            "stream": False,
+            "options": {"num_predict": MAX_OUTPUT_TOKENS},
+        },
+        timeout=20,
     )
     r.raise_for_status()
-    return r.json()["response"]
+    res_json = r.json()
+    return res_json.get("message", {}).get("content", "")
 
 
-@_breaker
 def run_model(user_prompt: str, model_name: str, use_context: bool = True) -> str:
     target_model = model_name
-    system = _build_system(use_context)
-    prompt = system + "\n\n"
-
+    messages = [{"role": "system", "content": _build_system(use_context)}]
     if use_context:
-        for h in _get_history_messages():
-            prompt += f"{h['role'].capitalize()}: {h['content']}\n"
+        messages.extend(_get_history_messages())
+    messages.append({"role": "user", "content": user_prompt})
 
-    prompt += f"User: {user_prompt}\nAssistant:"
+    breaker = _get_breaker(target_model)
 
+    @breaker
     def _call():
-        return _local_call(prompt, target_model)
+        return _local_chat_call(messages, target_model)
 
-    # Fix #3: wrap local call in timeout too
     return _timed_call(_call, timeout=LLM_TIMEOUT_SECONDS)
 
 

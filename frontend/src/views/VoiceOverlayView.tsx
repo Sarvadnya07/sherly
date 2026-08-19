@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { Mic, Square, X } from 'lucide-react';
+import { Square, X } from 'lucide-react';
 import { api } from '../services/api';
 
 export const VoiceOverlayView: React.FC = () => {

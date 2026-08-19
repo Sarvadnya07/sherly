@@ -210,6 +210,10 @@ def enable_auto_detection() -> None:
 # ---------------------------------------------------------------------------
 
 def get_api_key(model: str) -> str | None:
+    env_var = f"{model.upper()}_API_KEY"
+    env_val = os.getenv(env_var)
+    if env_val and env_val.strip() and not env_val.startswith("YOUR_"):
+        return env_val.strip()
     with _config_lock:
         return _load_unlocked().get("api_keys", {}).get(model)
 

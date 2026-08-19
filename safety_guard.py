@@ -102,6 +102,7 @@ def check_command(text: str) -> str | None:
     if level == RiskLevel.CONFIRM:
         with _confirm_lock:
             _pending_confirmation["cmd"] = text
+            _pending_confirmation[text] = text
         return (
             f"⚠️  This action requires confirmation: '{text}'\n"
             "Reply 'confirm' to proceed or 'cancel' to abort."
@@ -116,15 +117,19 @@ def handle_confirmation_reply(low: str) -> str | None:
     confirmation replies. Returns a response string or None.
     """
     with _confirm_lock:
-        if "cmd" not in _pending_confirmation:
+        if not _pending_confirmation:
             return None
 
         if low.strip() in {"confirm", "yes", "y", "proceed", "ok"}:
-            cmd = _pending_confirmation.pop("cmd")
-            return f"__CONFIRMED__:{cmd}"   # sentinel for the router to re-execute
+            cmd = _pending_confirmation.pop("cmd", None)
+            if not cmd and _pending_confirmation:
+                cmd = next(reversed(list(_pending_confirmation.values())))
+            _pending_confirmation.clear()
+            if cmd:
+                return f"__CONFIRMED__:{cmd}"
 
         if low.strip() in {"cancel", "no", "n", "abort", "stop"}:
-            _pending_confirmation.pop("cmd", None)
+            _pending_confirmation.clear()
             return "Action cancelled."
 
     return None   # not a confirmation reply — ignore pending state

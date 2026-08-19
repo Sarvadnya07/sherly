@@ -52,13 +52,16 @@ threading.Thread(target=_worker, daemon=True, name="SherlyTaskQueue").start()
 # Public API
 # ---------------------------------------------------------------------------
 
+_MAX_QUEUE_SIZE = 50
+
+
 def add_task(
     func: Callable,
     *args,
     on_done: Callable[[Any], None] | None = None,
     on_error: Callable[[Exception], None] | None = None,
     **kwargs,
-) -> None:
+) -> str | None:
     """
     Enqueue *func* to run on the background worker thread.
 
@@ -69,5 +72,13 @@ def add_task(
     on_done  : optional callback(result) called after successful execution
     on_error : optional callback(exc) called on exception
     **kwargs : keyword arguments for func
+
+    Returns
+    -------
+    str | None : Warning string if queue is full/overloaded, None otherwise.
     """
+    if _queue.qsize() >= _MAX_QUEUE_SIZE:
+        return f"⚠️ Task queue full ({_queue.qsize()} items). Task rejected to prevent memory overload."
+
     _queue.put((func, args, kwargs, on_done, on_error))
+    return None

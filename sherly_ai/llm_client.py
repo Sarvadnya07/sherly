@@ -1,25 +1,11 @@
-import requests
-from config_manager import get_current_model
-
-OLLAMA_URL = "http://localhost:11434/api/generate"
+from model_manager import ask_model
 
 
-def ask_llm(prompt):
-    model = get_current_model()
-
-    if not model:
-        return "No Ollama model is configured. Please ensure Ollama is running."
-
+def ask_llm(prompt: str) -> str:
+    """Unified LLM client interface delegating to model_manager."""
+    if not prompt or not prompt.strip():
+        return "Please specify a prompt."
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": model,
-                "prompt": prompt,
-                "stream": False,
-            },
-        )
-        response.raise_for_status()
-        return response.json().get("response", "I'm having trouble thinking right now.")
-    except Exception as e:
-        return f"LLM Error: {e}"
+        return ask_model(prompt, store_history=False, use_context=False)
+    except Exception as exc:
+        return "I'm having trouble connecting to the model right now."

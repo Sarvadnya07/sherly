@@ -157,3 +157,15 @@ def test_confirm_reply_irrelevant_input_returns_none() -> None:
     # Pending should still be there
     assert "cmd" in _pending_confirmation
     _pending_confirmation.clear()
+
+
+def test_safe_exec_blocks_operator_chaining() -> None:
+    from tools.terminal_tools import safe_exec
+    res = safe_exec("python --version & calc.exe")
+    assert "Blocked" in res or "blocked" in res.lower()
+
+
+def test_web_search_import() -> None:
+    from web_search import search_web
+    # Calling with empty query returns [] cleanly without import errors
+    assert search_web("") == []

@@ -27,7 +27,7 @@ from config_manager import set_current_model
 from input_validator import is_valid_input, record_command
 from model_manager import ask_model
 from plugin_manager import get_enabled_plugin_names, run_plugin
-from runtime_utils import safe_execute, timeout_call, log
+from runtime_utils import safe_execute, log
 from safety_guard import check_command, handle_confirmation_reply
 from text_to_speech import speak
 from tool_registry import clear_tools, register_tool, run_tool
@@ -148,8 +148,8 @@ def _log_feedback(user_text: str, assistant_text: str, rating: str = "unrated") 
     try:
         with open(FEEDBACK_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
+    except Exception as exc:
+        log(f"[Router] feedback log error: {exc}", level="warning")
 
 
 def _finalize_response(user_text: str, response: str) -> str:
@@ -211,7 +211,7 @@ def _run_system_command(low: str) -> str | None:
 
     if "lock computer" in low or "lock screen" in low:
         if platform.system() == "Windows":
-            os.system("rundll32.exe user32.dll,LockWorkStation")
+            subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], check=False)
             return "Locking your computer."
         return "Lock screen is only supported on Windows."
 
@@ -357,8 +357,8 @@ def route_command(text: str) -> str:
                     log(f"Auto-fix loop failure: {exc}")
 
                 return _finalize_response(raw, result)
-        except Exception:
-            pass
+        except Exception as exc:
+            log(f"[Router] preview dispatch error: {exc}", level="warning")
 
         result = safe_execute(
             lambda: approve_action(action_id, safe_exec),

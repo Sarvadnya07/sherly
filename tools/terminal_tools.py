@@ -83,6 +83,10 @@ def safe_exec(command: str) -> str:
 
     command = command.strip()
 
+    # Block shell command chaining operators to prevent whitelist bypass
+    if any(op in command for op in ("&", ";", "|", "\n")):
+        return "⛔ Blocked: Command chaining operators (&, ;, |, newline) are not permitted."
+
     # --- 1. Whitelist ---
     low = command.lower()
     if not any(low.startswith(prefix) for prefix in ALLOWED_PREFIXES):

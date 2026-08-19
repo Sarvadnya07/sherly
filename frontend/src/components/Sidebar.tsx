@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useSherlyStore, ViewType } from '../stores/useSherlyStore';
-import { MessageSquare, Folder, GitBranch, Blocks, Settings, Mic, Play, ChevronRight, ChevronDown, FileCode, FileText } from 'lucide-react';
+import { MessageSquare, Folder, Settings, Mic, Play, ChevronDown, FileCode, FileText } from 'lucide-react';
 import { FileNode } from '../types/api';
+import { api } from '../services/api';
 
 export const Sidebar: React.FC = () => {
   const {
@@ -17,7 +18,7 @@ export const Sidebar: React.FC = () => {
     fetchFileTree();
   }, [fetchFileTree]);
 
-  const navItems: { id: ViewType; label: string; icon: any }[] = [
+  const navItems: { id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'assistant', label: 'Assistant', icon: MessageSquare },
     { id: 'workspace', label: 'Workspace / Code', icon: Folder },
     { id: 'models', label: 'Model Settings', icon: Settings },
@@ -27,6 +28,11 @@ export const Sidebar: React.FC = () => {
   const handleRunProject = async () => {
     setActiveView('workspace');
     useSherlyStore.getState().openFile('main.py');
+    try {
+      await api.runTerminal('python main.py');
+    } catch (e) {
+      console.warn('Failed to trigger project run:', e);
+    }
   };
 
   const renderFileNode = (node: FileNode, level = 0) => {

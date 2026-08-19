@@ -126,20 +126,24 @@ class AssistantWorker(QObject):
     def run(self) -> None:
         self.status_changed.emit("Idle")
         while self._running:
-            if self._paused:
-                time.sleep(0.5)
-                continue
-            if self._auto_mode:
-                with self._proc_lock:
-                    busy = self._is_listening or self._is_processing
-                if not busy:
-                    time.sleep(1.0)
+            try:
+                if self._paused:
+                    time.sleep(0.5)
+                    continue
+                if self._auto_mode:
                     with self._proc_lock:
                         busy = self._is_listening or self._is_processing
-                    if not busy and self._auto_mode and not self._paused:
-                        self._listen_once()
-            else:
-                time.sleep(0.1)
+                    if not busy:
+                        time.sleep(1.0)
+                        with self._proc_lock:
+                            busy = self._is_listening or self._is_processing
+                        if not busy and self._auto_mode and not self._paused:
+                            self._listen_once()
+                else:
+                    time.sleep(0.1)
+            except Exception as exc:
+                log(f"[AssistantWorker] Recovered from worker loop error: {exc}")
+                time.sleep(0.5)
 
     def _listen_once(self) -> None:
         with self._proc_lock:   # Fix #5
@@ -287,6 +291,7 @@ class SherlyApp:
 
             # Fix #22: use pynput GlobalHotKeys (avoids spacebar / focus conflicts)
             with keyboard.GlobalHotKeys({
+                "<ctrl>+<shift>+s": on_listen,
                 "<ctrl>+<shift>+l": on_listen,
                 "<ctrl>+<shift>+p": on_toggle,
             }) as h:

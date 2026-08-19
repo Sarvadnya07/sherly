@@ -63,6 +63,8 @@ def apply_preview(action_id: str) -> str:
     if not changes:
         return "Invalid preview ID"
 
+    batch_undo_data = []
+
     for change in changes:
         path = change["file"]
         old_code = change["old"]
@@ -73,13 +75,17 @@ def apply_preview(action_id: str) -> str:
         with open(path, "w", encoding="utf-8") as f:
             f.write(new_code)
 
-        log_action(
-            action=f"file_edit {path}",
-            action_type="write_file",
-            undo_data=("restore_file", path, old_code)
-        )
+        batch_undo_data.append(("restore_file", path, old_code))
+
+    files = [os.path.basename(c["file"]) for c in changes]
+
+    log_action(
+        action=f"apply patch ({', '.join(files)})",
+        action_type="batch_write_file",
+        undo_data=batch_undo_data,
+        undoable=True,
+    )
 
     del preview_store[action_id]
 
-    files = [os.path.basename(c["file"]) for c in changes]
     return f"Patch applied successfully to: {', '.join(files)}"

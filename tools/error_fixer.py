@@ -1,6 +1,15 @@
 import json
 
-def analyze_error(error, ask_model):
+def analyze_error(error_or_ask_model, ask_model=None):
+    if ask_model is None:
+        import pyperclip
+        ask_model = error_or_ask_model
+        error = pyperclip.paste().strip()
+        if not error:
+            return "Copy the error text first, then try again."
+    else:
+        error = error_or_ask_model
+
     prompt = f"""
 You are a senior developer.
 

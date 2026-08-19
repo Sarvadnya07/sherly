@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { Check, X, Terminal, Trash2, Play, GitBranch, Sparkles } from 'lucide-react';
+import { Check, X, Trash2, GitBranch } from 'lucide-react';
 import { api } from '../services/api';
 
 export const WorkspaceView: React.FC = () => {
   const {
     activeFilePath,
     activeFileContent,
-    saveFileContent,
     currentModel,
   } = useSherlyStore();
 
@@ -41,7 +40,7 @@ export const WorkspaceView: React.FC = () => {
     }
   };
 
-  const lines = activeFileContent.split('\n');
+  const lines = (activeFileContent || '').split('\n');
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#0e0e15] overflow-hidden">
@@ -53,7 +52,12 @@ export const WorkspaceView: React.FC = () => {
             {activeFilePath ? (
               <div className="bg-[#0d0d15] text-gray-200 border border-white/10 border-b-0 rounded-t-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-2">
                 <span>🐍 {activeFilePath}</span>
-                <span className="text-gray-500 hover:text-gray-300 cursor-pointer">✕</span>
+                <span
+                  onClick={() => useSherlyStore.setState({ activeFilePath: null, activeFileContent: '' })}
+                  className="text-gray-500 hover:text-gray-300 cursor-pointer"
+                >
+                  ✕
+                </span>
               </div>
             ) : (
               <span className="text-xs text-gray-500 italic">No file open</span>
@@ -63,14 +67,28 @@ export const WorkspaceView: React.FC = () => {
           {diffMode && (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setDiffMode(false)}
+                onClick={async () => {
+                  try {
+                    await api.approveAction('preview_last');
+                  } catch (e) {
+                    console.warn(e);
+                  }
+                  setDiffMode(false);
+                }}
                 className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition"
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>Accept</span>
+                <span>Accept Patch</span>
               </button>
               <button
-                onClick={() => setDiffMode(false)}
+                onClick={async () => {
+                  try {
+                    await api.rejectAction('preview_last');
+                  } catch (e) {
+                    console.warn(e);
+                  }
+                  setDiffMode(false);
+                }}
                 className="bg-white/5 text-gray-400 border border-white/10 hover:bg-red-500/20 hover:text-red-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition"
               >
                 <X className="w-3.5 h-3.5" />

@@ -18,7 +18,8 @@ class WebSocketService {
     }
 
     try {
-      this.ws = new WebSocket('ws://127.0.0.1:8000/ws');
+      const wsUrl = (import.meta.env.VITE_WS_URL as string | undefined) || 'ws://127.0.0.1:8000/ws';
+      this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
         console.log('[WebSocket] Connected to Sherly backend');
@@ -65,6 +66,18 @@ class WebSocketService {
     return () => {
       this.handlers.delete(handler);
     };
+  }
+
+  public disconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.ws) {
+      this.ws.onclose = null;  // prevent triggering reconnect on manual close
+      this.ws.close();
+      this.ws = null;
+    }
   }
 
   public send(data: any): void {

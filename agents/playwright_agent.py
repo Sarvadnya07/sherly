@@ -107,7 +107,8 @@ def extract_json(raw: str) -> dict:
 def run(prompt: str, ask_model) -> str:
     # 1. Ask LLM for the starting URL
     url_raw = ask_model(_URL_PROMPT.format(goal=prompt), store_history=False, use_context=False)
-    starting_url = url_raw.strip().split()[0]
+    url_tokens = (url_raw or "").strip().split()
+    starting_url = url_tokens[0] if url_tokens else "https://www.google.com"
     if not starting_url.startswith("http"):
         starting_url = "https://www.google.com"
 
@@ -127,83 +128,85 @@ def run(prompt: str, ask_model) -> str:
             except Exception:
                 pass # ignore timeouts and proceed
 
-        max_steps = 10
-        result = "Max steps reached without finishing."
-
-        for step in range(max_steps):
-
-            # Allow page to settle completely before scraping interactive elements
-            page.wait_for_timeout(3000)
-
-            # Inject JS to label elements and get data
-            elements = []
-            try:
-                elements = page.evaluate(_INJECT_JS)
-            except Exception as e:
-                print(f"Error evaluating JS: {e}")
-
-            # Format elements for LLM
-            elem_text = ""
-            for el in elements:
-                desc = f"Tag: {el['tag']}"
-                if el['text']: desc += f", Text: '{el['text']}'"
-                if el['type']: desc += f", Type: {el['type']}"
-                elem_text += f"[ID: {el['id']}] {desc}\n"
-
-            if not elem_text:
-                elem_text = "No interactive elements visible."
-
-            # Construct the current state prompt
-            state_prompt = _AGENT_PROMPT.format(
-                goal=prompt,
-                url=page.url,
-                title=page.title(),
-                elements=elem_text
-            )
-
-            # Get action from LLM
-            raw_response = ask_model(state_prompt, store_history=False, use_context=False)
-            action_json = extract_json(raw_response)
-
-            if not action_json:
-                print(f"[Browser Agent] Invalid action received: {raw_response}")
-                # Try scrolling down if stuck
-                action_json = {"action": "SCROLL_DOWN"}
-
-            act = action_json.get("action", "")
+            max_steps = 10
+            result = "Max steps reached without finishing."
 
             try:
-                if act == "DONE":
-                    result = action_json.get("result", "Finished the task.")
-                    break
-                elif act == "CLICK":
-                    target_id = action_json.get("id")
-                    page.evaluate(f"document.querySelector('[data-sherly-id=\"{target_id}\"]').click()")
-                    # page.wait_for_load_state("networkidle", timeout=5000)
-                elif act == "TYPE":
-                    target_id = action_json.get("id")
-                    text_to_type = action_json.get("text", "")
+                for step in range(max_steps):
 
-                    # Need to click into it, then fill
-                    # Using evaluate since direct Playwright dispatch might fail if DOM changed slightly
-                    selector = f"[data-sherly-id=\"{target_id}\"]"
-                    page.locator(selector).fill(text_to_type)
-                    page.locator(selector).press("Enter")
-                elif act == "SCROLL_DOWN":
-                    page.evaluate("window.scrollBy(0, window.innerHeight * 0.8)")
-                elif act == "SCROLL_UP":
-                    page.evaluate("window.scrollBy(0, -window.innerHeight * 0.8)")
-                elif act == "GO_BACK":
-                    page.go_back()
-                else:
-                    action_json = {"action": "SCROLL_DOWN"}
-            except Exception as e:
-                print(f"[Browser Agent] Failed action {act}: {e}")
+                    # Allow page to settle completely before scraping interactive elements
+                    page.wait_for_timeout(3000)
 
-            page.wait_for_timeout(2000)
+                    # Inject JS to label elements and get data
+                    elements = []
+                    try:
+                        elements = page.evaluate(_INJECT_JS)
+                    except Exception as e:
+                        print(f"Error evaluating JS: {e}")
 
-        browser.close()
-        return f"Browser Automation complete: {result}"
+                    # Format elements for LLM
+                    elem_text = ""
+                    for el in elements:
+                        desc = f"Tag: {el['tag']}"
+                        if el['text']: desc += f", Text: '{el['text']}'"
+                        if el['type']: desc += f", Type: {el['type']}"
+                        elem_text += f"[ID: {el['id']}] {desc}\n"
+
+                    if not elem_text:
+                        elem_text = "No interactive elements visible."
+
+                    # Construct the current state prompt
+                    state_prompt = _AGENT_PROMPT.format(
+                        goal=prompt,
+                        url=page.url,
+                        title=page.title(),
+                        elements=elem_text
+                    )
+
+                    # Get action from LLM
+                    raw_response = ask_model(state_prompt, store_history=False, use_context=False)
+                    action_json = extract_json(raw_response)
+
+                    if not action_json:
+                        print(f"[Browser Agent] Invalid action received: {raw_response}")
+                        # Try scrolling down if stuck
+                        action_json = {"action": "SCROLL_DOWN"}
+
+                    act = action_json.get("action", "")
+
+                    try:
+                        if act == "DONE":
+                            result = action_json.get("result", "Finished the task.")
+                            break
+                        elif act == "CLICK":
+                            target_id = str(action_json.get("id", ""))
+                            if target_id.isdigit():
+                                page.locator(f"[data-sherly-id='{target_id}']").click()
+                        elif act == "TYPE":
+                            target_id = str(action_json.get("id", ""))
+                            text_to_type = action_json.get("text", "")
+                            if target_id.isdigit():
+                                selector = f"[data-sherly-id='{target_id}']"
+                                page.locator(selector).fill(text_to_type)
+                                page.locator(selector).press("Enter")
+                        elif act == "SCROLL_DOWN":
+                            page.evaluate("window.scrollBy(0, window.innerHeight * 0.8)")
+                        elif act == "SCROLL_UP":
+                            page.evaluate("window.scrollBy(0, -window.innerHeight * 0.8)")
+                        elif act == "GO_BACK":
+                            page.go_back()
+                        else:
+                            action_json = {"action": "SCROLL_DOWN"}
+                    except Exception as e:
+                        print(f"[Browser Agent] Failed action {act}: {e}")
+
+                    page.wait_for_timeout(2000)
+
+            finally:
+                browser.close()
+
+
+            return f"Browser Automation complete: {result}"
 
     except Exception as e:
         import traceback

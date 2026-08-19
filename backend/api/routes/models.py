@@ -51,6 +51,7 @@ def get_models():
 
 @router.post("/select")
 async def select_model(req: ModelSelectRequest):
+    model_manager.unload_model()
     res = config_manager.set_current_model(req.model_name)
     await manager.broadcast_event("model_changed", {"current_model": req.model_name, "mode": "manual"})
     return {"message": res, "current_model": req.model_name}
@@ -58,6 +59,8 @@ async def select_model(req: ModelSelectRequest):
 
 @router.post("/mode")
 async def set_mode(req: ModelModeRequest):
+    if req.mode not in {"auto", "manual"}:
+        raise HTTPException(status_code=400, detail="Mode must be 'auto' or 'manual'")
     if req.mode == "auto":
         config_manager.enable_auto_detection()
         resolved = resolve_model(config_manager, model_scanner)
@@ -86,5 +89,13 @@ def unload_model():
 
 @router.post("/key")
 def set_api_key(req: ApiKeyRequest):
-    config_manager.set_api_key(req.provider, req.api_key)
+    _ALLOWED_PROVIDERS = {"openai", "gemini", "groq"}
+    if req.provider.lower() not in _ALLOWED_PROVIDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid provider. Must be one of: {', '.join(sorted(_ALLOWED_PROVIDERS))}",
+        )
+    if not req.api_key.strip():
+        raise HTTPException(status_code=400, detail="API key must not be empty")
+    config_manager.set_api_key(req.provider.lower(), req.api_key.strip())
     return {"message": f"API Key for {req.provider} updated"}

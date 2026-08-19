@@ -1,7 +1,7 @@
 import json
 import time
 from tools.automation_tools import open_app, type_text
-from tools.terminal_tools import run_command
+from tools.terminal_tools import safe_exec
 import pyautogui
 
 _SYSTEM_PROMPT = """\
@@ -30,6 +30,9 @@ Request: {text}
 def _parse_actions(text: str, ask_model):
     raw = ask_model(_SYSTEM_PROMPT.format(text=text), store_history=False, use_context=False)
 
+    if not raw or not isinstance(raw, str):
+        return []
+
     start = raw.find("[")
     end = raw.rfind("]")
     if start != -1 and end != -1:
@@ -42,11 +45,13 @@ def _parse_actions(text: str, ask_model):
 
 def run(prompt: str, ask_model=None) -> str:
     if not ask_model:
-        return run_command(prompt)
+        # No model callback available — do not pass natural language to safe_exec.
+        return "System agent requires a model to parse actions."
 
     actions = _parse_actions(prompt, ask_model)
     if not actions:
-        return run_command(prompt)
+        # Parsing failed — do not execute natural language as a shell command.
+        return "Could not parse actions from that request. Please be more specific."
 
     executed = []
 
@@ -76,12 +81,13 @@ def run(prompt: str, ask_model=None) -> str:
                     executed.append(f"Hotkey {'+'.join(keys)}")
             elif a_type == "wait":
                 sec = act.get("seconds", 1)
-                time.sleep(float(sec))
+                sec = max(0.0, min(float(sec), 10.0))  # clamp to 0-10s
+                time.sleep(sec)
                 executed.append(f"Waited {sec}s")
             elif a_type == "run_command":
                 cmd = act.get("cmd", "")
-                res = run_command(cmd)
-                executed.append(f"Ran '{cmd}'")
+                res = safe_exec(cmd)
+                executed.append(f"Ran '{cmd}': {res[:50]}")
         except Exception as e:
             executed.append(f"Failed {act}: {e}")
 

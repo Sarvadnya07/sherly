@@ -7,10 +7,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from backend.api.schemas.contracts import PendingApproval, ActionEntry, PreviewChange
+from backend.api.schemas.contracts import PendingApproval, PreviewChange
 from backend.api.websocket.ws_manager import manager
 import action_manager
 from tools.preview import preview_store, apply_preview
+from tools.terminal_tools import safe_exec
 
 router = APIRouter(prefix="/api/actions", tags=["actions"])
 
@@ -33,7 +34,7 @@ def get_pending_approvals():
 
 @router.post("/approvals/{action_id}/approve")
 async def approve_action(action_id: str):
-    res = action_manager.approve_action(action_id)
+    res = action_manager.approve_action(action_id, safe_exec)
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "approved"})
     return {"message": res}
 

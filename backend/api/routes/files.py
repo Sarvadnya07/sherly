@@ -5,8 +5,6 @@ Handles file tree scanning, file reading/writing, and terminal execution.
 
 from __future__ import annotations
 
-import sys
-import subprocess
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
@@ -14,12 +12,14 @@ from backend.api.schemas.contracts import (
     FileNode, FileReadResponse, FileWriteRequest, TerminalRunRequest, TerminalRunResponse
 )
 
+from tools.terminal_tools import safe_exec
+
 router = APIRouter(prefix="/api/files", tags=["files"])
 
 
 @router.get("/tree", response_model=FileNode)
 def get_file_tree():
-    root_path = Path.cwd()
+    root_path = Path.cwd().resolve()
     exclude = {".git", ".pytest_cache", "__pycache__", ".ruff_cache", "venv", ".venv", "node_modules", "dist"}
 
     def scan_dir(path: Path, max_depth: int = 3) -> FileNode:
@@ -43,22 +43,41 @@ def get_file_tree():
     return scan_dir(root_path)
 
 
+_MAX_READ_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+def _get_safe_target(rel_path: str) -> Path:
+    workspace_root = Path.cwd().resolve()
+    target = (workspace_root / rel_path).resolve()
+    # Use is_relative_to() to prevent prefix-matching bypass (e.g. /workspace_root_secret)
+    try:
+        target.relative_to(workspace_root)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: Path outside workspace boundary")
+    return target
+
+
 @router.get("/read", response_model=FileReadResponse)
 def read_file(path: str):
-    target = Path.cwd() / path
+    target = _get_safe_target(path)
     if not target.exists() or not target.is_file():
         raise HTTPException(status_code=404, detail="File not found")
     try:
+        if target.stat().st_size > _MAX_READ_BYTES:
+            raise HTTPException(status_code=413, detail="File too large to read via API (limit 5 MB)")
         content = target.read_text(encoding="utf-8", errors="replace")
         return FileReadResponse(path=path, content=content)
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.post("/write")
 def write_file(req: FileWriteRequest):
-    target = Path.cwd() / req.path
+    target = _get_safe_target(req.path)
     try:
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(req.content, encoding="utf-8")
         return {"message": f"Successfully wrote {req.path}"}
     except Exception as exc:
@@ -68,13 +87,11 @@ def write_file(req: FileWriteRequest):
 @router.post("/terminal/run", response_model=TerminalRunResponse)
 def run_terminal_command(req: TerminalRunRequest):
     try:
-        cmd = ["cmd.exe", "/c", req.command] if sys.platform == "win32" else ["bash", "-c", req.command]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=15, cwd=str(Path.cwd()))
+        output = safe_exec(req.command)
+        exit_code = 1 if output.startswith("⛔ Blocked:") or output.startswith("Command error:") or output.startswith("⚠️") else 0
         return TerminalRunResponse(
-            output=res.stdout + ("\n" + res.stderr if res.stderr else ""),
-            exit_code=res.returncode,
+            output=output,
+            exit_code=exit_code,
         )
-    except subprocess.TimeoutExpired:
-        return TerminalRunResponse(output="[Command timed out after 15 seconds]", exit_code=124)
     except Exception as exc:
         return TerminalRunResponse(output=f"[Error executing command: {exc}]", exit_code=1)

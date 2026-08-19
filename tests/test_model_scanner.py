@@ -222,3 +222,16 @@ class TestModelResolver:
         result = resolve_model(mock_config, mock_scanner)
 
         assert result == "qwen2.5-coder:3b"
+
+    def test_auto_mode_falls_back_to_cloud_provider_when_ollama_offline(self):
+        """Auto mode should fall back to valid cloud provider key when Ollama is down."""
+        mock_config = MagicMock()
+        mock_config.get_model_mode.return_value = "auto"
+        mock_config.get_api_key.side_effect = lambda provider: "test_key_123" if provider == "openai" else None
+
+        mock_scanner = MagicMock()
+        mock_scanner.scan_ollama_models.return_value = []
+
+        result = resolve_model(mock_config, mock_scanner)
+
+        assert result == "openai"

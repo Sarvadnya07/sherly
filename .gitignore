@@ -17,6 +17,9 @@ sherly_memory.db
 .env.*
 !.env.example
 
+# Runtime config (may contain API keys written by set_api_key())
+config.json
+
 # Node
 node_modules/
 

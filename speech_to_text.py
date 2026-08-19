@@ -82,44 +82,44 @@ _input_device: int | None = _pick_input_device()
 
 def record_audio(seconds: float = _RECORD_SECONDS, fs: int = _SAMPLE_RATE) -> np.ndarray | None:
     """
-    Capture audio from the selected mic.
-    Fix #2: wrapped in a thread with hard wall-clock timeout.
+    Capture audio from the selected mic using InputStream callback.
+    Fix #2: wrapped in a thread with hard wall-clock timeout and clean stream termination.
     """
-    result: list[np.ndarray] = []
+    frames: list[np.ndarray] = []
     error: list[Exception] = []
+
+    def _callback(indata, frame_count, time_info, status):
+        frames.append(indata.copy())
 
     def _record():
         try:
-            audio = sd.rec(
-                int(seconds * fs),
+            with sd.InputStream(
                 samplerate=fs,
                 channels=1,
                 dtype="float32",
                 device=_input_device,
-                blocksize=1024,       # Fix #2: explicit blocksize avoids buffer drift
-            )
-            sd.wait()
-            result.append(audio.flatten())
+                callback=_callback,
+                blocksize=1024,
+            ):
+                sd.sleep(int(seconds * 1000))
         except Exception as exc:
             error.append(exc)
 
     t = threading.Thread(target=_record, daemon=True)
     t.start()
-    t.join(timeout=_RECORD_TIMEOUT)   # Fix #2: hard timeout
+    t.join(timeout=_RECORD_TIMEOUT)
 
     if t.is_alive():
-        # Recording is stuck — abort stream and return None
         try:
             sd.stop()
         except Exception:
             pass
         return None
 
-    if error:
-        print(f"[STT] record error: {error[0]}")
+    if error or not frames:
         return None
 
-    return result[0] if result else None
+    return np.concatenate(frames, axis=0).flatten()
 
 
 def is_silent(audio: np.ndarray) -> bool:
@@ -142,13 +142,15 @@ def _normalize(audio: np.ndarray) -> np.ndarray:
 
 def transcribe() -> str:
     """
-    Record and transcribe.
-    Returns "" (silent / noise), "Didn't catch that" (low confidence),
-    or the clean transcription text.
+    Record and transcribe audio.
+    Returns clean transcription text or "" if silent/low-confidence/noise.
     """
-    # Fix #18: don't listen while Sherly is speaking
     if is_speaking():
-        return ""
+        try:
+            from text_to_speech import stop_tts
+            stop_tts()
+        except Exception:
+            pass
 
     audio = record_audio()
     if audio is None:
@@ -176,14 +178,15 @@ def transcribe() -> str:
         print(f"[STT] transcription error: {exc}")
         return ""
 
-    if not text or len(text) < _MIN_TEXT_CHARS:
-        return "Didn't catch that"
-
-    if len(text) > _MAX_TEXT_CHARS:
-        return "Didn't catch that"
+    if not text or len(text) < _MIN_TEXT_CHARS or len(text) > _MAX_TEXT_CHARS:
+        return ""
 
     avg_logprob = getattr(info, "avg_logprob", None)
     if avg_logprob is not None and avg_logprob < -1.2:
-        return "Didn't catch that"
+        return ""
+
+    no_speech_prob = getattr(info, "no_speech_prob", None)
+    if no_speech_prob is not None and no_speech_prob > 0.6:
+        return ""
 
     return text

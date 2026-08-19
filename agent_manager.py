@@ -20,9 +20,9 @@ _CODER_TRIGGERS = [
 _SYSTEM_TRIGGERS = [
     "open app", "close app", "run command", "type ", "execute ",
     "launch ", "start app", "shutdown", "restart", "lock ",
-    "write ", "open ", "pause", "resume", "mute", "volume", 
+    "write file ", "open ", "pause", "resume", "mute", "volume",
     "increase ", "decrease ", "next track", "previous track",
-    "play pause", "ope "
+    "play pause",
 ]
 
 _CLASSIFY_PROMPT = """\
@@ -49,10 +49,11 @@ def _keyword_classify(text: str) -> str | None:
     low = text.lower().strip()
     if any(low.startswith(t) or f" {t}" in low for t in _BROWSER_TRIGGERS):
         return "browser"
-    if any(low.startswith(t) or f" {t}" in low for t in _SYSTEM_TRIGGERS):
-        return "system"
+    # Evaluate coder before system — coder triggers are more specific
     if any(low.startswith(t) or f" {t}" in low for t in _CODER_TRIGGERS):
         return "coder"
+    if any(low.startswith(t) or f" {t}" in low for t in _SYSTEM_TRIGGERS):
+        return "system"
     # Single-word or very short input → treat as general conversation
     if len(low.split()) <= 2:
         return "general"
@@ -72,7 +73,8 @@ def _classify(text: str, ask_model) -> str:
         store_history=False,
         use_context=False,
     )
-    word = raw.strip().lower().split()[0] if raw.strip() else "general"
+    raw = (raw or "").strip()
+    word = raw.lower().split()[0] if raw else "general"
     word = word.strip(".,!?;:()")
     return word if word in _KNOWN_AGENTS else "general"
 

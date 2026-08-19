@@ -6,7 +6,7 @@ Kept in 1:1 parity with React TypeScript interfaces.
 
 from __future__ import annotations
 from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 # ── Chat & Memory ─────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { RefreshCw, CheckCircle, Package, Zap, Key, Cpu, Trash2, Settings as SettingsIcon } from 'lucide-react';
+import { RefreshCw, CheckCircle, Package, Zap, Key } from 'lucide-react';
 import { api } from '../services/api';
 
 export const ModelsView: React.FC = () => {
@@ -88,7 +88,7 @@ export const ModelsView: React.FC = () => {
           ) : (
             modelsList.map((m) => {
               const isActive = m.name === currentModel;
-              const sizeGb = (m.size / (1024 * 1024 * 1024)).toFixed(1);
+              const sizeGb = ((m.size || 0) / (1024 * 1024 * 1024)).toFixed(1);
 
               return (
                 <div

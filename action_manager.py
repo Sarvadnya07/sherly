@@ -245,6 +245,8 @@ def undo_last() -> str:
 
     if action_type == "write_file":
         return _undo_write_file(undo_data)
+    elif action_type == "batch_write_file":
+        return _undo_batch_write_file(undo_data)
     elif action_type == "delete_file":
         return _undo_delete_file(undo_data)
     elif action_type == "conversation":
@@ -267,6 +269,21 @@ def _undo_write_file(undo_data: tuple) -> str:
         return f"↩️ Restored file: {path}"
     except Exception as exc:
         return f"Undo failed for file write: {exc}"
+
+
+def _undo_batch_write_file(undo_data: list[tuple]) -> str:
+    """Restore multiple files in a multi-file patch atomically."""
+    restored = []
+    for item in undo_data:
+        try:
+            _, path, old_content = item
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(old_content)
+            restored.append(os.path.basename(path))
+            log(f"[Undo] batch restored file: {path}")
+        except Exception as exc:
+            log(f"[Undo] failed batch restore for {path}: {exc}")
+    return f"↩️ Restored multi-file patch ({', '.join(restored)})"
 
 
 def _undo_delete_file(undo_data: tuple) -> str:

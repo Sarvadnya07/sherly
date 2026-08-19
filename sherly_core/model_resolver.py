@@ -30,7 +30,7 @@ def resolve_model(config_manager, scanner) -> str | None:
     Returns:
         The model name string, or None if no model is available.
     """
-    mode = config_manager.get_model_mode()
+    mode = config_manager.get_model_mode() or "auto"
 
     logger.info("[ModelResolver] Mode: %s", mode.upper())
 
@@ -57,11 +57,19 @@ def resolve_model(config_manager, scanner) -> str | None:
     models = scanner.scan_ollama_models()
 
     if not models:
-        # No models found — try whatever was previously configured
+        # Check if cloud API keys are configured (OpenAI, Gemini, Groq)
+        for provider in ("openai", "gemini", "groq"):
+            key = config_manager.get_api_key(provider)
+            if key and not key.startswith("YOUR_"):
+                logger.info("[ModelResolver] Ollama offline. Resolving to cloud provider: %s", provider)
+                config_manager.set_resolved_model(provider)
+                return provider
+
+        # Try whatever was previously configured
         current = config_manager.get_current_model()
         if current:
             logger.warning(
-                "[ModelResolver] No models detected. Keeping previous: %s",
+                "[ModelResolver] No local models detected. Keeping previous: %s",
                 current,
             )
             return current
@@ -79,7 +87,10 @@ def resolve_model(config_manager, scanner) -> str | None:
     if selected is None:
         return None
 
-    model_name = selected["name"]
+    model_name = selected.get("name")
+    if not model_name:
+        logger.error("[ModelResolver] Selected model has no name field.")
+        return None
 
     # Write the selection into config (without overriding mode or pinned)
     config_manager.set_resolved_model(model_name)
