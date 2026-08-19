@@ -270,6 +270,8 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
         });
       } else if (event.event_type === 'stt_text') {
         set({ sttText: event.payload.text || 'Listening...' });
+      } else if (event.event_type === 'action_update') {
+        get().fetchApprovals();
       }
     });
   },

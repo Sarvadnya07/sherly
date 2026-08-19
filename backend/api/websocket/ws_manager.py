@@ -7,8 +7,9 @@ speech transcription text, task progress, and pending approvals.
 from __future__ import annotations
 
 import json
+import time
 import logging
-from typing import Any
+from typing import Any, Optional
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
@@ -28,12 +29,26 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
             logger.info(f"WebSocket client disconnected. Total clients: {len(self.active_connections)}")
 
-    async def broadcast_event(self, event_type: str, payload: dict[str, Any]) -> None:
+    async def broadcast_event(
+        self,
+        event_type: str,
+        payload: dict[str, Any],
+        request_id: Optional[str] = None,
+    ) -> None:
+        envelope = {
+            "event_type": event_type,
+            "payload": payload,
+            "timestamp": time.time(),
+        }
+        if request_id:
+            envelope["request_id"] = request_id
+
         try:
-            data = json.dumps({"event_type": event_type, "payload": payload}, default=str)
+            data = json.dumps(envelope, default=str)
         except Exception as exc:
             logger.error("Failed to serialize WebSocket payload for %s: %s", event_type, exc)
             return
+
         disconnected = []
         for connection in list(self.active_connections):  # copy to avoid mutation during iteration
             try:

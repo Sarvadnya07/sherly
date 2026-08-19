@@ -1,6 +1,7 @@
 /**
- * WEBSOCKET CLIENT SERVICE
- * Real-time event gateway for status, speech, and model events.
+ * WEBSOCKET CLIENT SERVICE — frontend/src/services/websocket.ts
+ * Real-time event gateway for status, speech, action, and model events.
+ * Features: Exponential backoff reconnection, safe error handling, and typed listener dispatch.
  */
 
 import { SherlyEvent } from '../types/api';
@@ -10,7 +11,10 @@ type EventHandler = (event: SherlyEvent) => void;
 class WebSocketService {
   private ws: WebSocket | null = null;
   private handlers: Set<EventHandler> = new Set();
-  private reconnectTimer: any = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectDelayMs = 10000;
+  private baseReconnectDelayMs = 1000;
 
   public connect(): void {
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
@@ -23,6 +27,7 @@ class WebSocketService {
 
       this.ws.onopen = () => {
         console.log('[WebSocket] Connected to Sherly backend');
+        this.reconnectAttempts = 0;
         if (this.reconnectTimer) {
           clearTimeout(this.reconnectTimer);
           this.reconnectTimer = null;
@@ -32,33 +37,49 @@ class WebSocketService {
       this.ws.onmessage = (event) => {
         try {
           const parsed: SherlyEvent = JSON.parse(event.data);
-          this.handlers.forEach((handler) => handler(parsed));
+          if (!parsed || !parsed.event_type) {
+            console.warn('[WebSocket] Received malformed event payload:', event.data);
+            return;
+          }
+          this.handlers.forEach((handler) => {
+            try {
+              handler(parsed);
+            } catch (err) {
+              console.error('[WebSocket] Error in event listener handler:', err);
+            }
+          });
         } catch (e) {
-          console.warn('[WebSocket] Error parsing message:', e);
+          console.warn('[WebSocket] Failed to parse incoming JSON frame:', e);
         }
       };
 
       this.ws.onclose = () => {
-        console.log('[WebSocket] Connection closed. Reconnecting in 3s...');
         this.scheduleReconnect();
       };
 
       this.ws.onerror = (error) => {
-        console.warn('[WebSocket] Connection error:', error);
+        console.warn('[WebSocket] Transport error:', error);
       };
     } catch (e) {
-      console.error('[WebSocket] Failed to establish connection:', e);
+      console.error('[WebSocket] Failed to instantiate connection:', e);
       this.scheduleReconnect();
     }
   }
 
   private scheduleReconnect(): void {
-    if (!this.reconnectTimer) {
-      this.reconnectTimer = setTimeout(() => {
-        this.reconnectTimer = null;
-        this.connect();
-      }, 3000);
-    }
+    if (this.reconnectTimer) return;
+
+    // Exponential backoff with jitter
+    const delay = Math.min(
+      this.baseReconnectDelayMs * Math.pow(1.5, this.reconnectAttempts) + Math.random() * 500,
+      this.maxReconnectDelayMs
+    );
+    this.reconnectAttempts++;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect();
+    }, delay);
   }
 
   public subscribe(handler: EventHandler): () => void {
@@ -74,13 +95,13 @@ class WebSocketService {
       this.reconnectTimer = null;
     }
     if (this.ws) {
-      this.ws.onclose = null;  // prevent triggering reconnect on manual close
+      this.ws.onclose = null;
       this.ws.close();
       this.ws = null;
     }
   }
 
-  public send(data: any): void {
+  public send(data: unknown): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
     }

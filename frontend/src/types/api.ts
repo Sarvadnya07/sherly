@@ -1,7 +1,25 @@
 /**
- * SHERLY API CONTRACT TYPES
+ * SHERLY API CONTRACT TYPES — frontend/src/types/api.ts
  * Strongly-typed contracts matching backend Pydantic schemas.
  */
+
+// ── Error Envelope ────────────────────────────────────────────────────────────
+export interface ApiErrorDetail {
+  code: string;
+  message: string;
+  request_id?: string;
+  details?: Record<string, unknown>;
+}
+
+export interface ApiErrorResponse {
+  error: ApiErrorDetail;
+}
+
+// ── Chat & Memory ─────────────────────────────────────────────────────────────
+export interface ChatRequest {
+  prompt: string;
+  file_attachment?: string;
+}
 
 export interface ChatMessage {
   id?: string;
@@ -9,8 +27,14 @@ export interface ChatMessage {
   assistant_response: string;
   timestamp: string;
   attached_file?: string;
+  request_id?: string;
 }
 
+export interface ChatHistoryResponse {
+  messages: ChatMessage[];
+}
+
+// ── Models & Scanner ──────────────────────────────────────────────────────────
 export interface ModelInfo {
   name: string;
   family: string;
@@ -28,6 +52,20 @@ export interface ModelsListResponse {
   models: ModelInfo[];
 }
 
+export interface ModelSelectRequest {
+  model_name: string;
+}
+
+export interface ModelModeRequest {
+  mode: 'auto' | 'manual';
+}
+
+export interface ApiKeyRequest {
+  provider: 'openai' | 'gemini' | 'groq';
+  api_key: string;
+}
+
+// ── Voice ──────────────────────────────────────────────────────────────────────
 export interface VoiceStatusResponse {
   is_listening: boolean;
   is_speaking: boolean;
@@ -38,6 +76,7 @@ export interface AudioDevicesResponse {
   devices: string[];
 }
 
+// ── Files & Workspace ─────────────────────────────────────────────────────────
 export interface FileNode {
   name: string;
   path: string;
@@ -50,11 +89,21 @@ export interface FileReadResponse {
   content: string;
 }
 
+export interface FileWriteRequest {
+  path: string;
+  content: string;
+}
+
+export interface TerminalRunRequest {
+  command: string;
+}
+
 export interface TerminalRunResponse {
   output: string;
   exit_code: number;
 }
 
+// ── Actions, Approvals & Previews ─────────────────────────────────────────────
 export interface PendingApproval {
   action_id: string;
   command: string;
@@ -78,6 +127,7 @@ export interface PreviewChange {
   reason?: string;
 }
 
+// ── Settings ──────────────────────────────────────────────────────────────────
 export interface SettingsResponse {
   auto_mode: boolean;
   model_mode: 'auto' | 'manual';
@@ -86,7 +136,63 @@ export interface SettingsResponse {
   plugins: Record<string, boolean>;
 }
 
-export interface SherlyEvent {
-  event_type: string;
-  payload: Record<string, any>;
+export interface SettingsUpdateRequest {
+  auto_mode?: boolean;
+  model_mode?: 'auto' | 'manual';
+  plugins?: Record<string, boolean>;
 }
+
+// ── Real-Time WebSocket Discriminated Union ───────────────────────────────────
+export interface StatusEvent {
+  event_type: 'status';
+  payload: {
+    status: 'ready' | 'thinking' | 'listening' | 'speaking';
+    prompt?: string;
+  };
+  timestamp?: number;
+  request_id?: string;
+}
+
+export interface SttTextEvent {
+  event_type: 'stt_text';
+  payload: {
+    text: string;
+    is_final?: boolean;
+  };
+  timestamp?: number;
+  request_id?: string;
+}
+
+export interface ActionUpdateEvent {
+  event_type: 'action_update';
+  payload: {
+    action_id: string;
+    status: 'approved' | 'rejected' | 'preview_applied' | 'preview_rejected';
+  };
+  timestamp?: number;
+  request_id?: string;
+}
+
+export interface ModelChangedEvent {
+  event_type: 'model_changed';
+  payload: {
+    current_model: string | null;
+    mode: 'auto' | 'manual';
+  };
+  timestamp?: number;
+  request_id?: string;
+}
+
+export interface PongEvent {
+  event_type: 'pong';
+  payload: Record<string, never>;
+  timestamp?: number;
+  request_id?: string;
+}
+
+export type SherlyEvent =
+  | StatusEvent
+  | SttTextEvent
+  | ActionUpdateEvent
+  | ModelChangedEvent
+  | PongEvent;

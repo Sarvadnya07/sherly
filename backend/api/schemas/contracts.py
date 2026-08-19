@@ -1,17 +1,31 @@
 """
 BACKEND SCHEMAS — backend/api/schemas/contracts.py
 Strongly-typed Pydantic contracts for Sherly API & WebSockets.
-Kept in 1:1 parity with React TypeScript interfaces.
+Maintains 1:1 parity with frontend TypeScript interfaces.
 """
 
 from __future__ import annotations
-from typing import Any, Optional
-from pydantic import BaseModel
+
+import time
+from typing import Any, Optional, Literal
+from pydantic import BaseModel, Field
+
+
+# ── Error Envelope ────────────────────────────────────────────────────────────
+class ApiErrorDetail(BaseModel):
+    code: str
+    message: str
+    request_id: Optional[str] = None
+    details: Optional[dict[str, Any]] = None
+
+
+class ApiErrorResponse(BaseModel):
+    error: ApiErrorDetail
 
 
 # ── Chat & Memory ─────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    prompt: str
+    prompt: str = Field(..., min_length=1, max_length=100000)
     file_attachment: Optional[str] = None
 
 
@@ -20,6 +34,7 @@ class ChatResponse(BaseModel):
     assistant_response: str
     timestamp: str
     attached_file: Optional[str] = None
+    request_id: Optional[str] = None
 
 
 class ChatHistoryResponse(BaseModel):
@@ -37,31 +52,31 @@ class ModelInfo(BaseModel):
 
 
 class ModelsListResponse(BaseModel):
-    mode: str                          # "auto" | "manual"
-    current_model: Optional[str]
-    pinned_model: Optional[str]
+    mode: Literal["auto", "manual"]
+    current_model: Optional[str] = None
+    pinned_model: Optional[str] = None
     is_ollama_running: bool
     models: list[ModelInfo]
 
 
 class ModelSelectRequest(BaseModel):
-    model_name: str
+    model_name: str = Field(..., min_length=1)
 
 
 class ModelModeRequest(BaseModel):
-    mode: str                          # "auto" | "manual"
+    mode: Literal["auto", "manual"]
 
 
 class ApiKeyRequest(BaseModel):
-    provider: str                      # "openai" | "gemini" | "groq"
-    api_key: str
+    provider: Literal["openai", "gemini", "groq"]
+    api_key: str = Field(..., min_length=1)
 
 
 # ── Voice ──────────────────────────────────────────────────────────────────────
 class VoiceStatusResponse(BaseModel):
     is_listening: bool
     is_speaking: bool
-    current_device: Optional[str]
+    current_device: Optional[str] = None
 
 
 class AudioDevicesResponse(BaseModel):
@@ -82,12 +97,12 @@ class FileReadResponse(BaseModel):
 
 
 class FileWriteRequest(BaseModel):
-    path: str
+    path: str = Field(..., min_length=1)
     content: str
 
 
 class TerminalRunRequest(BaseModel):
-    command: str
+    command: str = Field(..., min_length=1)
 
 
 class TerminalRunResponse(BaseModel):
@@ -99,7 +114,7 @@ class TerminalRunResponse(BaseModel):
 class PendingApproval(BaseModel):
     action_id: str
     command: str
-    level: str                          # "confirm" | "dangerous"
+    level: Literal["confirm", "dangerous"]
     timestamp: float
 
 
@@ -122,19 +137,41 @@ class PreviewChange(BaseModel):
 # ── Settings ──────────────────────────────────────────────────────────────────
 class SettingsResponse(BaseModel):
     auto_mode: bool
-    model_mode: str
-    current_model: Optional[str]
+    model_mode: Literal["auto", "manual"]
+    current_model: Optional[str] = None
     api_keys_configured: dict[str, bool]
     plugins: dict[str, bool]
 
 
 class SettingsUpdateRequest(BaseModel):
     auto_mode: Optional[bool] = None
-    model_mode: Optional[str] = None
+    model_mode: Optional[Literal["auto", "manual"]] = None
     plugins: Optional[dict[str, bool]] = None
 
 
-# ── Real-Time WebSocket Event ─────────────────────────────────────────────────
+# ── Real-Time WebSocket Event Envelopes ───────────────────────────────────────
+class StatusPayload(BaseModel):
+    status: Literal["ready", "thinking", "listening", "speaking"]
+    prompt: Optional[str] = None
+
+
+class SttTextPayload(BaseModel):
+    text: str
+    is_final: Optional[bool] = True
+
+
+class ActionUpdatePayload(BaseModel):
+    action_id: str
+    status: Literal["approved", "rejected", "preview_applied", "preview_rejected"]
+
+
+class ModelChangedPayload(BaseModel):
+    current_model: Optional[str] = None
+    mode: Literal["auto", "manual"]
+
+
 class SherlyEvent(BaseModel):
-    event_type: str                     # "status", "stt_text", "action_update", "model_changed"
+    event_type: Literal["status", "stt_text", "action_update", "model_changed", "pong"]
     payload: dict[str, Any]
+    timestamp: float = Field(default_factory=time.time)
+    request_id: Optional[str] = None
