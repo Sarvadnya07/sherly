@@ -1,6 +1,6 @@
 # Sherly AI — Dependency & Runtime Specification
 
-**Modernization Phase**: PHASE 1 — Dependency & Runtime Modernization  
+**Modernization Phase**: PHASE 1.1 — Dependency Modernization & Compatibility Bounds  
 **Specification Level**: Production / Strict Compatibility  
 
 ---
@@ -19,13 +19,16 @@
 
 ## 2. Python Backend & Core Dependencies
 
-| Package | Modernized Specification | Installed | Rationale & Modernization Notes |
+> [!NOTE]
+> The declared minimum versions in `pyproject.toml` and `requirements.txt` represent **tested runtime compatibility bounds** verified against Python 3.13.
+
+| Package | Tested Minimum Bound | Installed | Rationale & Modernization Notes |
 | :--- | :--- | :--- | :--- |
-| **`fastapi`** | `>=0.115.0` | `0.115.x` | Core async ASGI API routing. Auto-generates OpenAPI contracts. |
+| **`fastapi`** | `>=0.115.0` | `0.115.x` | Core async ASGI API routing. Tested compatibility minimum. |
 | **`uvicorn`** | `>=0.34.0` | `0.52.4` | High-throughput ASGI server engine with WebSocket support. |
-| **`pydantic`** | `>=2.10.0` | `2.13.4` | Strongly-typed schema serialization powered by Rust pydantic-core. |
-| **`httpx`** | `>=0.28.0` | `0.28.1` | **Consolidated HTTP Client**: Replaces `requests` across all sync and async outbound LLM and API calls. |
-| **`ddgs` / `duckduckgo-search`** | `>=9.0.0` | `8.1.0` / `9.0.0` | Modernized search integration without runtime deprecation warnings. |
+| **`pydantic`** | `>=2.10.0` | `2.13.4` | Strongly-typed schema validation powered by pydantic-core. |
+| **`httpx`** | `>=0.28.0` | `0.28.1` | **Consolidated HTTP Client**: Replaced `requests` across all sync and async outbound LLM and API calls with identical timeout and status semantics. |
+| **`ddgs`** | `>=9.0.0` | `9.0.0` | **Modernized Web Search**: Clean migration from deprecated `duckduckgo-search` package name to canonical upstream `ddgs`. |
 | **`tenacity`** | `>=9.1.0` | `9.1.4` | Deterministic retry decorator for network/LLM calls. |
 | **`sounddevice`** | `>=0.5.0` | `0.5.5` | PortAudio low-latency voice capture stream. |
 | **`numpy`** | `>=2.2.0, <3.0` | `2.2.x` | Numerical array operations for audio processing. |
@@ -55,13 +58,15 @@
 
 ---
 
-## 4. Upgrades, Consolidations & Deprecations Summary
+## 4. Modernization Actions & Audit Trace
 
 1. **`requests` Consolidated into `httpx`**:
-   - Eliminated redundant HTTP client library.
-   - All outbound calls in `model_manager.py`, `runtime_utils.py`, `remote_api/server.py`, and `sherly_ui/app_manager.py` migrated to `httpx.post()` / `httpx.get()` with explicit timeouts.
+   - `model_manager.py`: Migrated OpenAI, Gemini, Groq, and Ollama HTTP calls to `httpx.post()` with explicit timeouts.
+   - `runtime_utils.py`: Migrated `send_notification()` to `httpx.post()`.
+   - `remote_api/server.py`: Migrated remote proxy to `httpx.post()`.
+   - `sherly_ui/app_manager.py`: Migrated Ollama health check to `httpx.get()`.
 2. **`duckduckgo-search` Upgraded to `ddgs`**:
-   - Eliminated upstream package rename runtime warnings.
-   - Preserved graceful offline / timeout fallback in `web_search.py`.
-3. **PySide6 Kept Transitional**:
-   - Preserved for desktop fallback while consolidating future features in React / Tauri.
+   - Switched import to `from ddgs import DDGS`.
+   - Removed deprecated `duckduckgo-search` from manifests.
+3. **Compatibility Bounds Defined**:
+   - Manifest minimums adjusted to reflect tested runtime bounds verified under Python 3.13.

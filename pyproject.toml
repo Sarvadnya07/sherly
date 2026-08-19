@@ -21,7 +21,6 @@ dependencies = [
     
     # Utilities & Search
     "ddgs>=9.0.0",
-    "duckduckgo-search>=8.1.0",
     "tenacity>=9.1.0",
     
     # Desktop Automation & Screen

@@ -1,6 +1,6 @@
 """
 WEB SEARCH — web_search.py
-Robust DuckDuckGo search integration with clean fallback.
+Modern DuckDuckGo search integration via ddgs.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ _SEARCH_TIMEOUT = 5   # seconds before timeout
 
 def search_web(query: str, max_results: int = 5) -> list[dict]:
     """
-    Search DuckDuckGo with a hard timeout.
+    Search DuckDuckGo using the modernized ddgs client with a hard timeout.
     Returns [] on network failure instead of hanging.
     """
     if not query or not query.strip():
@@ -26,16 +26,11 @@ def search_web(query: str, max_results: int = 5) -> list[dict]:
             cleaned_query = cleaned_query[len(prefix) + 1:].strip()
 
     try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            try:
-                from ddgs import DDGS
-            except ImportError:
-                from duckduckgo_search import DDGS
+        from ddgs import DDGS
 
-            with DDGS(timeout=_SEARCH_TIMEOUT) as ddgs:
-                results = list(ddgs.text(cleaned_query, max_results=max_results))
-            return results
+        with DDGS(timeout=_SEARCH_TIMEOUT) as ddgs:
+            results = list(ddgs.text(cleaned_query, max_results=max_results))
+        return results
     except Exception as exc:
         log(f"[WebSearch] failed: {exc}", level="warning")
         return []
