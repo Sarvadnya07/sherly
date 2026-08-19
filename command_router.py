@@ -64,37 +64,44 @@ if _stored_phase in _PHASE_ORDER:
 # Fix #9 – deterministic command map (no LLM for known shortcuts)
 # ---------------------------------------------------------------------------
 
-def _build_command_map() -> dict[str, str]:
-    """Build OS-appropriate command map. Fix #21: platform branching."""
+def _build_command_map() -> dict[str, dict]:
+    """Build OS-appropriate command map. Fix #21: platform branching.
+
+    Each entry is a dict with:
+      "argv"      – explicit argument list for subprocess (shell=False)
+      "startfile" – optional path/URI to pass to os.startfile() instead
+    """
     _os = platform.system()
 
     if _os == "Windows":
         return {
-            "open chrome":   r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-            "open vscode":   "code",
-            "open notepad":  "notepad",
-            "open explorer": "explorer",
-            "open terminal": "start cmd",
-            "open settings": "start ms-settings:",
-            "open task manager": "taskmgr",
+            # Use os.startfile for paths/URIs — cleanest on Windows
+            "open chrome":       {"startfile": r"C:\Program Files\Google\Chrome\Application\chrome.exe"},
+            "open vscode":       {"argv": ["code"]},
+            "open notepad":      {"argv": ["notepad"]},
+            "open explorer":     {"argv": ["explorer"]},
+            # cmd /c start <target> is the correct shell=False form for Windows shell URIs
+            "open terminal":     {"argv": ["cmd", "/c", "start", "cmd"]},
+            "open settings":     {"startfile": "ms-settings:"},
+            "open task manager": {"argv": ["taskmgr"]},
         }
     elif _os == "Darwin":
         return {
-            "open chrome":   "open -a 'Google Chrome'",
-            "open vscode":   "code",
-            "open terminal": "open -a Terminal",
-            "open finder":   "open .",
+            "open chrome":   {"argv": ["open", "-a", "Google Chrome"]},
+            "open vscode":   {"argv": ["code"]},
+            "open terminal": {"argv": ["open", "-a", "Terminal"]},
+            "open finder":   {"argv": ["open", "."]},
         }
     else:  # Linux
         return {
-            "open chrome":   "google-chrome",
-            "open vscode":   "code",
-            "open terminal": "x-terminal-emulator",
-            "open files":    "xdg-open .",
+            "open chrome":   {"argv": ["google-chrome"]},
+            "open vscode":   {"argv": ["code"]},
+            "open terminal": {"argv": ["x-terminal-emulator"]},
+            "open files":    {"argv": ["xdg-open", "."]},
         }
 
 
-COMMAND_MAP: dict[str, str] = _build_command_map()
+COMMAND_MAP: dict[str, dict] = _build_command_map()
 
 
 # ---------------------------------------------------------------------------
@@ -194,15 +201,18 @@ def _run_system_command(low: str) -> str | None:
     Fix #9: check deterministic COMMAND_MAP first.
     Fix #21: commands are already OS-appropriate from _build_command_map().
     Fix #25: log the action being taken for user trust / auditability.
+
+    All subprocess calls use shell=False with explicit argv lists.
+    os.startfile() is used for Windows paths/URIs that have no shell=False equivalent.
     """
-    for trigger, cmd in COMMAND_MAP.items():
+    for trigger, spec in COMMAND_MAP.items():
         if trigger in low:
-            log(f"[Router] system shortcut: '{trigger}' → '{cmd}'")
+            log(f"[Router] system shortcut: '{trigger}'")
             try:
-                if platform.system() == "Windows":
-                    os.startfile(cmd) if not cmd.startswith(("start ", "code")) else subprocess.Popen(cmd, shell=True)
+                if "startfile" in spec:
+                    os.startfile(spec["startfile"])
                 else:
-                    subprocess.Popen(cmd, shell=True)
+                    subprocess.Popen(spec["argv"], shell=False)
                 return f"Opening {trigger.replace('open ', '')}."
             except FileNotFoundError:
                 return f"Could not find '{trigger}'. Is it installed?"
@@ -216,6 +226,7 @@ def _run_system_command(low: str) -> str | None:
         return "Lock screen is only supported on Windows."
 
     return None
+
 
 
 def _extract_after(raw: str, keyword: str) -> str:

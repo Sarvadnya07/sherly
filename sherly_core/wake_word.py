@@ -7,15 +7,15 @@ import struct
 class WakeWordDetector:
     """Wake-word detector backed by Picovoice Porcupine.
 
-    Requires the PICOVOICE_ACCESS_KEY environment variable to be set.
-    Raises ValueError on construction if the key is absent.
+    Requires the PVPORCUPINE_ACCESS_KEY environment variable to be set.
+    Raises RuntimeError on construction if the key is absent.
     """
 
     def __init__(self):
-        access_key = os.getenv("PICOVOICE_ACCESS_KEY", "").strip()
+        access_key = os.getenv("PVPORCUPINE_ACCESS_KEY")
         if not access_key:
-            raise ValueError(
-                "PICOVOICE_ACCESS_KEY is not set. "
+            raise RuntimeError(
+                "PVPORCUPINE_ACCESS_KEY is not configured. "
                 "Set it in your environment or .env file."
             )
 

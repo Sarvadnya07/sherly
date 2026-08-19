@@ -1,8 +1,8 @@
 {
-    "auto_mode": true,
+    "auto_mode": false,
     "model_selection": {
         "mode": "auto",
-        "current_model": "qwen2.5-coder:3b",
+        "current_model": null,
         "pinned_model": null
     },
     "api_keys": {

@@ -9,6 +9,7 @@ Two execution surfaces:
 
 from __future__ import annotations
 
+import shlex
 import subprocess
 from safety_guard import check_command
 
@@ -47,14 +48,23 @@ _TIMEOUT_SECONDS = 30
 # ---------------------------------------------------------------------------
 
 def run_command(command: str) -> str:
-    """Run a shell command and return combined output. No safety check here."""
+    """Run a command and return combined output. No safety check here.
+
+    Uses shell=False to prevent shell metacharacter interpretation.
+    The command string is parsed into an argv list via shlex.split().
+    """
     if not command or not command.strip():
         return "Please specify a command to run."
 
     try:
+        argv = shlex.split(command)
+    except ValueError as exc:
+        return f"Command parse error: {exc}"
+
+    try:
         completed = subprocess.run(
-            command,
-            shell=True,
+            argv,
+            shell=False,
             capture_output=True,
             text=True,
             check=False,
@@ -64,6 +74,8 @@ def run_command(command: str) -> str:
         return output if output else "Command executed with no output."
     except subprocess.TimeoutExpired:
         return f"Command timed out after {_TIMEOUT_SECONDS}s."
+    except FileNotFoundError:
+        return f"Command not found: '{argv[0]}'"
     except Exception as exc:
         return f"Command error: {exc}"
 
