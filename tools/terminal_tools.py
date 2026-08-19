@@ -9,6 +9,7 @@ Two execution surfaces:
 
 from __future__ import annotations
 
+import platform
 import shlex
 import subprocess
 from safety_guard import check_command
@@ -57,7 +58,8 @@ def run_command(command: str) -> str:
         return "Please specify a command to run."
 
     try:
-        argv = shlex.split(command)
+        is_posix = platform.system() != "Windows"
+        argv = shlex.split(command, posix=is_posix)
     except ValueError as exc:
         return f"Command parse error: {exc}"
 

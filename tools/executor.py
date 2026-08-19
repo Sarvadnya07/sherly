@@ -1,3 +1,4 @@
+import platform
 import shlex
 import subprocess
 
@@ -14,8 +15,12 @@ def run_project(command, timeout=15):
         return ("error", f"Command parse error: {exc}")
 
     try:
+        is_posix = platform.system() != "Windows"
+        if isinstance(command, str):
+            command = shlex.split(command, posix=is_posix)
+
         result = subprocess.run(
-            argv,
+            command,
             shell=False,
             capture_output=True,
             text=True,

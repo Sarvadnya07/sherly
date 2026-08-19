@@ -13,30 +13,48 @@ authors = [
     { name = "Sarvadnya", email = "sarvadnya@example.com" }
 ]
 dependencies = [
-    "fastapi>=0.100.0",
-    "uvicorn>=0.20.0",
-    "pydantic>=2.0.0",
-    "requests>=2.28.0",
-    "httpx>=0.24.0",
-    "duckduckgo-search>=6.0.0",
-    "pyperclip>=1.8.0",
-    "Pillow>=10.0.0",
-    "sounddevice>=0.4.0",
-    "numpy>=1.24.0",
-    "faster-whisper>=1.0.0",
-    "pyttsx3>=2.90",
-    "pynput>=1.7.0",
-    "PySide6>=6.5.0",
+    # Core API & Networking
+    "fastapi>=0.141.0",
+    "uvicorn>=0.52.0",
+    "pydantic>=2.13.0",
+    "requests>=2.34.0",
+    "httpx>=0.28.0",
+    
+    # Utilities
+    "duckduckgo-search>=8.1.0",
+    "tenacity>=9.1.0",
+    
+    # Desktop Automation & Screen
+    "pyperclip>=1.11.0",
+    "Pillow>=12.3.0",
+    "mss>=10.2.0",
+    "pynput>=1.8.0",
+    "pyautogui>=0.9.50",
+    "playwright>=1.62.0",
+
+    # AI & Voice Native
+    "sounddevice>=0.5.0",
+    "numpy>=2.5.0,<3.0",
+    "faster-whisper>=1.2.0",
+    "pyttsx3>=2.99",
+    "pvporcupine>=4.0.0",
+    "pyaudio>=0.2.14",
+    
+    # Legacy UI
+    "PySide6>=6.11.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.24.0",
-    "pytest-mock>=3.14.0",
-    "ruff>=0.5.0",
-    "mypy>=1.10.0",
+    "pytest>=9.1.0",
+    "pytest-asyncio>=1.4.0",
+    "pytest-mock>=3.15.0",
+    "ruff>=0.16.0",
+    "mypy>=2.3.0",
 ]
+
+[tool.setuptools]
+packages = ["agents", "backend", "core", "sherly_ai", "sherly_commands", "sherly_core", "sherly_ui", "tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
