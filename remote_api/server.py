@@ -3,7 +3,7 @@ import secrets
 from pathlib import Path
 
 
-import requests
+import httpx
 from fastapi import FastAPI, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, File
@@ -46,7 +46,7 @@ def send_command(
     _: bool = Depends(verify_key),
 ):
     try:
-        response = requests.post(
+        response = httpx.post(
             LOCAL_AGENT_URL,
             json={"text": cmd.text},
             timeout=8,

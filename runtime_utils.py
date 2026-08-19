@@ -17,7 +17,7 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Callable
 
-import requests
+import httpx
 
 # ---------------------------------------------------------------------------
 # Fix #16 – rotating log (2 MB per file, keep 3 backups)
@@ -151,9 +151,9 @@ def send_notification(message: str, channel: str = "sherly-channel") -> None:
 
     def _push():
         try:
-            requests.post(
+            httpx.post(
                 f"https://ntfy.sh/{channel}",
-                data=str(message).encode("utf-8"),
+                content=str(message).encode("utf-8"),
                 timeout=4,
             )
         except Exception as exc:

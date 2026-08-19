@@ -53,8 +53,8 @@ def _startup_checks() -> list[str]:
 
     # Check Ollama is reachable (only when local model is configured)
     try:
-        import requests
-        r = requests.get("http://localhost:11434/api/tags", timeout=2)
+        import httpx
+        r = httpx.get("http://localhost:11434/api/tags", timeout=2)
         if r.status_code != 200:
             warnings.append("Ollama is not responding. Local model may fail.")
     except Exception:

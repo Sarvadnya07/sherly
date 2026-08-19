@@ -189,11 +189,86 @@ def _explain_clipboard() -> str:
 
 
 def _needs_web_search(text: str) -> bool:
+    if text.startswith("play ") or "on youtube" in text or text.startswith("close ") or text.startswith("kill "):
+        return False
     keywords = [
-        "latest", "news", "today", "current", "recent",
-        "price", "weather", "score", "who won", "live",
+        "search", "google", "look up", "latest news", "today's news", "current price",
+        "weather", "score", "who won", "live score", "breaking news",
     ]
     return any(w in text for w in keywords)
+
+
+def _close_app_command(low: str) -> str | None:
+    """Close/kill running applications by name."""
+    if not (low.startswith("close ") or low.startswith("kill ") or low.startswith("quit ")):
+        return None
+
+    app = ""
+    for prefix in ("close ", "kill ", "quit "):
+        if low.startswith(prefix):
+            app = low[len(prefix):].strip()
+            break
+
+    if not app:
+        return None
+
+    app_map = {
+        "chrome": "chrome.exe",
+        "google chrome": "chrome.exe",
+        "vscode": "Code.exe",
+        "vs code": "Code.exe",
+        "code": "Code.exe",
+        "notepad": "notepad.exe",
+        "terminal": "WindowsTerminal.exe",
+        "cmd": "cmd.exe",
+        "command prompt": "cmd.exe",
+        "explorer": "explorer.exe",
+        "file explorer": "explorer.exe",
+        "task manager": "Taskmgr.exe",
+        "spotify": "Spotify.exe",
+        "discord": "Discord.exe",
+    }
+
+    process_name = app_map.get(app, f"{app}.exe" if not app.endswith(".exe") else app)
+
+    if platform.system() == "Windows":
+        try:
+            res = subprocess.run(["taskkill", "/f", "/im", process_name], capture_output=True, text=True, check=False)
+            if res.returncode == 0:
+                return f"Closed {app}."
+            return f"No running instance of {app} found."
+        except Exception as exc:
+            return f"Failed to close {app}: {exc}"
+    else:
+        subprocess.run(["pkill", "-f", app], check=False)
+        return f"Closed {app}."
+
+
+def _play_media_command(low: str, raw: str) -> str | None:
+    """Handle playing videos, music, or search queries on YouTube."""
+    if not (low.startswith("play ") or "on youtube" in low or "on yt" in low):
+        return None
+
+    import urllib.parse
+    import webbrowser
+
+    query = raw
+    for p in ("play on youtube", "play on yt", "play"):
+        idx = query.lower().find(p)
+        if idx != -1:
+            query = query[idx + len(p):].strip()
+            break
+
+    query = query.replace("on youtube", "").replace("on yt", "").strip(" \"'")
+    if not query:
+        query = "top music"
+
+    url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(query)}"
+    try:
+        webbrowser.open(url)
+        return f"Playing '{query}' on YouTube."
+    except Exception as exc:
+        return f"Failed to open YouTube: {exc}"
 
 
 def _run_system_command(low: str) -> str | None:
@@ -506,10 +581,19 @@ def route_command(text: str) -> str:
         response = safe_execute(analyze_screen, "Failed to analyze the screen.")
         return _finalize_response(raw, response)
 
-    # --- System shortcuts Fix #9 + #21 ---
+    # --- System shortcuts & close apps Fix #9 + #21 ---
+    close_result = safe_execute(lambda: _close_app_command(low), "")
+    if close_result:
+        return _finalize_response(raw, close_result)
+
     system_result = safe_execute(lambda: _run_system_command(low), "")
     if system_result:
         return _finalize_response(raw, system_result)
+
+    # --- Media / YouTube Playback ---
+    play_result = safe_execute(lambda: _play_media_command(low, raw), "")
+    if play_result:
+        return _finalize_response(raw, play_result)
 
     # --- Plugins ---
     _refresh_plugin_tools()

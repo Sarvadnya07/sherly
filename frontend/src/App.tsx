@@ -28,7 +28,7 @@ export const App: React.FC = () => {
   const currentPending = pendingApprovals[0] || null;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-canvas text-gray-100 overflow-hidden select-none border border-white/[0.08] rounded-[10px]">
+    <div className="flex flex-col h-screen w-screen bg-canvas text-gray-100 overflow-hidden border border-white/[0.08] rounded-[10px]">
       {/* Top Header */}
       <HeaderBar />
 

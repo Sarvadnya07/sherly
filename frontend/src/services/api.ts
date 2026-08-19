@@ -34,10 +34,11 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   // Chat
-  sendChat: (prompt: string, fileAttachment?: string) =>
+  sendChat: (prompt: string, fileAttachment?: string, signal?: AbortSignal) =>
     fetchJson<ChatMessage>('/chat', {
       method: 'POST',
       body: JSON.stringify({ prompt, file_attachment: fileAttachment }),
+      signal,
     }),
   getHistory: () => fetchJson<{ messages: ChatMessage[] }>('/chat/history'),
 

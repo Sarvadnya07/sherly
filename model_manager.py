@@ -13,7 +13,7 @@ import time
 import functools
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
-import requests
+import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 try:
@@ -188,7 +188,7 @@ def ask_openai(user_prompt: str, api_key: str, use_context: bool = True) -> str:
 
     @breaker
     def _call():
-        r = requests.post(
+        r = httpx.post(
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": f"Bearer {api_key}"},
             json={"model": "gpt-4o-mini", "messages": messages, "max_tokens": MAX_OUTPUT_TOKENS},
@@ -216,7 +216,7 @@ def ask_gemini(user_prompt: str, api_key: str, use_context: bool = True) -> str:
 
     @breaker
     def _call():
-        r = requests.post(
+        r = httpx.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
             json={"contents": contents, "generationConfig": {"maxOutputTokens": MAX_OUTPUT_TOKENS}},
             timeout=12,
@@ -240,7 +240,7 @@ def ask_groq(user_prompt: str, api_key: str, use_context: bool = True) -> str:
 
     @breaker
     def _call():
-        r = requests.post(
+        r = httpx.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {api_key}"},
             json={"model": "llama3-70b-8192", "messages": messages, "max_tokens": MAX_OUTPUT_TOKENS},
@@ -262,7 +262,7 @@ def unload_model() -> None:
     if not ACTIVE_MODEL:
         return
     try:
-        requests.post(
+        httpx.post(
             "http://localhost:11434/api/generate",
             json={"model": ACTIVE_MODEL, "keep_alive": 0},
             timeout=3,
@@ -283,7 +283,7 @@ def _unload_if_idle() -> None:
 @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
 def _local_chat_call(messages: list[dict], target_model: str) -> str:
     """Invoke Ollama using structured /api/chat endpoint (SH-AI-004)."""
-    r = requests.post(
+    r = httpx.post(
         "http://localhost:11434/api/chat",
         json={
             "model": target_model,

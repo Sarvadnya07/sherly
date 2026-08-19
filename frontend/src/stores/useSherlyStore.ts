@@ -50,6 +50,8 @@ interface SherlyState {
   setMode: (mode: 'auto' | 'manual') => Promise<void>;
   fetchChatHistory: () => Promise<void>;
   sendChatMessage: (prompt: string, attachment?: string) => Promise<void>;
+  cancelGeneration: () => void;
+  regenerateMessage: (index: number) => Promise<void>;
   fetchFileTree: () => Promise<void>;
   openFile: (path: string) => Promise<void>;
   saveFileContent: (path: string, content: string) => Promise<void>;
@@ -59,6 +61,8 @@ interface SherlyState {
   fetchAudioDevices: () => Promise<void>;
   initWebSocket: () => void;
 }
+
+let activeChatAbort: AbortController | null = null;
 
 export const useSherlyStore = create<SherlyState>((set, get) => ({
   activeView: 'workspace',
@@ -138,18 +142,46 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     }
   },
 
+  cancelGeneration: () => {
+    if (activeChatAbort) {
+      activeChatAbort.abort();
+      activeChatAbort = null;
+    }
+    set({ isThinking: false });
+  },
+
   sendChatMessage: async (prompt: string, attachment?: string) => {
+    if (activeChatAbort) {
+      activeChatAbort.abort();
+    }
+    activeChatAbort = new AbortController();
     set({ isThinking: true });
+
     try {
-      const response = await api.sendChat(prompt, attachment);
+      const response = await api.sendChat(prompt, attachment, activeChatAbort.signal);
+      activeChatAbort = null;
       set((state) => ({
         chatHistory: [...state.chatHistory, response],
         isThinking: false,
       }));
     } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.log('Chat generation aborted by user.');
+      } else {
+        console.error('Error sending chat:', e);
+      }
+      activeChatAbort = null;
       set({ isThinking: false });
-      console.error('Error sending chat:', e);
     }
+  },
+
+  regenerateMessage: async (index: number) => {
+    const history = get().chatHistory;
+    const targetMsg = history[index];
+    if (!targetMsg) return;
+
+    // Resend the prompt from that index
+    await get().sendChatMessage(targetMsg.user_prompt, targetMsg.attached_file);
   },
 
   fetchFileTree: async () => {
