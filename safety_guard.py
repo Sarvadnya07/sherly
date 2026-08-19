@@ -44,6 +44,7 @@ _DANGEROUS_PATTERNS: list[str] = [
     r"\bwget\b.*&&",                             # download + execute chain
     r"\bos\.remove\b", r"\bshutil\.rmtree\b",   # python file deletion
     r"\bdrop\s+table\b", r"\btruncate\b",        # SQL destructive
+    r"&&", r";", r"\|\|", r"\|\s*",              # shell command chaining / piping
 ]
 
 # Patterns that require user confirmation before proceeding.

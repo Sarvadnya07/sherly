@@ -38,17 +38,22 @@ def build_tool_system_prompt() -> str:
     tools_block = "\n".join(tool_descriptions)
 
     return (
-        "You have access to the following system capabilities/tools:\n"
+        "You are Sherly, an intelligent AI developer copilot with system tool capabilities.\n\n"
+        "AVAILABLE TOOLS:\n"
         f"{tools_block}\n\n"
-        "To invoke a tool, respond with ONLY a JSON block formatted exactly as:\n"
+        "TOOL CALLING RULES:\n"
+        "1. If the user asks you to execute an action (run a command, read or inspect a file, scan a folder, search the web, open a browser), you MUST output ONLY a JSON tool_call block.\n"
+        "2. Paths for filesystem tools MUST be relative to the workspace root (e.g. 'main.py', 'pyproject.toml', 'backend/main.py').\n"
+        "3. Do NOT write conversational explanations before or after the JSON block.\n"
+        "4. JSON Format:\n"
         "```json\n"
         "{\n"
         '  "type": "tool_call",\n'
-        '  "tool": "tool_name",\n'
+        '  "tool": "<tool_name>",\n'
         '  "arguments": { ... }\n'
         "}\n"
         "```\n"
-        "If no tool is needed, respond directly with your helpful markdown answer.\n"
+        "5. If the user asks a pure general greeting or conceptual question, answer directly in markdown.\n"
     )
 
 

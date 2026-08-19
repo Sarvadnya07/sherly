@@ -17,7 +17,8 @@ from web_search import search_web
 
 
 def _read_file_handler(path: str) -> str:
-    content = read_file(path)
+    cleaned = path.replace("/path/to/current/directory/", "").replace("/path/to/project/", "").replace("/path/to/", "").strip()
+    content = read_file(path) or read_file(cleaned) or read_file(Path(cleaned).name)
     if content is None:
         return f"File not found: {path}"
     return content

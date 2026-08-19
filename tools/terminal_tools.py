@@ -34,6 +34,8 @@ ALLOWED_PREFIXES: tuple[str, ...] = (
     "echo",
     "dir",
     "ls",
+    "pwd",
+    "cd",
     "cat",
     "type",
     "cls",
@@ -64,6 +66,10 @@ def run_command(command: str) -> str:
         return f"Command parse error: {exc}"
 
     try:
+        if argv and argv[0].lower() == "pwd":
+            import os
+            return os.getcwd()
+
         completed = subprocess.run(
             argv,
             shell=False,
