@@ -2,16 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Canonical Obsidian Dark Design Tokens */
+  --bg-canvas: #08080c;
+  --bg-sidebar: #0c0c12;
+  --bg-surface: #101018;
+  --bg-card: #151520;
+  --bg-card-hover: #1a1a28;
+  --bg-input: #12121c;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(124, 58, 237, 0.35);
+  --border-focus: #9065fc;
+
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-disabled: #52525b;
+
+  --brand-primary: #7c3aed;
+  --brand-hover: #8b5cf6;
+  --brand-surface: rgba(124, 58, 237, 0.12);
+  --brand-glow: rgba(124, 58, 237, 0.20);
+
+  --status-success: #10b981;
+  --status-success-bg: rgba(16, 185, 129, 0.10);
+  --status-warning: #f59e0b;
+  --status-warning-bg: rgba(245, 158, 11, 0.10);
+  --status-danger: #f43f5e;
+  --status-danger-bg: rgba(244, 63, 94, 0.10);
+  --status-info: #38bdf8;
+  --status-info-bg: rgba(56, 189, 248, 0.10);
+}
+
 @layer base {
   body {
-    @apply bg-[#09090d] text-gray-100 font-sans;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, kbd {
+    font-family: 'JetBrains Mono', 'Cascadia Code', Consolas, 'Courier New', monospace;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
   }
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -24,7 +70,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.6);
+  background: var(--brand-primary);
 }
 
 /* Blinking Cursor Animation */
@@ -36,3 +82,4 @@
 .animate-blink {
   animation: blink 1s infinite;
 }
+

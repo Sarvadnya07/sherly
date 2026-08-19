@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { RefreshCw, CheckCircle, Package, Zap, Key } from 'lucide-react';
+import { RefreshCw, Key, ShieldCheck, Cpu, Database, Server, Sparkles } from 'lucide-react';
 import { api } from '../services/api';
+import { Button, IconButton } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Card } from '../components/ui/Card';
 
 export const ModelsView: React.FC = () => {
   const {
@@ -37,54 +40,55 @@ export const ModelsView: React.FC = () => {
   const activeModelInfo = modelsList.find((m) => m.name === currentModel) || modelsList[0];
 
   return (
-    <div className="flex-1 flex h-full bg-[#0e0e15] overflow-hidden">
+    <div className="flex-1 flex h-full bg-surface overflow-hidden">
       {/* Left Repository Section */}
       <div className="flex-1 p-6 flex flex-col gap-5 overflow-y-auto">
         {/* Header & Controls */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-gray-100">Model Repository</h2>
-            <p className="text-xs text-gray-400">Manage local Ollama models and remote API endpoints.</p>
+            <h2 className="text-base font-bold text-gray-100">Model Repository</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Manage local Ollama models and cloud remote API endpoints.</p>
           </div>
 
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs font-semibold text-purple-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs font-medium text-purple-300 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={modelMode === 'auto'}
                 onChange={(e) => setMode(e.target.checked ? 'auto' : 'manual')}
-                className="rounded bg-white/10 border-white/20 text-purple-600 focus:ring-0"
+                className="rounded bg-white/10 border-white/20 text-brand focus:ring-0"
               />
               <span>Auto Model Detection</span>
             </label>
 
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => fetchModels()}
-              className="bg-white/5 hover:bg-white/10 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+              icon={<RefreshCw className="w-3 h-3" />}
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
-            </button>
+              Refresh
+            </Button>
           </div>
         </div>
 
-        {/* Local Models Cards */}
-        <div className="flex flex-col gap-3">
-          <span className="text-[10px] font-extrabold text-gray-500 tracking-wider">
+        {/* Local Ollama Models List */}
+        <div className="flex flex-col gap-2.5">
+          <span className="text-[10px] font-bold text-gray-500 tracking-wider">
             LOCAL OLLAMA MODELS ({modelsList.length})
           </span>
 
           {!isOllamaRunning ? (
-            <div className="bg-[#13131e] border border-amber-500/30 rounded-xl p-4 text-center flex flex-col gap-1">
-              <h4 className="text-xs font-bold text-amber-400">⚠️ Ollama Server Offline</h4>
+            <Card variant="default" padding="lg" className="border-amber-500/30 text-center flex flex-col gap-1">
+              <h4 className="text-xs font-bold text-amber-400">Ollama Server Offline</h4>
               <p className="text-xs text-gray-400">
-                Start Ollama locally (http://127.0.0.1:11434) to load local LLMs.
+                Start Ollama locally (http://127.0.0.1:11434) to load and execute local LLMs.
               </p>
-            </div>
+            </Card>
           ) : modelsList.length === 0 ? (
-            <div className="bg-[#13131e] border border-white/10 rounded-xl p-4 text-center text-xs text-gray-400">
-              No models detected. Run <code className="text-purple-300">ollama pull qwen2.5-coder:3b</code> in terminal.
-            </div>
+            <Card variant="default" padding="lg" className="text-center text-xs text-gray-400">
+              No models detected. Run <code className="text-purple-300 font-mono">ollama pull qwen2.5-coder:3b</code> in terminal.
+            </Card>
           ) : (
             modelsList.map((m) => {
               const isActive = m.name === currentModel;
@@ -93,43 +97,42 @@ export const ModelsView: React.FC = () => {
               return (
                 <div
                   key={m.name}
-                  className={`bg-[#13131e] border rounded-xl p-3.5 flex flex-col gap-3 transition ${
-                    isActive ? 'border-purple-500/60 bg-purple-900/10' : 'border-white/10'
+                  className={`bg-card border rounded-xl p-4 flex flex-col gap-3 transition shadow-sm ${
+                    isActive
+                      ? 'border-brand-border bg-gradient-to-r from-brand-surface to-brand-surface/20'
+                      : 'border-white/[0.06] hover:border-white/[0.12]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      {isActive ? <Zap className="w-4 h-4 text-purple-400" /> : <Package className="w-4 h-4 text-gray-500" />}
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-100">{m.name}</h4>
-                        <p className="text-[10px] text-gray-400">Local • {sizeGb} GB</p>
-                      </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-100">{m.name}</h4>
+                      <p className="text-[10px] font-mono text-gray-400 mt-0.5">Local LLM • {sizeGb} GB Footprint</p>
                     </div>
 
                     {isActive ? (
-                      <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5" /> Running
-                      </span>
+                      <Badge variant="success" size="md" pulse>
+                        Active in Memory
+                      </Badge>
                     ) : (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => selectModel(m.name)}
-                        className="bg-purple-900/30 hover:bg-purple-900/50 text-purple-300 border border-purple-500/40 px-3 py-1 rounded-lg text-xs font-semibold transition"
                       >
-                        Set Active
-                      </button>
+                        Set Active Model
+                      </Button>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {m.coding && (
-                      <span className="bg-white/5 text-gray-300 px-2 py-0.5 rounded text-[10px]">Code</span>
+                      <Badge variant="brand" size="sm">Code Specialist</Badge>
                     )}
-                    <span className="bg-white/5 text-gray-300 px-2 py-0.5 rounded text-[10px] uppercase">
-                      {m.family}
-                    </span>
+                    <Badge variant="neutral" size="sm" className="uppercase">{m.family}</Badge>
                     {m.tag && m.tag !== 'latest' && (
-                      <span className="bg-white/5 text-gray-300 px-2 py-0.5 rounded text-[10px]">{m.tag}</span>
+                      <Badge variant="neutral" size="sm">{m.tag}</Badge>
                     )}
+                    <Badge variant="neutral" size="sm">Ollama Local</Badge>
                   </div>
                 </div>
               );
@@ -137,121 +140,153 @@ export const ModelsView: React.FC = () => {
           )}
         </div>
 
-        {/* Remote Providers Section */}
-        <div className="flex flex-col gap-3 mt-2">
-          <span className="text-[10px] font-extrabold text-gray-500 tracking-wider">
-            REMOTE API PROVIDERS
+        {/* Remote Cloud Providers Section */}
+        <div className="flex flex-col gap-2.5 mt-2">
+          <span className="text-[10px] font-bold text-gray-500 tracking-wider">
+            REMOTE CLOUD PROVIDERS
           </span>
 
-          {['openai', 'gemini', 'groq'].map((provider) => (
+          {[
+            { id: 'openai', name: 'OpenAI (API)', desc: 'GPT-4o, GPT-4o-mini' },
+            { id: 'gemini', name: 'Google Gemini (API)', desc: 'Gemini 1.5 Pro, Flash' },
+            { id: 'groq', name: 'Groq (API)', desc: 'Llama 3 70B, Mixtral 8x7B' },
+          ].map((provider) => (
             <div
-              key={provider}
-              className="bg-[#13131e] border border-white/10 rounded-xl p-3.5 flex items-center justify-between"
+              key={provider.id}
+              className="bg-card border border-white/[0.06] hover:border-white/[0.12] rounded-xl p-3.5 flex items-center justify-between transition shadow-sm"
             >
-              <div className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-purple-400" />
-                <span className="text-xs font-semibold text-gray-200 capitalize">{provider} (API)</span>
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-brand-surface border border-brand-border flex items-center justify-center text-purple-300">
+                  <Key className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-gray-200">{provider.name}</h4>
+                  <p className="text-[10px] text-gray-500 font-mono">{provider.desc}</p>
+                </div>
               </div>
 
-              <button
-                onClick={() => setApiKeyProvider(provider)}
-                className="bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 px-3 py-1 rounded-lg text-xs font-semibold transition"
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setApiKeyProvider(provider.id)}
               >
                 Configure Key
-              </button>
+              </Button>
             </div>
           ))}
         </div>
       </div>
 
       {/* Right Inspector Panel */}
-      <div className="w-72 bg-[#0b0b11] border-l border-white/10 p-5 flex flex-col gap-5 overflow-y-auto">
-        <h3 className="text-sm font-bold text-gray-100">ⓘ Model Inspector</h3>
+      <div className="w-80 bg-canvas border-l border-white/[0.06] p-5 flex flex-col gap-4 overflow-y-auto shrink-0">
+        <span className="text-[10px] font-bold text-gray-500 tracking-wider">MODEL INSPECTOR</span>
 
         {activeModelInfo ? (
           <div className="flex flex-col gap-4">
             <div>
-              <h4 className="text-sm font-bold text-purple-400">{activeModelInfo.name}</h4>
-              <p className="text-xs text-gray-400 mt-1">
-                Local {activeModelInfo.family} model optimized for desktop execution.
+              <h4 className="text-sm font-bold text-purple-300">{activeModelInfo.name}</h4>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Local {activeModelInfo.family} model loaded in Ollama engine. Optimized for desktop developer tasks.
               </p>
             </div>
 
             {/* Capabilities Grid */}
             <div className="flex flex-col gap-2">
-              <span className="text-[9px] font-extrabold text-gray-500 tracking-wider">CAPABILITIES</span>
+              <span className="text-[9px] font-bold text-gray-500 tracking-wider">CAPABILITIES</span>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-2 text-center text-purple-300 font-semibold">
-                  💻 Code Gen
+                <div className="bg-brand-surface border border-brand-border rounded-lg p-2.5 text-center text-purple-300 font-semibold text-[11px]">
+                  Code Gen
                 </div>
-                <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center text-gray-600">
-                  👁 Vision
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-2.5 text-center text-gray-600 text-[11px]">
+                  Vision
                 </div>
-                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-2 text-center text-purple-300 font-semibold">
-                  🧠 Reasoning
+                <div className="bg-brand-surface border border-brand-border rounded-lg p-2.5 text-center text-purple-300 font-semibold text-[11px]">
+                  Reasoning
                 </div>
-                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-2 text-center text-purple-300 font-semibold">
-                  💬 Instruct
+                <div className="bg-brand-surface border border-brand-border rounded-lg p-2.5 text-center text-purple-300 font-semibold text-[11px]">
+                  Instruct
                 </div>
               </div>
             </div>
 
             {/* Resource Allocation */}
-            <div className="flex flex-col gap-3">
-              <span className="text-[9px] font-extrabold text-gray-500 tracking-wider">RESOURCE ALLOCATION</span>
+            <div className="flex flex-col gap-2.5">
+              <span className="text-[9px] font-bold text-gray-500 tracking-wider">RESOURCE ALLOCATION</span>
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">Disk Size</span>
-                <span className="text-gray-200 font-semibold">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-gray-400">Disk Footprint</span>
+                <span className="text-gray-100 font-bold">
                   {(activeModelInfo.size / (1024 * 1024 * 1024)).toFixed(1)} GB
                 </span>
               </div>
 
-              <div className="w-full bg-white/10 rounded-full h-1.5">
-                <div className="bg-purple-500 h-1.5 rounded-full w-1/3"></div>
+              {/* Memory Visual Bar */}
+              <div className="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-brand rounded-full"
+                  style={{ width: `${Math.min(100, Math.max(15, (activeModelInfo.size / (1024 * 1024 * 1024 * 8)) * 100))}%` }}
+                />
               </div>
 
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-xs font-mono pt-1">
                 <span className="text-gray-400">Host</span>
-                <span className="text-gray-200 font-semibold">127.0.0.1:11434</span>
+                <span className="text-gray-200 font-medium">127.0.0.1:11434</span>
               </div>
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-gray-400">Provider</span>
-                <span className="text-gray-200 font-semibold">Ollama Local</span>
+                <span className="text-gray-200 font-medium">Ollama Local</span>
+              </div>
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-gray-400">Context Window</span>
+                <span className="text-gray-200 font-medium">32k tokens</span>
               </div>
             </div>
           </div>
         ) : (
-          <span className="text-xs text-gray-500 italic">No model active</span>
+          <span className="text-xs text-gray-500 italic">No model selected</span>
         )}
       </div>
 
-      {/* API Key Modal */}
+      {/* API Key Modal Dialog */}
       {apiKeyProvider && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleApiKeySubmit} className="bg-[#13131e] border border-white/10 rounded-2xl p-6 w-96 flex flex-col gap-4">
-            <h3 className="text-sm font-bold text-gray-100 capitalize">Configure {apiKeyProvider} API Key</h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleApiKeySubmit}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="api-key-title"
+            className="bg-card border border-white/[0.12] rounded-xl p-5 w-96 flex flex-col gap-3.5 shadow-2xl"
+          >
+            <h3 id="api-key-title" className="text-sm font-bold text-gray-100 capitalize">
+              Configure {apiKeyProvider} API Key
+            </h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Enter your API secret key to enable remote completions. Keys are stored safely in your local configuration.
+            </p>
             <input
               type="password"
               value={apiKeyValue}
               onChange={(e) => setApiKeyValue(e.target.value)}
-              placeholder="Enter API key..."
-              className="bg-[#161624] border border-white/10 rounded-lg p-2.5 text-xs text-gray-100 focus:outline-none focus:border-purple-500"
+              placeholder="sk-..."
+              className="bg-input border border-white/[0.10] focus:border-brand rounded-lg p-2.5 text-xs font-mono text-gray-100 focus:outline-none"
+              autoFocus
             />
-            <div className="flex justify-end gap-2">
-              <button
+            <div className="flex justify-end gap-2 mt-1">
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setApiKeyProvider(null)}
-                className="px-4 py-2 text-xs text-gray-400 hover:text-gray-200"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="px-4 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white rounded-lg"
+                variant="primary"
+                size="sm"
               >
                 Save Key
-              </button>
+              </Button>
             </div>
           </form>
         </div>

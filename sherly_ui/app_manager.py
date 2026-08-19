@@ -183,19 +183,20 @@ class AssistantWorker(QObject):
         self.status_changed.emit("Thinking...")
         response = safe_execute(
             lambda: route_command(text),
-            "Something went wrong. Please try again.",   # Fix #23
+            "Something went wrong. Please try again.",
         )
         if not response:
             response = "No response generated."
-        response = response[:500]   # Fix #11 (belt-and-suspenders cap)
 
-        # Fix #15: emit signals — Qt marshals onto the GUI thread safely
+        # Emit full markdown response to UI timeline
         self.new_message.emit(text, response)
         self.status_changed.emit("Speaking")
-        safe_execute(lambda: speak(response), "")
+        # Keep speech output concise (first 250 chars) so TTS doesn't block
+        speech_text = response[:250] if len(response) > 250 else response
+        safe_execute(lambda: speak(speech_text), "")
         self.status_changed.emit("Idle")
 
-        with self._proc_lock:   # Fix #5
+        with self._proc_lock:
             self._is_processing = False
 
 

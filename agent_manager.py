@@ -61,22 +61,11 @@ def _keyword_classify(text: str) -> str | None:
 
 
 def _classify(text: str, ask_model) -> str:
-    """Classify the request: try keyword matching first, then LLM."""
-    # 1. Fast keyword check
+    """Classify the request: try fast keyword matching first."""
     keyword_result = _keyword_classify(text)
     if keyword_result:
         return keyword_result
-
-    # 2. LLM fallback for ambiguous longer requests
-    raw = ask_model(
-        _CLASSIFY_PROMPT.format(text=text),
-        store_history=False,
-        use_context=False,
-    )
-    raw = (raw or "").strip()
-    word = raw.lower().split()[0] if raw else "general"
-    word = word.strip(".,!?;:()")
-    return word if word in _KNOWN_AGENTS else "general"
+    return "general"
 
 
 def run_agent(text: str, ask_model) -> str:

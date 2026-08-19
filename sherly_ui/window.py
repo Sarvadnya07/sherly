@@ -70,7 +70,7 @@ class SherlyWindow(QWidget):
             #Outer {{
                 background: {C_BG_DARK};
                 border: 1px solid {C_BORDER_SUBTLE};
-                border-radius: 12px;
+                border-radius: 10px;
             }}
         """)
 
@@ -131,6 +131,7 @@ class SherlyWindow(QWidget):
         main_box.addWidget(body, stretch=1)
 
     def switch_view(self, view_id: str) -> None:
+        self.sidebar.set_active_view(view_id)
         if view_id == "assistant":
             self.views_stack.setCurrentWidget(self.assistant_view)
             self.header.set_title("Sherly — Main Assistant")

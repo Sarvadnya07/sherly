@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { User, Sparkles, Paperclip, Mic, Send, FileText, Loader2 } from 'lucide-react';
+import { Sparkles, Paperclip, Mic, ArrowUp, FileText, Loader2, Copy, Check, X } from 'lucide-react';
+import { CodeBlock } from '../components/ui/CodeBlock';
+import { Badge } from '../components/ui/Badge';
+import { IconButton } from '../components/ui/Button';
 
 export const AssistantView: React.FC = () => {
   const {
@@ -12,7 +15,9 @@ export const AssistantView: React.FC = () => {
 
   const [prompt, setPrompt] = useState('');
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetchChatHistory();
@@ -24,11 +29,19 @@ export const AssistantView: React.FC = () => {
     }
   }, [chatHistory, isThinking]);
 
+  // Auto-expand textarea height
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(140, Math.max(38, textareaRef.current.scrollHeight))}px`;
+    }
+  }, [prompt]);
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || isThinking) return;
 
-    const currentPrompt = prompt;
+    const currentPrompt = prompt.trim();
     const currentAtt = attachedFile || undefined;
     setPrompt('');
     setAttachedFile(null);
@@ -36,11 +49,18 @@ export const AssistantView: React.FC = () => {
     sendChatMessage(currentPrompt, currentAtt);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   const handleFileAttach = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.onchange = (e: any) => {
-      const file = e.target.files[0];
+      const file = e.target.files?.[0];
       if (file) {
         setAttachedFile(file.name);
       }
@@ -48,113 +68,181 @@ export const AssistantView: React.FC = () => {
     input.click();
   };
 
-  return (
-    <div className="flex-1 flex flex-col h-full bg-[#0e0e15] overflow-hidden">
-      {/* Conversation Timeline Stream */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-        {chatHistory.length === 0 && !isThinking && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-            <div className="w-12 h-12 rounded-2xl bg-purple-900/30 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-3">
-              <Sparkles className="w-6 h-6" />
+  const handleCopy = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 1500);
+    } catch (e) {
+      console.warn('Failed to copy message:', e);
+    }
+  };
+
+  // Helper to parse markdown code blocks
+  const renderMessageContent = (text: string) => {
+    if (!text.includes('```')) {
+      return (
+        <div className="whitespace-pre-wrap font-sans text-xs text-gray-200 leading-relaxed">
+          {text}
+        </div>
+      );
+    }
+
+    const parts = text.split(/(```[\s\S]*?```)/g);
+    return (
+      <div className="flex flex-col gap-2">
+        {parts.map((part, idx) => {
+          if (part.startsWith('```') && part.endsWith('```')) {
+            const firstLineBreak = part.indexOf('\n');
+            const lang = firstLineBreak !== -1 ? part.slice(3, firstLineBreak).trim() : '';
+            const code = firstLineBreak !== -1 ? part.slice(firstLineBreak + 1, -3) : part.slice(3, -3);
+            return <CodeBlock key={idx} language={lang || 'python'} code={code.trim()} />;
+          }
+          if (!part.trim()) return null;
+          return (
+            <div key={idx} className="whitespace-pre-wrap font-sans text-xs text-gray-200 leading-relaxed">
+              {part}
             </div>
-            <h3 className="text-sm font-bold text-gray-300">Sherly Assistant Stream</h3>
-            <p className="text-xs text-gray-500 max-w-sm mt-1">
-              Ask questions, optimize code, run system tasks, or attach workspace files.
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex-1 flex flex-col h-full bg-surface overflow-hidden">
+      {/* Conversation Timeline Stream */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 max-w-4xl w-full mx-auto">
+        {chatHistory.length === 0 && !isThinking && (
+          <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 my-auto">
+            <div className="w-10 h-10 rounded-xl bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 mb-3 shadow-sm shadow-brand/20">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-200">Sherly Assistant Stream</h3>
+            <p className="text-xs text-gray-400 max-w-sm mt-1 leading-relaxed">
+              Ask questions, generate and optimize code, run workspace tasks, or inspect models.
             </p>
           </div>
         )}
 
         {chatHistory.map((msg, index) => (
           <React.Fragment key={index}>
-            {/* User Node */}
-            <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-gray-300 text-xs shrink-0 mt-1">
-                <User className="w-3.5 h-3.5" />
-              </div>
-              <div className="bg-[#13131e] border border-white/10 rounded-xl p-3.5 max-w-2xl flex flex-col gap-2">
-                <p className="text-xs font-semibold text-gray-100">{msg.user_prompt}</p>
+            {/* User Message Card */}
+            <div className="flex items-start gap-3 justify-end">
+              <div className="bg-card border border-white/[0.06] rounded-xl p-3.5 max-w-2xl flex flex-col gap-2 shadow-sm">
+                <p className="text-xs font-medium text-gray-100 leading-relaxed whitespace-pre-wrap">{msg.user_prompt}</p>
                 {msg.attached_file && (
-                  <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-gray-400 w-fit">
+                  <div className="inline-flex items-center gap-1.5 bg-brand-surface border border-brand-border rounded px-2 py-0.5 text-[11px] font-mono text-purple-300 w-fit">
                     <FileText className="w-3 h-3 text-purple-400" />
                     <span>{msg.attached_file}</span>
                   </div>
                 )}
               </div>
+              <div className="w-7 h-7 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center text-gray-200 text-xs font-bold shrink-0 mt-0.5">
+                U
+              </div>
             </div>
 
-            {/* Assistant Node */}
+            {/* Assistant Response Card */}
             <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-extrabold shrink-0 mt-1">
+              <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5 shadow-sm shadow-brand/40">
                 S
               </div>
-              <div className="bg-[#13131e] border border-purple-500/30 rounded-xl p-4 max-w-2xl text-xs text-gray-200 leading-relaxed">
-                {msg.assistant_response}
+              <div className="bg-card border border-white/[0.08] rounded-xl p-4 max-w-3xl text-xs text-gray-200 leading-relaxed flex flex-col gap-2 flex-1 shadow-sm">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-purple-300">Sherly Assistant</span>
+                    <Badge variant="brand" size="sm">Copilot</Badge>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(msg.assistant_response, index)}
+                    className="flex items-center gap-1 text-[10px] font-medium text-gray-400 hover:text-gray-200 transition bg-white/[0.04] hover:bg-white/[0.08] px-2 py-0.5 rounded border border-white/[0.06] focus-visible:outline-2 focus-visible:outline-brand"
+                    title="Copy response"
+                    aria-label="Copy assistant response"
+                  >
+                    {copiedIndex === index ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                {renderMessageContent(msg.assistant_response)}
               </div>
             </div>
           </React.Fragment>
         ))}
 
-        {/* Thinking Indicator Node */}
+        {/* Task Status Indicator Node */}
         {isThinking && (
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-purple-900/30 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xs shrink-0">
+            <div className="w-7 h-7 rounded-full bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 text-xs shrink-0">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             </div>
-            <span className="text-xs text-gray-400 font-medium">Thinking & analyzing...</span>
+            <span className="text-xs text-gray-400 font-medium">Thinking and generating response...</span>
           </div>
         )}
       </div>
 
-      {/* Floating Prompt Bar */}
-      <div className="p-4 bg-[#0e0e15] border-t border-white/5">
+      {/* Docked Composer Bar */}
+      <div className="p-4 bg-surface border-t border-white/[0.06]">
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-4xl mx-auto">
           {attachedFile && (
-            <div className="flex items-center gap-2 text-xs text-purple-300 font-semibold px-2">
-              <FileText className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 text-xs text-purple-300 font-mono font-medium px-1">
+              <FileText className="w-3.5 h-3.5 text-purple-400" />
               <span>Attached: {attachedFile}</span>
               <button
                 type="button"
                 onClick={() => setAttachedFile(null)}
-                className="text-gray-500 hover:text-red-400 ml-1"
+                className="text-gray-500 hover:text-rose-400 ml-1 text-xs"
+                title="Remove attachment"
+                aria-label="Remove attachment"
               >
-                ✕
+                <X className="w-3 h-3" />
               </button>
             </div>
           )}
 
-          <div className="bg-[#11111a] border border-white/10 focus-within:border-purple-500/50 rounded-2xl p-2 flex items-center gap-2">
-            <button
-              type="button"
+          <div className="bg-input border border-white/[0.10] focus-within:border-brand rounded-xl p-2.5 flex items-end gap-2 transition shadow-inner">
+            <IconButton
+              icon={<Paperclip className="w-4 h-4" />}
+              aria-label="Attach File"
               onClick={handleFileAttach}
-              className="p-1.5 text-gray-400 hover:text-gray-200 transition"
-              title="Attach File"
-            >
-              <Paperclip className="w-4 h-4" />
-            </button>
+              size="md"
+            />
 
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
+              rows={1}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ask Sherly anything..."
-              className="flex-1 bg-transparent text-xs text-gray-100 placeholder-gray-500 focus:outline-none px-2"
+              onKeyDown={handleKeyDown}
+              placeholder="Ask Sherly anything (Enter to send, Shift+Enter for newline)..."
+              className="flex-1 bg-transparent text-xs text-gray-100 placeholder-gray-500 focus:outline-none px-2 resize-none max-h-36 leading-relaxed py-1"
+            />
+
+            <IconButton
+              icon={<Mic className="w-4 h-4" />}
+              aria-label="Voice Input (Ctrl+Shift+L)"
+              onClick={() => useSherlyStore.getState().setActiveView('voice')}
+              size="md"
             />
 
             <button
-              type="button"
-              onClick={() => useSherlyStore.getState().setActiveView('voice')}
-              className="p-1.5 text-gray-400 hover:text-gray-200 transition"
-              title="Voice Input"
-            >
-              <Mic className="w-4 h-4" />
-            </button>
-
-            <button
               type="submit"
-              disabled={!prompt.trim()}
-              className="w-8 h-8 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl flex items-center justify-center font-bold transition shrink-0"
+              disabled={!prompt.trim() || isThinking}
+              className="w-7 h-7 bg-brand hover:bg-brand-hover disabled:opacity-30 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-sm shadow-brand/30 focus-visible:outline-2 focus-visible:outline-brand active:scale-95"
+              title="Send Prompt"
+              aria-label="Send Prompt"
             >
-              <Send className="w-3.5 h-3.5" />
+              <ArrowUp className="w-4 h-4" />
             </button>
           </div>
         </form>

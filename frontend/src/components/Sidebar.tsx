@@ -1,6 +1,18 @@
 import React, { useEffect } from 'react';
 import { useSherlyStore, ViewType } from '../stores/useSherlyStore';
-import { MessageSquare, Folder, Settings, Mic, Play, ChevronDown, FileCode, FileText } from 'lucide-react';
+import {
+  MessageSquare,
+  Folder,
+  Settings,
+  Mic,
+  Play,
+  ChevronDown,
+  ChevronRight,
+  FileCode,
+  FileText,
+  FileJson,
+  Code2,
+} from 'lucide-react';
 import { FileNode } from '../types/api';
 import { api } from '../services/api';
 
@@ -18,9 +30,12 @@ export const Sidebar: React.FC = () => {
     fetchFileTree();
   }, [fetchFileTree]);
 
-  const navItems: { id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  const workspaceNav: { id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'assistant', label: 'Assistant', icon: MessageSquare },
-    { id: 'workspace', label: 'Workspace / Code', icon: Folder },
+    { id: 'workspace', label: 'Code Workspace', icon: Folder },
+  ];
+
+  const systemNav: { id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'models', label: 'Model Settings', icon: Settings },
     { id: 'voice', label: 'Voice HUD', icon: Mic },
   ];
@@ -40,11 +55,11 @@ export const Sidebar: React.FC = () => {
       return (
         <div key={node.path} className="select-none">
           <div
-            className="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-gray-300 hover:bg-white/5 rounded cursor-pointer"
-            style={{ paddingLeft: `${level * 12 + 8}px` }}
+            className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-gray-400 hover:text-gray-200 hover:bg-white/[0.04] rounded cursor-pointer transition"
+            style={{ paddingLeft: `${level * 10 + 6}px` }}
           >
-            <ChevronDown className="w-3 h-3 text-gray-500" />
-            <span>📂 {node.name}</span>
+            <ChevronDown className="w-3 h-3 text-gray-500 shrink-0" />
+            <span className="text-purple-300 font-semibold truncate">{node.name}</span>
           </div>
           {node.children && (
             <div className="flex flex-col">
@@ -56,65 +71,105 @@ export const Sidebar: React.FC = () => {
     }
 
     const isActive = activeFilePath === node.path;
-    const isPython = node.name.endsWith('.py');
+    const ext = node.name.slice(node.name.lastIndexOf('.')).toLowerCase();
+    const isPython = ext === '.py';
+    const isTs = ext === '.ts' || ext === '.tsx' || ext === '.js' || ext === '.jsx';
+    const isJson = ext === '.json' || ext === '.toml' || ext === '.yaml' || ext === '.env';
 
     return (
-      <div
+      <button
         key={node.path}
+        type="button"
         onClick={() => {
           setActiveView('workspace');
           openFile(node.path);
         }}
-        className={`flex items-center gap-2 px-2 py-1 text-xs rounded cursor-pointer transition ${
+        className={`w-full flex items-center gap-2 px-2 py-1 text-[11px] rounded cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-brand ${
           isActive
-            ? 'bg-purple-900/30 text-purple-300 font-semibold border border-purple-500/30'
-            : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+            ? 'bg-brand-surface text-purple-300 font-semibold border-l-2 border-brand'
+            : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
         }`}
-        style={{ paddingLeft: `${level * 12 + 16}px` }}
+        style={{ paddingLeft: `${level * 10 + 14}px` }}
+        title={node.path}
       >
-        {isPython ? <FileCode className="w-3.5 h-3.5 text-emerald-400" /> : <FileText className="w-3.5 h-3.5 text-gray-400" />}
+        {isPython ? (
+          <FileCode className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        ) : isTs ? (
+          <Code2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        ) : isJson ? (
+          <FileJson className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        ) : (
+          <FileText className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+        )}
         <span className="truncate">{node.name}</span>
-      </div>
+      </button>
     );
   };
 
   return (
-    <aside className="w-56 bg-[#0b0b11] border-r border-white/10 flex flex-col justify-between p-3 select-none">
-      <div className="flex flex-col gap-4">
-        {/* Project Explorer Header */}
-        <div className="bg-white/[0.03] border border-white/5 rounded-lg p-2.5">
-          <h2 className="text-xs font-bold text-gray-200">Project Explorer</h2>
-          <p className="text-[10px] text-gray-500">Python 3.13</p>
+    <aside className="w-60 bg-sidebar border-r border-white/[0.06] flex flex-col justify-between p-3 select-none shrink-0 h-full overflow-hidden">
+      <div className="flex flex-col gap-3 overflow-hidden flex-1">
+        {/* Workspace Info Card */}
+        <div className="bg-card border border-white/[0.06] rounded-lg p-2.5 flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <h2 className="text-[10px] font-bold text-gray-400 tracking-wider">PROJECT WORKSPACE</h2>
+          </div>
+          <p className="text-[11px] font-mono text-gray-300 pl-3.5 truncate">Sherly Workspace</p>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav className="flex flex-col gap-1">
-          {navItems.map((item) => {
+        {/* Workspace Navigation */}
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-bold text-gray-500 tracking-wider px-2 py-1">WORKSPACE</span>
+          {workspaceNav.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand ${
                   isActive
-                    ? 'bg-purple-900/30 text-purple-300 border border-purple-500/40 font-semibold'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-sm'
+                    : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5 shrink-0" />
                 <span>{item.label}</span>
               </button>
             );
           })}
-        </nav>
+        </div>
+
+        {/* Runtime & System Navigation */}
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-bold text-gray-500 tracking-wider px-2 py-1">RUNTIME & SYSTEM</span>
+          {systemNav.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveView(item.id)}
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand ${
+                  isActive
+                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-sm'
+                    : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* Project Files Tree */}
-        <div className="flex flex-col gap-2 mt-2">
-          <span className="text-[9px] font-extrabold text-gray-500 tracking-widest px-2">
-            PROJECT FILES
-          </span>
-          <div className="overflow-y-auto max-h-[340px] flex flex-col gap-0.5">
+        <div className="flex flex-col gap-1 mt-1 flex-1 overflow-hidden">
+          <span className="text-[9px] font-bold text-gray-500 tracking-wider px-2">PROJECT FILES</span>
+          <div className="overflow-y-auto flex-1 flex flex-col gap-0.5 pr-1">
             {fileTree && fileTree.children ? (
               fileTree.children.map((child) => renderFileNode(child))
             ) : (
@@ -124,12 +179,13 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Run Project Action Button */}
+      {/* Run Project Bottom Action Button */}
       <button
+        type="button"
         onClick={handleRunProject}
-        className="w-full h-10 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30 transition"
+        className="w-full h-9 bg-brand hover:bg-brand-hover text-white font-semibold text-xs rounded-md flex items-center justify-center gap-2 shadow-sm shadow-brand/30 transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-brand mt-2 shrink-0"
       >
-        <Play className="w-4 h-4 fill-white" />
+        <Play className="w-3.5 h-3.5 fill-white" />
         <span>Run main.py</span>
       </button>
     </aside>

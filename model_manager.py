@@ -65,9 +65,9 @@ _model_lock = threading.Lock()
 ACTIVE_MODEL: str | None = None
 last_used: float = time.time()
 
-MAX_OUTPUT_TOKENS  = 120          # Fix #3: keep response generation fast
-MAX_OUTPUT_CHARS   = 500          # hard char cap
-IDLE_UNLOAD_SECONDS = 60          # Fix #4: aggressive idle unload
+MAX_OUTPUT_TOKENS   = 2048         # Full token generation for code and answers
+MAX_OUTPUT_CHARS    = 16000        # Generous char limit for rich responses
+IDLE_UNLOAD_SECONDS = 120         # 2 minutes idle before unload
 
 _breakers: dict[str, CircuitBreaker] = {}
 
@@ -80,18 +80,17 @@ def _get_breaker(name: str) -> CircuitBreaker:
 
 _executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="SherlyLLM")
 
-# Fix #3: LLM call timeout
-LLM_TIMEOUT_SECONDS = 15.0
+# Robust local LLM timeout (60s for CPU/GPU Ollama execution)
+LLM_TIMEOUT_SECONDS = 60.0
 
 SYSTEM_PROMPT = (
-    "You are Sherly, a friendly desktop AI assistant.\n"
-    "Rules:\n"
-    "- Answer naturally and directly.\n"
-    "- Keep responses to 1-2 sentences unless more detail is genuinely needed.\n"
-    "- For greetings, just greet back warmly.\n"
-    "- Never explain your own internal classification or reasoning.\n"
-    "- Do not hallucinate facts.\n"
-    "- Never execute destructive actions based on user phrasing alone.\n"
+    "You are Sherly, an elite AI software engineer, developer workspace copilot, and intelligent desktop assistant.\n"
+    "Guidelines:\n"
+    "- Provide clear, accurate, high-quality, and direct answers.\n"
+    "- When asked programming, coding, or system questions, provide complete, working, well-formatted code snippets with explanations.\n"
+    "- For conversational greetings, respond warmly and helpfully.\n"
+    "- Do not make up facts. If information is missing, state so clearly.\n"
+    "- Use markdown formatting (headings, bullet points, code blocks) to make your answers easy to read.\n"
 )
 
 # ---------------------------------------------------------------------------

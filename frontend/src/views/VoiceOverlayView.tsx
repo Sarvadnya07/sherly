@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { Square, X } from 'lucide-react';
+import { Square, X, Mic } from 'lucide-react';
 import { api } from '../services/api';
+import { Button } from '../components/ui/Button';
 
 export const VoiceOverlayView: React.FC = () => {
   const {
@@ -26,71 +27,78 @@ export const VoiceOverlayView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between p-8 bg-[#09090d] select-none h-full">
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
-        {/* Pulsing Mic HUD */}
+    <div className="flex-1 flex flex-col items-center justify-between p-8 bg-canvas select-none h-full overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center gap-6 max-w-xl w-full">
+        {/* Pulsing Mic Capsule */}
         <div className="relative flex items-center justify-center">
-          <div className="absolute w-44 h-44 rounded-full bg-purple-600/20 animate-ping"></div>
-          <div className="absolute w-36 h-36 rounded-full bg-purple-700/30"></div>
-          <div className="w-20 h-20 rounded-full bg-[#161224] border-2 border-purple-500/60 flex items-center justify-center text-gray-100 text-2xl shadow-xl shadow-purple-900/40 z-10">
-            🎙
+          <div className="absolute w-36 h-36 rounded-full bg-brand/15 animate-ping" />
+          <div className="absolute w-28 h-28 rounded-full bg-brand/25" />
+          <div className="w-16 h-16 rounded-full bg-card border-2 border-brand flex items-center justify-center text-gray-100 shadow-xl shadow-brand/40 z-10">
+            <Mic className="w-7 h-7 text-purple-300" />
           </div>
         </div>
 
-        {/* Listening Indicator */}
-        <span className="text-xs font-extrabold text-purple-400 tracking-widest">
-          ● LISTENING...
-        </span>
-
-        {/* Transcription Display */}
-        <div className="text-xl font-semibold text-gray-100 max-w-xl text-center">
-          "{sttText}
-          <span className="animate-blink">_</span>"
+        {/* Status Indicator */}
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+          <span className="text-xs font-bold text-purple-300 tracking-widest uppercase">
+            LISTENING (Ctrl+Shift+L)
+          </span>
         </div>
 
-        {/* Audio Equalizer Visualizer */}
+        {/* Live Transcription Display */}
+        <div className="text-base font-medium text-gray-100 max-w-md text-center leading-relaxed min-h-[50px] flex items-center justify-center px-4">
+          <p className="italic text-gray-200">
+            "{sttText}
+            <span className="animate-blink font-mono font-bold text-purple-400">_</span>"
+          </p>
+        </div>
+
+        {/* Audio Equalizer Waveform Bars */}
         <div className="flex items-center gap-1.5 h-8">
-          {[40, 70, 30, 90, 50, 80, 40].map((height, idx) => (
+          {[35, 65, 25, 85, 45, 75, 35, 90, 50, 70, 30].map((height, idx) => (
             <div
               key={idx}
-              className="w-2 bg-purple-500 rounded-full transition-all duration-300 animate-pulse"
-              style={{ height: `${height}%` }}
-            ></div>
+              className="w-1.5 bg-brand rounded-full transition-all duration-300 animate-pulse"
+              style={{ height: `${height}%`, animationDelay: `${idx * 80}ms` }}
+            />
           ))}
         </div>
       </div>
 
-      {/* Floating Control Pill Bar */}
-      <div className="bg-[#161622]/90 border border-white/10 rounded-2xl px-4 py-2 flex items-center gap-4 shadow-2xl">
-        <button
+      {/* Floating Controls Bar */}
+      <div className="bg-card border border-white/[0.10] rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xl shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setActiveView('workspace')}
-          className="text-xs text-gray-400 hover:text-gray-200 font-semibold px-2 py-1 flex items-center gap-1 transition"
+          icon={<X className="w-3.5 h-3.5" />}
         >
-          <X className="w-3.5 h-3.5" />
-          <span>Cancel</span>
-        </button>
+          Cancel
+        </Button>
 
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleStopRecording}
-          className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition"
+          icon={<Square className="w-3 h-3 fill-white" />}
         >
-          <Square className="w-3.5 h-3.5 fill-white" />
-          <span>Stop Recording</span>
-        </button>
+          Stop Recording
+        </Button>
 
         <select
           value={selectedDevice || ''}
           onChange={(e) => useSherlyStore.setState({ selectedDevice: e.target.value })}
-          className="bg-white/5 border border-white/10 text-gray-300 text-xs rounded-xl px-3 py-1.5 focus:outline-none"
+          className="bg-white/[0.04] border border-white/[0.08] text-gray-300 text-xs rounded-md px-2.5 py-1 focus:outline-none focus:border-brand"
         >
           {audioDevices.length > 0 ? (
             audioDevices.map((d) => (
-              <option key={d} value={d} className="bg-[#13131e] text-gray-200">
-                🎙 {d}
+              <option key={d} value={d} className="bg-card text-gray-200">
+                {d}
               </option>
             ))
           ) : (
-            <option className="bg-[#13131e] text-gray-200">🎙 System Default Mic</option>
+            <option className="bg-card text-gray-200">System Default Mic</option>
           )}
         </select>
       </div>

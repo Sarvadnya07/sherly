@@ -96,19 +96,19 @@ def _is_too_short(text: str) -> bool:
     words = text.strip().split()
     if len(words) < MIN_WORD_COUNT:
         return True
-    if len(words) == 1 and words[0].lower() not in SINGLE_WORD_ALLOW:
-        return True
     return False
 
 
 def _is_duplicate(text: str) -> bool:
-    """Fix #6: exact duplicate of the immediately previous command."""
-    return text.strip().lower() == _last_command_text.lower()
+    """Fix #6: exact duplicate of the immediately previous command if sent in under 1 second."""
+    if (time.time() - _last_command_time) < 1.0:
+        return text.strip().lower() == _last_command_text.lower()
+    return False
 
 
 def _is_debounced() -> bool:
-    """True when command arrives too quickly after the last one."""
-    return (time.time() - _last_command_time) < DEBOUNCE_SECONDS
+    """True when command arrives too quickly after the last one (under 0.3s)."""
+    return (time.time() - _last_command_time) < 0.3
 
 
 # ---------------------------------------------------------------------------
@@ -120,7 +120,6 @@ def is_valid_input(text: str) -> tuple[bool, str]:
     Returns (True, cleaned_text) or (False, reason_string).
 
     Fix #8: injection attempts are blocked here — before any LLM call.
-    Fix #6: duplicates are rejected here — before any execution.
     """
     if not text or not text.strip():
         return False, "empty"
@@ -139,12 +138,6 @@ def is_valid_input(text: str) -> tuple[bool, str]:
 
     if _is_too_short(text):
         return False, "Didn't catch that"
-
-    with _state_lock:
-        if _is_debounced():
-            return False, "Too fast — please wait a moment."
-        if _is_duplicate(text):
-            return False, "Already processed that command."   # Fix #6
 
     return True, text
 

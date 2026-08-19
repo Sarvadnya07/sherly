@@ -8,24 +8,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#09090d',
-        panel: '#0e0e15',
-        card: '#13131e',
-        sidebar: '#0b0b11',
-        input: '#161624',
-        purple: {
-          main: '#8b5cf6',
-          dark: '#6d28d9',
-          glow: 'rgba(139, 92, 246, 0.25)',
+        canvas: '#08080c',
+        sidebar: '#0c0c12',
+        surface: '#101018',
+        card: {
+          DEFAULT: '#151520',
+          hover: '#1a1a28',
         },
-        cyan: {
-          accent: '#00f0ff',
+        input: '#12121c',
+        brand: {
+          DEFAULT: '#7c3aed',
+          hover: '#8b5cf6',
+          surface: 'rgba(124, 58, 237, 0.12)',
+          glow: 'rgba(124, 58, 237, 0.20)',
+          border: 'rgba(124, 58, 237, 0.35)',
         },
-        emerald: {
+        status: {
           success: '#10b981',
+          warning: '#f59e0b',
+          danger: '#f43f5e',
+          info: '#38bdf8',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Cascadia Code', 'Consolas', 'Courier New', 'monospace'],
       },
     },
   },
   plugins: [],
 };
+

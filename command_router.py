@@ -406,9 +406,6 @@ def route_command(text: str) -> str:
     if phase_result:
         return _finalize_response(raw, phase_result)
 
-    if _phase_at_least("B") and len(raw.split()) < 2 and low not in SINGLE_WORD_ALLOW:
-        return "Can you clarify what you mean?"
-
     if _phase_at_least("C"):
         _learn_user_preferences(raw, low)
 
