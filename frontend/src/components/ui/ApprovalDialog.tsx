@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Check, X, ShieldAlert } from 'lucide-react';
+import { Check, X, ShieldAlert } from 'lucide-react';
 import { Button } from './Button';
 
 export interface ApprovalDialogProps {
@@ -42,7 +42,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="approval-title"
-        className="bg-card border border-white/[0.12] rounded-xl max-w-md w-full p-5 shadow-2xl flex flex-col gap-4"
+        className="bg-card border border-white/[0.12] rounded-xl max-w-md w-full p-5 shadow-elevated flex flex-col gap-4"
       >
         {/* Header */}
         <div className="flex items-start gap-3">

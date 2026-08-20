@@ -8,14 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        canvas: '#08080c',
-        sidebar: '#0c0c12',
-        surface: '#101018',
+        canvas: '#090a0f',
+        sidebar: '#0e0f16',
+        surface: '#12131c',
         card: {
-          DEFAULT: '#151520',
-          hover: '#1a1a28',
+          DEFAULT: '#171824',
+          hover: '#1d1e2e',
         },
-        input: '#12121c',
+        input: '#11121b',
         brand: {
           DEFAULT: '#7c3aed',
           hover: '#8b5cf6',
@@ -31,11 +31,14 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
         mono: ['JetBrains Mono', 'Cascadia Code', 'Consolas', 'Courier New', 'monospace'],
+      },
+      boxShadow: {
+        'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.25)',
+        'elevated': '0 4px 12px 0 rgba(0, 0, 0, 0.35)',
       },
     },
   },
   plugins: [],
 };
-

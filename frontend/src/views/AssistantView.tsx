@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
 import {
   Sparkles,
@@ -31,7 +31,6 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuery }) => {
-  // Highlight search term helper
   const highlightText = (text: string) => {
     if (!searchQuery || !searchQuery.trim()) return text;
     const query = searchQuery.trim();
@@ -47,21 +46,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     );
   };
 
-  // Helper for inline bold, italic, code, links
   const renderInline = (text: string) => {
-    // Process links: [title](url)
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    const inlineCodeRegex = /`([^`]+)`/g;
-    const boldRegex = /\*\*([^*]+)\*\*/g;
-    const italicRegex = /\*([^*]+)\*/g;
-
-    // Simple tokenizer for markdown inlines
-    const tokens: React.ReactNode[] = [];
-    let remaining = text;
-    let keyIdx = 0;
-
     const processParagraph = (raw: string): React.ReactNode => {
-      // Split by code first
       const codeParts = raw.split(/(`[^`]+`)/g);
       return codeParts.map((cp, cIdx) => {
         if (cp.startsWith('`') && cp.endsWith('`') && cp.length > 2) {
@@ -75,7 +61,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
           );
         }
 
-        // Split by bold
         const boldParts = cp.split(/(\*\*[^*]+\*\*)/g);
         return boldParts.map((bp, bIdx) => {
           if (bp.startsWith('**') && bp.endsWith('**') && bp.length > 4) {
@@ -86,12 +71,11 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
             );
           }
 
-          // Split by links
           const linkParts = bp.split(/(\[[^\]]+\]\([^)]+\))/g);
           return linkParts.map((lp, lIdx) => {
             const match = /\[([^\]]+)\]\(([^)]+)\)/.exec(lp);
             if (match) {
-              const [_, label, url] = match;
+              const [, label, url] = match;
               return (
                 <a
                   key={lIdx}
@@ -115,7 +99,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     return processParagraph(text);
   };
 
-  // Split into code blocks vs text blocks
   if (content.includes('```')) {
     const parts = content.split(/(```[\s\S]*?```)/g);
     return (
@@ -135,7 +118,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     );
   }
 
-  // Parse lines into Headings, Lists, Blockquotes, and Paragraphs
   const lines = content.split('\n');
   const elements: React.ReactNode[] = [];
   let inList = false;
@@ -156,7 +138,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
   lines.forEach((line, idx) => {
     const trimmed = line.trim();
 
-    // Headings
     if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
@@ -179,7 +160,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
         </h2>
       );
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      // Unordered list item
       inList = true;
       listItems.push(
         <li key={idx} className="text-xs leading-relaxed text-gray-200">
@@ -187,7 +167,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
         </li>
       );
     } else if (/^\d+\.\s/.test(trimmed)) {
-      // Ordered list item
       flushList();
       elements.push(
         <div key={idx} className="text-xs leading-relaxed text-gray-200 pl-4 relative my-0.5">
@@ -198,7 +177,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
         </div>
       );
     } else if (trimmed.startsWith('> ')) {
-      // Blockquote
       flushList();
       elements.push(
         <blockquote
@@ -258,7 +236,6 @@ export const AssistantView: React.FC = () => {
     fetchChatHistory();
   }, [fetchChatHistory]);
 
-  // Handle auto-scrolling
   const scrollToBottom = useCallback((smooth = true) => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
@@ -385,7 +362,7 @@ export const AssistantView: React.FC = () => {
     <div className="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
       {/* Floating In-Conversation Search Bar */}
       {searchOpen && (
-        <div className="absolute top-3 right-6 z-30 bg-card border border-white/[0.12] rounded-xl p-2 shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-3 right-6 z-30 bg-card border border-white/[0.12] rounded-xl p-2 shadow-elevated flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
           <Search className="w-3.5 h-3.5 text-purple-400 ml-1 shrink-0" />
           <input
             ref={searchInputRef}
@@ -432,16 +409,16 @@ export const AssistantView: React.FC = () => {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 max-w-4xl w-full mx-auto select-text"
+        className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 max-w-3xl w-full mx-auto select-text"
       >
         {chatHistory.length === 0 && !isThinking && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 my-auto select-none">
-            <div className="w-12 h-12 rounded-2xl bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 mb-3 shadow-sm shadow-brand/20">
-              <Sparkles className="w-6 h-6" />
+          <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 my-auto select-none py-12">
+            <div className="w-11 h-11 rounded-2xl bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 mb-3 shadow-subtle">
+              <Sparkles className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-gray-200">Sherly Assistant Stream</h3>
+            <h3 className="text-sm font-semibold text-gray-200">Sherly Assistant</h3>
             <p className="text-xs text-gray-400 max-w-sm mt-1.5 leading-relaxed">
-              Ask questions, write and refactor code, run workspace tasks, or inspect local models.
+              Ask coding questions, refactor source files, execute workspace tasks, or inspect local models.
             </p>
           </div>
         )}
@@ -455,7 +432,7 @@ export const AssistantView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCopy(msg.user_prompt, index, true)}
-                  className="p-1 rounded text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] transition"
+                  className="p-1 rounded text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] transition cursor-pointer"
                   title="Copy prompt"
                   aria-label="Copy prompt text"
                 >
@@ -468,7 +445,7 @@ export const AssistantView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleEditUserPrompt(msg.user_prompt)}
-                  className="p-1 rounded text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] transition"
+                  className="p-1 rounded text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] transition cursor-pointer"
                   title="Edit prompt"
                   aria-label="Edit prompt in composer"
                 >
@@ -476,8 +453,8 @@ export const AssistantView: React.FC = () => {
                 </button>
               </div>
 
-              <div className="bg-[#141420] border border-white/[0.08] rounded-xl p-3.5 max-w-2xl flex flex-col gap-2 shadow-sm select-text">
-                <p className="text-xs font-medium text-gray-100 leading-relaxed whitespace-pre-wrap select-text">
+              <div className="bg-[#151622] border border-white/[0.08] rounded-xl px-3.5 py-3 max-w-2xl flex flex-col gap-1.5 shadow-subtle select-text">
+                <p className="text-xs font-normal text-gray-100 leading-relaxed whitespace-pre-wrap select-text">
                   {msg.user_prompt}
                 </p>
                 {msg.attached_file && (
@@ -488,18 +465,18 @@ export const AssistantView: React.FC = () => {
                 )}
               </div>
 
-              <div className="w-7 h-7 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center text-gray-200 text-xs font-bold shrink-0 mt-0.5 select-none">
+              <div className="w-6 h-6 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center text-gray-200 text-[10px] font-bold shrink-0 mt-0.5 select-none">
                 U
               </div>
             </div>
 
             {/* Assistant Response Card */}
             <div className="flex items-start gap-3 group">
-              <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5 shadow-sm shadow-brand/40 select-none">
+              <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
                 S
               </div>
 
-              <div className="bg-card border border-white/[0.08] rounded-xl p-4 max-w-3xl text-xs text-gray-200 leading-relaxed flex flex-col gap-2.5 flex-1 shadow-sm select-text">
+              <div className="bg-card border border-white/[0.07] rounded-xl p-4 max-w-2xl text-xs text-gray-200 leading-relaxed flex flex-col gap-2.5 flex-1 shadow-subtle select-text">
                 {/* Header with Title, Badge, and Action Toolbar */}
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 select-none">
                   <div className="flex items-center gap-2">
@@ -552,9 +529,9 @@ export const AssistantView: React.FC = () => {
 
         {/* Task Status Node (Thinking State) */}
         {isThinking && (
-          <div className="flex items-center gap-3 animate-in fade-in duration-150 select-none">
-            <div className="w-7 h-7 rounded-full bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 text-xs shrink-0">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <div className="flex items-center gap-3 animate-in fade-in duration-150 select-none py-1">
+            <div className="w-6 h-6 rounded-full bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 text-xs shrink-0">
+              <Loader2 className="w-3 h-3 animate-spin" />
             </div>
             <span className="text-xs text-gray-400 font-medium">
               Thinking and generating response...
@@ -568,7 +545,7 @@ export const AssistantView: React.FC = () => {
         <button
           type="button"
           onClick={() => scrollToBottom(true)}
-          className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur border border-white/[0.12] hover:border-brand text-gray-300 hover:text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-xl transition active:scale-95 z-20 select-none"
+          className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card/95 backdrop-blur border border-white/[0.12] hover:border-brand text-gray-300 hover:text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-elevated transition active:scale-95 z-20 select-none cursor-pointer"
           title="Scroll to latest messages"
           aria-label="Scroll to latest messages"
         >
@@ -578,8 +555,8 @@ export const AssistantView: React.FC = () => {
       )}
 
       {/* Docked Composer Bar */}
-      <div className="p-4 bg-surface border-t border-white/[0.06] select-none shrink-0">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-4xl mx-auto">
+      <div className="p-3.5 bg-surface border-t border-white/[0.07] select-none shrink-0">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 max-w-3xl mx-auto">
           {/* File Attachment Pill */}
           {attachedFile && (
             <div className="flex items-center gap-2 text-xs text-purple-300 font-mono font-medium px-1 select-none">
@@ -588,7 +565,7 @@ export const AssistantView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setAttachedFile(null)}
-                className="text-gray-500 hover:text-rose-400 ml-1 text-xs"
+                className="text-gray-500 hover:text-rose-400 ml-1 text-xs cursor-pointer"
                 title="Remove attachment"
                 aria-label="Remove attachment"
               >
@@ -597,7 +574,7 @@ export const AssistantView: React.FC = () => {
             </div>
           )}
 
-          <div className="bg-input border border-white/[0.10] focus-within:border-brand rounded-xl p-2.5 flex items-end gap-2 transition shadow-inner">
+          <div className="bg-input border border-white/[0.10] focus-within:border-brand rounded-xl p-2 flex items-end gap-2 transition shadow-subtle">
             <IconButton
               icon={<Paperclip className="w-4 h-4" />}
               aria-label="Attach File"
@@ -637,7 +614,7 @@ export const AssistantView: React.FC = () => {
               <button
                 type="button"
                 onClick={cancelGeneration}
-                className="w-7 h-7 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-sm shadow-rose-600/30 focus-visible:outline-2 focus-visible:outline-brand active:scale-95"
+                className="w-7 h-7 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer"
                 title="Stop generation (Esc)"
                 aria-label="Stop generation"
               >
@@ -647,7 +624,7 @@ export const AssistantView: React.FC = () => {
               <button
                 type="submit"
                 disabled={!prompt.trim()}
-                className="w-7 h-7 bg-brand hover:bg-brand-hover disabled:opacity-30 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-sm shadow-brand/30 focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer"
+                className="w-7 h-7 bg-brand hover:bg-brand-hover disabled:opacity-30 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer"
                 title="Send Prompt (Enter)"
                 aria-label="Send Prompt"
               >

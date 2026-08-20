@@ -7,7 +7,6 @@ import {
   Mic,
   Play,
   ChevronDown,
-  ChevronRight,
   FileCode,
   FileText,
   FileJson,
@@ -107,10 +106,10 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-60 bg-sidebar border-r border-white/[0.06] flex flex-col justify-between p-3 select-none shrink-0 h-full overflow-hidden">
+    <aside className="w-60 bg-sidebar border-r border-white/[0.07] flex flex-col justify-between p-3 select-none shrink-0 h-full overflow-hidden">
       <div className="flex flex-col gap-3 overflow-hidden flex-1">
         {/* Workspace Info Card */}
-        <div className="bg-card border border-white/[0.06] rounded-lg p-2.5 flex flex-col gap-1">
+        <div className="bg-card border border-white/[0.07] rounded-lg p-2.5 flex flex-col gap-1 shadow-subtle">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <h2 className="text-[10px] font-bold text-gray-400 tracking-wider">PROJECT WORKSPACE</h2>
@@ -129,9 +128,9 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand cursor-pointer ${
                   isActive
-                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-sm'
+                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-subtle'
                     : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
                 }`}
               >
@@ -153,9 +152,9 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand cursor-pointer ${
                   isActive
-                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-sm'
+                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-subtle'
                     : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
                 }`}
               >
@@ -183,7 +182,7 @@ export const Sidebar: React.FC = () => {
       <button
         type="button"
         onClick={handleRunProject}
-        className="w-full h-9 bg-brand hover:bg-brand-hover text-white font-semibold text-xs rounded-md flex items-center justify-center gap-2 shadow-sm shadow-brand/30 transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-brand mt-2 shrink-0"
+        className="w-full h-9 bg-brand hover:bg-brand-hover text-white font-semibold text-xs rounded-md flex items-center justify-center gap-2 shadow-subtle transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-brand mt-2 shrink-0 cursor-pointer"
       >
         <Play className="w-3.5 h-3.5 fill-white" />
         <span>Run main.py</span>

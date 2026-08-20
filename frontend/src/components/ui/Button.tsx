@@ -17,10 +17,10 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium transition duration-150 select-none rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98]';
+  const baseStyles = 'inline-flex items-center justify-center font-medium transition duration-150 select-none rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98] cursor-pointer';
 
   const variants = {
-    primary: 'bg-brand hover:bg-brand-hover text-white shadow-sm shadow-brand/20',
+    primary: 'bg-brand hover:bg-brand-hover text-white shadow-subtle',
     secondary: 'bg-brand-surface hover:bg-brand/20 text-purple-300 border border-brand-border',
     ghost: 'bg-transparent hover:bg-white/[0.06] text-gray-300 hover:text-white',
     danger: 'bg-status-danger/15 hover:bg-status-danger/25 text-rose-400 border border-status-danger/30',
@@ -63,7 +63,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-md transition duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96]';
+  const baseStyles = 'inline-flex items-center justify-center rounded-md transition duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] cursor-pointer';
 
   const variants = {
     ghost: 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.08]',

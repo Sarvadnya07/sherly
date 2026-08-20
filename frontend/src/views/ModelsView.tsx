@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { RefreshCw, Key, ShieldCheck, Cpu, Database, Server, Sparkles } from 'lucide-react';
+import { RefreshCw, Key } from 'lucide-react';
 import { api } from '../services/api';
-import { Button, IconButton } from '../components/ui/Button';
+import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 
@@ -46,7 +46,7 @@ export const ModelsView: React.FC = () => {
         {/* Header & Controls */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-gray-100">Model Repository</h2>
+            <h2 className="text-sm font-semibold text-gray-100">Model Repository</h2>
             <p className="text-xs text-gray-400 mt-0.5">Manage local Ollama models and cloud remote API endpoints.</p>
           </div>
 
@@ -56,7 +56,7 @@ export const ModelsView: React.FC = () => {
                 type="checkbox"
                 checked={modelMode === 'auto'}
                 onChange={(e) => setMode(e.target.checked ? 'auto' : 'manual')}
-                className="rounded bg-white/10 border-white/20 text-brand focus:ring-0"
+                className="rounded bg-white/10 border-white/20 text-brand focus:ring-0 cursor-pointer"
               />
               <span>Auto Model Detection</span>
             </label>
@@ -97,10 +97,10 @@ export const ModelsView: React.FC = () => {
               return (
                 <div
                   key={m.name}
-                  className={`bg-card border rounded-xl p-4 flex flex-col gap-3 transition shadow-sm ${
+                  className={`bg-card border rounded-xl p-4 flex flex-col gap-3 transition shadow-subtle ${
                     isActive
                       ? 'border-brand-border bg-gradient-to-r from-brand-surface to-brand-surface/20'
-                      : 'border-white/[0.06] hover:border-white/[0.12]'
+                      : 'border-white/[0.07] hover:border-white/[0.12]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -153,7 +153,7 @@ export const ModelsView: React.FC = () => {
           ].map((provider) => (
             <div
               key={provider.id}
-              className="bg-card border border-white/[0.06] hover:border-white/[0.12] rounded-xl p-3.5 flex items-center justify-between transition shadow-sm"
+              className="bg-card border border-white/[0.07] hover:border-white/[0.12] rounded-xl p-3.5 flex items-center justify-between transition shadow-subtle"
             >
               <div className="flex items-center gap-3">
                 <div className="w-7 h-7 rounded-lg bg-brand-surface border border-brand-border flex items-center justify-center text-purple-300">
@@ -178,7 +178,7 @@ export const ModelsView: React.FC = () => {
       </div>
 
       {/* Right Inspector Panel */}
-      <div className="w-80 bg-canvas border-l border-white/[0.06] p-5 flex flex-col gap-4 overflow-y-auto shrink-0">
+      <div className="w-80 bg-canvas border-l border-white/[0.07] p-5 flex flex-col gap-4 overflow-y-auto shrink-0">
         <span className="text-[10px] font-bold text-gray-500 tracking-wider">MODEL INSPECTOR</span>
 
         {activeModelInfo ? (
@@ -194,16 +194,16 @@ export const ModelsView: React.FC = () => {
             <div className="flex flex-col gap-2">
               <span className="text-[9px] font-bold text-gray-500 tracking-wider">CAPABILITIES</span>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-brand-surface border border-brand-border rounded-lg p-2.5 text-center text-purple-300 font-semibold text-[11px]">
+                <div className="bg-brand-surface border border-brand-border rounded-lg p-2 text-center text-purple-300 font-semibold text-[11px]">
                   Code Gen
                 </div>
-                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-2.5 text-center text-gray-600 text-[11px]">
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-2 text-center text-gray-600 text-[11px]">
                   Vision
                 </div>
-                <div className="bg-brand-surface border border-brand-border rounded-lg p-2.5 text-center text-purple-300 font-semibold text-[11px]">
+                <div className="bg-brand-surface border border-brand-border rounded-lg p-2 text-center text-purple-300 font-semibold text-[11px]">
                   Reasoning
                 </div>
-                <div className="bg-brand-surface border border-brand-border rounded-lg p-2.5 text-center text-purple-300 font-semibold text-[11px]">
+                <div className="bg-brand-surface border border-brand-border rounded-lg p-2 text-center text-purple-300 font-semibold text-[11px]">
                   Instruct
                 </div>
               </div>
@@ -255,7 +255,7 @@ export const ModelsView: React.FC = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="api-key-title"
-            className="bg-card border border-white/[0.12] rounded-xl p-5 w-96 flex flex-col gap-3.5 shadow-2xl"
+            className="bg-card border border-white/[0.12] rounded-xl p-5 w-96 flex flex-col gap-3.5 shadow-elevated"
           >
             <h3 id="api-key-title" className="text-sm font-bold text-gray-100 capitalize">
               Configure {apiKeyProvider} API Key

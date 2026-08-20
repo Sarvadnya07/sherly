@@ -33,7 +33,7 @@ export const VoiceOverlayView: React.FC = () => {
         <div className="relative flex items-center justify-center">
           <div className="absolute w-36 h-36 rounded-full bg-brand/15 animate-ping" />
           <div className="absolute w-28 h-28 rounded-full bg-brand/25" />
-          <div className="w-16 h-16 rounded-full bg-card border-2 border-brand flex items-center justify-center text-gray-100 shadow-xl shadow-brand/40 z-10">
+          <div className="w-16 h-16 rounded-full bg-card border-2 border-brand flex items-center justify-center text-gray-100 shadow-elevated z-10">
             <Mic className="w-7 h-7 text-purple-300" />
           </div>
         </div>
@@ -47,7 +47,7 @@ export const VoiceOverlayView: React.FC = () => {
         </div>
 
         {/* Live Transcription Display */}
-        <div className="text-base font-medium text-gray-100 max-w-md text-center leading-relaxed min-h-[50px] flex items-center justify-center px-4">
+        <div className="text-sm font-medium text-gray-100 max-w-md text-center leading-relaxed min-h-[48px] flex items-center justify-center px-4">
           <p className="italic text-gray-200">
             "{sttText}
             <span className="animate-blink font-mono font-bold text-purple-400">_</span>"
@@ -67,7 +67,7 @@ export const VoiceOverlayView: React.FC = () => {
       </div>
 
       {/* Floating Controls Bar */}
-      <div className="bg-card border border-white/[0.10] rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xl shrink-0">
+      <div className="bg-card border border-white/[0.10] rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-elevated shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -89,7 +89,7 @@ export const VoiceOverlayView: React.FC = () => {
         <select
           value={selectedDevice || ''}
           onChange={(e) => useSherlyStore.setState({ selectedDevice: e.target.value })}
-          className="bg-white/[0.04] border border-white/[0.08] text-gray-300 text-xs rounded-md px-2.5 py-1 focus:outline-none focus:border-brand"
+          className="bg-white/[0.04] border border-white/[0.08] text-gray-300 text-xs rounded-md px-2.5 py-1 focus:outline-none focus:border-brand cursor-pointer"
         >
           {audioDevices.length > 0 ? (
             audioDevices.map((d) => (

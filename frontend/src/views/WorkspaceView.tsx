@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
-import { Check, X, Trash2, GitBranch, Terminal as TerminalIcon, FileCode, Play } from 'lucide-react';
+import { Check, X, Trash2, GitBranch, Terminal as TerminalIcon, FileCode } from 'lucide-react';
 import { api } from '../services/api';
-import { Button, IconButton } from '../components/ui/Button';
+import { Button } from '../components/ui/Button';
 
 export const WorkspaceView: React.FC = () => {
   const {
@@ -10,8 +10,6 @@ export const WorkspaceView: React.FC = () => {
     activeFileContent,
     currentModel,
     diffMode,
-    diffOldCode,
-    diffNewCode,
   } = useSherlyStore();
 
   const [localDiffMode, setLocalDiffMode] = useState(diffMode);
@@ -55,16 +53,16 @@ export const WorkspaceView: React.FC = () => {
       {/* Editor & Diff Section */}
       <div className="flex-1 flex flex-col p-3.5 gap-2.5 overflow-hidden">
         {/* File Tabs & Actions Bar */}
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-1.5 select-none shrink-0">
+        <div className="flex items-center justify-between border-b border-white/[0.07] pb-1.5 select-none shrink-0">
           <div className="flex items-center gap-2">
             {activeFilePath ? (
-              <div className="bg-canvas text-purple-300 border border-white/[0.08] border-b-0 rounded-t-md px-3 py-1 text-xs font-mono font-medium flex items-center gap-2">
+              <div className="bg-canvas text-purple-300 border border-white/[0.08] border-b-0 rounded-t-md px-3 py-1 text-xs font-mono font-medium flex items-center gap-2 shadow-subtle">
                 <FileCode className="w-3.5 h-3.5 text-sky-400" />
                 <span>{activeFilePath}</span>
                 <button
                   type="button"
                   onClick={() => useSherlyStore.setState({ activeFilePath: null, activeFileContent: '' })}
-                  className="text-gray-500 hover:text-gray-300 text-xs p-0.5 rounded focus-visible:outline-1"
+                  className="text-gray-500 hover:text-gray-300 text-xs p-0.5 rounded focus-visible:outline-1 cursor-pointer"
                   title="Close file"
                   aria-label="Close file"
                 >
@@ -118,7 +116,7 @@ export const WorkspaceView: React.FC = () => {
             {lines.length > 0 && activeFilePath ? (
               lines.map((line, idx) => (
                 <div key={idx} className="flex items-center hover:bg-white/[0.02] group">
-                  <span className="w-9 text-right pr-3 text-gray-600 group-hover:text-gray-400 select-none text-[11px]">
+                  <span className="w-10 text-right pr-3 text-gray-600 group-hover:text-gray-400 select-none text-[11px]">
                     {idx + 1}
                   </span>
                   <pre className="text-gray-300 font-mono text-xs whitespace-pre">{line || ' '}</pre>
@@ -146,7 +144,7 @@ export const WorkspaceView: React.FC = () => {
           <button
             type="button"
             onClick={() => setTerminalOutput([])}
-            className="text-gray-500 hover:text-gray-300 text-[11px] flex items-center gap-1 transition focus-visible:outline-1"
+            className="text-gray-500 hover:text-gray-300 text-[11px] flex items-center gap-1 transition focus-visible:outline-1 cursor-pointer"
             title="Clear output"
             aria-label="Clear terminal output"
           >
@@ -177,7 +175,7 @@ export const WorkspaceView: React.FC = () => {
       </div>
 
       {/* Status Bar Footer */}
-      <footer className="h-6 bg-canvas border-t border-white/[0.06] px-3 flex items-center justify-between text-[10px] text-gray-500 font-mono select-none shrink-0">
+      <footer className="h-6 bg-canvas border-t border-white/[0.07] px-3 flex items-center justify-between text-[10px] text-gray-500 font-mono select-none shrink-0">
         <div className="flex items-center gap-2">
           <GitBranch className="w-3 h-3 text-purple-400" />
           <span>git: main</span>

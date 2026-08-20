@@ -28,7 +28,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <div className={`my-3 rounded-lg border border-white/[0.08] bg-[#09090f] overflow-hidden font-mono text-xs shadow-sm ${className}`}>
+    <div className={`my-3 rounded-lg border border-white/[0.08] bg-[#09090f] overflow-hidden font-mono text-xs shadow-subtle ${className}`}>
       {/* Code Header Bar */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] border-b border-white/[0.06] select-none">
         <div className="flex items-center gap-2">
