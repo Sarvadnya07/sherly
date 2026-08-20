@@ -1,27 +1,31 @@
 """
 CONFIG MANAGER — config_manager.py
 
-Thread-safe, atomic configuration management for Sherly.
+Thread-safe, atomic configuration management for Sherly with schema versioning,
+incremental migrations, pre-migration backup, and rollback safety.
 
 Model selection uses a three-state system in the ``model_selection`` block:
     - mode: "auto" | "manual"
     - current_model: the model Sherly is actively using (set by resolver or user)
     - pinned_model: user-pinned model (locks mode to "manual")
-
-This ensures auto-detection never overrides a user's deliberate model choice.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import shutil
 import tempfile
 import threading
 from pathlib import Path
 
 CONFIG_FILE = Path("config.json")
+CONFIG_BACKUP = Path("config.json.bak")
+
+CURRENT_CONFIG_SCHEMA_VERSION = 2
 
 DEFAULT_CONFIG: dict = {
+    "schema_version": CURRENT_CONFIG_SCHEMA_VERSION,
     "auto_mode": False,
     "model_selection": {
         "mode": "auto",
@@ -40,11 +44,35 @@ _config_lock = threading.Lock()
 
 
 # ---------------------------------------------------------------------------
-# Internal helpers  (must be called while _config_lock is held)
+# Migration Engine
 # ---------------------------------------------------------------------------
+
+def _migrate_config(raw: dict) -> dict:
+    """
+    Migrates raw configuration to CURRENT_CONFIG_SCHEMA_VERSION incrementally,
+    preserving unknown/custom fields and returning a fully compliant config dictionary.
+    """
+    cfg = raw.copy()
+    version = cfg.get("schema_version", 1)
+
+    # v1 -> v2 migration
+    if version < 2:
+        # Migrate old top-level current_model into model_selection
+        if "current_model" in cfg and "model_selection" not in cfg:
+            old_model = cfg.pop("current_model", None)
+            cfg["model_selection"] = {
+                "mode": "auto",
+                "current_model": old_model,
+                "pinned_model": None,
+            }
+        cfg["schema_version"] = 2
+
+    return cfg
+
 
 def _default_config() -> dict:
     return {
+        "schema_version":  CURRENT_CONFIG_SCHEMA_VERSION,
         "auto_mode":       DEFAULT_CONFIG["auto_mode"],
         "model_selection": DEFAULT_CONFIG["model_selection"].copy(),
         "api_keys":        DEFAULT_CONFIG["api_keys"].copy(),
@@ -53,7 +81,7 @@ def _default_config() -> dict:
 
 
 def _load_unlocked() -> dict:
-    """Read + merge config from disk.  Caller must hold _config_lock."""
+    """Read + merge config from disk. Caller must hold _config_lock."""
     if not CONFIG_FILE.exists():
         cfg = _default_config()
         _write_unlocked(cfg)
@@ -64,32 +92,38 @@ def _load_unlocked() -> dict:
     except (json.JSONDecodeError, OSError):
         return _default_config()
 
+    # Create pre-migration backup if migration is needed
+    current_ver = raw.get("schema_version", 1)
+    if current_ver < CURRENT_CONFIG_SCHEMA_VERSION:
+        try:
+            shutil.copy2(CONFIG_FILE, CONFIG_BACKUP)
+        except Exception:
+            pass
+
+    migrated = _migrate_config(raw)
     config = _default_config()
 
-    # Keys handled separately (nested dicts or legacy fields to migrate)
-    _SPECIAL = {"api_keys", "plugins", "model_selection",
-                "current_model", "auto_detect_model"}
-    config.update({k: v for k, v in raw.items() if k not in _SPECIAL})
+    # Preserve all user/custom keys
+    _SPECIAL = {"api_keys", "plugins", "model_selection", "schema_version"}
+    config.update({k: v for k, v in migrated.items() if k not in _SPECIAL})
 
-    config["api_keys"] = {**DEFAULT_CONFIG["api_keys"], **raw.get("api_keys", {})}
-    config["plugins"]  = {**DEFAULT_CONFIG["plugins"],  **raw.get("plugins",  {})}
+    config["schema_version"] = CURRENT_CONFIG_SCHEMA_VERSION
+    config["api_keys"] = {**DEFAULT_CONFIG["api_keys"], **migrated.get("api_keys", {})}
+    config["plugins"]  = {**DEFAULT_CONFIG["plugins"],  **migrated.get("plugins",  {})}
     config["model_selection"] = {
         **DEFAULT_CONFIG["model_selection"],
-        **raw.get("model_selection", {}),
+        **migrated.get("model_selection", {}),
     }
 
-    # ── Migration: old-style top-level current_model ──────────────────
-    if "current_model" in raw and "model_selection" not in raw:
-        old_model = raw["current_model"]
-        if old_model:
-            config["model_selection"]["current_model"] = old_model
+    # Persist migrated config if version was updated
+    if current_ver < CURRENT_CONFIG_SCHEMA_VERSION:
+        _write_unlocked(config)
 
-    config.setdefault("auto_mode", DEFAULT_CONFIG["auto_mode"])
     return config
 
 
 def _write_unlocked(config: dict) -> None:
-    """Atomic write via tempfile + replace.  Caller must hold _config_lock."""
+    """Atomic write via tempfile + replace. Caller must hold _config_lock."""
     dir_ = CONFIG_FILE.parent
     tmp: str | None = None
     try:

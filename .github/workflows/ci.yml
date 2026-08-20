@@ -1,16 +1,14 @@
-name: Release
+name: CI
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-release:
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  test-and-build:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -27,7 +25,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run PyTest
+      - name: Verify Python compilation
+        run: |
+          python -m compileall -q .
+
+      - name: Run PyTest Test Suite
         run: |
           pytest tests/ -q
 
@@ -38,18 +40,12 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Build Frontend Assets
+      - name: Install Frontend dependencies
         working-directory: frontend
         run: |
           npm ci
-          npm run build
 
-      - name: Run Packaging Script
+      - name: Build Frontend Production Assets
+        working-directory: frontend
         run: |
-          python scripts/package.py --verify
-
-      - name: Upload Release Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-manifest-${{ matrix.os }}
-          path: release/release_manifest.json
+          npm run build

@@ -22,6 +22,10 @@ backups/
 
 # Runtime config (may contain API keys written by set_api_key())
 config.json
+config.json.bak
+
+# Release artifacts
+release/
 
 # Node
 node_modules/
