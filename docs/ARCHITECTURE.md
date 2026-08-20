@@ -18,8 +18,8 @@ graph TD
     classDef storageNode fill:#18181b,stroke:#52525b,stroke-width:1px,color:#e4e4e7;
 
     subgraph Clients["🖥️ User Interface Tier"]
-        W["🌐 React 18 + Vite Workspace<br/>(Editor, Diffs, Terminal)"]:::clientNode
-        Q["💻 PySide6 Qt Desktop HUD<br/>(System Tray, Floating Pill)"]:::clientNode
+        W["🌐 React 18 + Vite (+ Tauri Shell)<br/>(PRIMARY Desktop & Web Workspace)"]:::clientNode
+        Q["💻 PySide6 Qt Desktop HUD<br/>(Transitional / Legacy Maintenance)"]:::clientNode
         P["📱 Remote PWA Companion<br/>(Mobile Audio & Uploads)"]:::clientNode
     end
 

@@ -58,6 +58,7 @@ packages = ["agents", "backend", "core", "sherly_ai", "sherly_commands", "sherly
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+pythonpath = ["."]
 asyncio_mode = "strict"
 
 [tool.ruff]

@@ -49,7 +49,7 @@ Unlike cloud-dependent chat sidebars, Sherly bridges natural language intent and
 * **Zero-Trust Command Security**: Strict allowlisting (`ALLOWED_PREFIXES`), argument vector tokenization (`shlex.split()`), and `shell=False` execution with 0 `os.system()` calls.
 * **Local Model Orchestration**: Auto-detects local Ollama models (`qwen2.5-coder:3b` default) with single-model VRAM locking, idle auto-unloading (120s TTL), and circuit breakers.
 * **Workspace Isolation**: API path containment (`_get_safe_target()`) preventing directory traversal, 10 MB streaming upload caps, and SSRF filtering.
-* **Multi-Interface Architecture**: React 18 + Vite developer workspace, PySide6 desktop HUD with system tray, and headless FastAPI REST/WebSocket server.
+* **Tiered Presentation Architecture**: Primary React 18 + Vite (+ Tauri-ready) developer workspace, headless FastAPI REST/WebSocket core server, and a legacy/transitional PySide6 desktop HUD.
 
 ---
 
@@ -336,22 +336,22 @@ ollama pull qwen2.5-coder:3b
 ---
 
 ## 💻 Running Sherly
-
-### Option A: Native Desktop App (PySide6 HUD)
+ 
+### Option A: FastAPI Backend & React Workspace (Primary Desktop Client)
+```bash
+# Terminal 1: Backend
+python -m backend.main
+ 
+# Terminal 2: Frontend
+cd frontend && npm run dev
+```
+Open **`http://localhost:5173`** (or wrap via Tauri desktop shell).
+ 
+### Option B: Native Desktop HUD (Legacy / Transitional PySide6)
 ```bash
 python main.py
 ```
 * Global hotkey: `Ctrl + Shift + L` to trigger voice listening.
-
-### Option B: FastAPI Backend & React Workspace
-```bash
-# Terminal 1: Backend
-python -m backend.main
-
-# Terminal 2: Frontend
-cd frontend && npm run dev
-```
-Open **`http://localhost:5173`**.
 
 ### Option C: Remote Assistant Server & PWA
 ```bash
