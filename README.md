@@ -2,8 +2,6 @@
 
 <div align="center">
 
-<img src="src/sherly/ui/assets/sherlyai.png" width="180" alt="Sherly AI Logo" />
-
 <h1>Sherly AI</h1>
 
 <p><strong>The Autonomous Local Developer Orchestrator</strong></p>
@@ -11,10 +9,13 @@
 <p><em>"Talk to your code. Let the code heal itself."</em></p>
 
 <p>
+<img src="https://img.shields.io/badge/Release-v2.0.0-blue.svg" alt="v2.0.0" />
 <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
 <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg" alt="Python 3.10+" />
-<img src="https://img.shields.io/badge/tests-66%20passing-success.svg" alt="66 tests passing" />
-<img src="https://img.shields.io/badge/sandbox-shlex%20%2B%20SafetyGuard-blueviolet.svg" alt="SafetyGuard Sandbox" />
+<img src="https://img.shields.io/badge/Tests-115%20passing-success.svg" alt="115 tests passing" />
+<img src="https://img.shields.io/badge/Frontend-React%20%2B%20Tailwind%20%2B%20Tauri-61dafb.svg" alt="React + Tailwind + Tauri" />
+<img src="https://img.shields.io/badge/Backend-FastAPI%20%2B%20WebSockets-009688.svg" alt="FastAPI" />
+<img src="https://img.shields.io/badge/Sandbox-shlex%20%2B%20SafetyGuard-blueviolet.svg" alt="SafetyGuard Sandbox" />
 <img src="https://img.shields.io/badge/Memory-SQLite%20%2B%20JSON-orange.svg" alt="Local Memory" />
 </p>
 
@@ -30,18 +31,18 @@ Unlike conventional cloud-dependent chat interfaces, Sherly bridges the gap betw
 
 Sherly can:
 
-* Listen to voice or text commands
-* Understand project-level developer intent
-* Inspect files and project structure
-* Execute deterministic development workflows
-* Run tests and development commands
+* Listen to voice or text commands with instant `Esc` cancellation
+* Understand project-level developer intent across complex workspaces
+* Inspect files, parse syntax trees, and scan directory hierarchies
+* Execute deterministic development workflows without unnecessary AI latency
+* Run tests and development commands through a safe, policy-controlled executor
 * Diagnose errors and retrieve relevant project context
-* Generate multi-file fixes
-* Preview proposed changes before applying them
-* Require explicit approval for consequential actions
-* Track and undo supported modifications
-* Maintain persistent local project memory
-* Coordinate specialized AI agents
+* Generate reviewable, multi-file code patches with pre-write conflict validation
+* Require explicit human approval for consequential or destructive actions
+* Track and undo supported modifications via deterministic pre-state backups
+* Maintain persistent local project memory through SQLite
+* Auto-resolve local Ollama models (`qwen2.5-coder:3b`) with cloud API fallback
+* Coordinate specialized sub-agents for coding, system tasks, and browser automation
 
 Sherly is built around one core principle:
 
@@ -49,7 +50,10 @@ Sherly is built around one core principle:
 
 Known commands are handled through deterministic routing before an AI model is invoked. This keeps common workflows fast, predictable, auditable, and resource-efficient while still allowing local LLM-powered agents to handle complex or ambiguous tasks.
 
-**Supported platforms:** Windows · macOS · Linux
+**Supported platforms:**
+- **Windows (x86_64)**: Runtime Verified
+- **macOS (Apple Silicon / Intel)**: Build Verified (CI)
+- **Linux (Ubuntu / Debian)**: Build Verified (CI)
 
 ---
 
@@ -80,11 +84,35 @@ Sherly was designed to address these problems through:
 
 Sherly is built around **six reliability and safety pillars**.
 
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                        SHERLY UNIFIED DESKTOP                          │
+│                                                                        │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────┐  │
+│  │    Assistant     │  │    Workspace     │  │    Voice Realtime    │  │
+│  │ (Chat / Search / │  │(Multi-tab Editor/│  │  (sounddevice STT / │  │
+│  │  Tools / Diffs)  │  │  Terminal / Undo)│  │   pyttsx3 TTS / HUD) │  │
+│  └────────┬─────────┘  └────────┬─────────┘  └──────────┬───────────┘  │
+│           │                     │                       │              │
+│           └─────────────────────┼───────────────────────┘              │
+│                                 ↓                                      │
+│                FastAPI Backend (127.0.0.1:8000)                        │
+│                                 ↓                                      │
+│        ┌────────────────────────┴────────────────────────┐             │
+│        │  ToolRegistry / PolicyEngine / ActionManager    │             │
+│        └────────────────────────┬────────────────────────┘             │
+│                                 ↓                                      │
+│        ┌────────────────────────┴────────────────────────┐             │
+│        │    Model Resolver (Local Ollama / Cloud API)    │             │
+│        └─────────────────────────────────────────────────┘             │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
 ### 1. Input Layer
 
 Every voice or text request passes through validation and security checks.
 
-* Speech-to-text noise filtering
+* Speech-to-text noise filtering via `faster-whisper`
 * Input deduplication and debounce
 * Regex-based prompt-injection detection
 * Semantic security checks
@@ -120,8 +148,8 @@ The model lifecycle is designed for predictable resource usage.
 * Circuit-breaker protection
 * Bounded conversation context
 * Multiple model-provider support
-* Local Ollama integration
-* Optional cloud model providers
+* Local Ollama integration (`qwen2.5-coder:3b` default auto-resolution)
+* Optional cloud model providers (OpenAI, Gemini, Groq)
 
 ### 4. System Layer
 
@@ -138,11 +166,12 @@ Terminal and system execution is restricted through controlled tooling.
 
 Every consequential action is assigned a safety level:
 
-| Level         | Behavior                                    |
-| ------------- | ------------------------------------------- |
-| **SAFE**      | Executes directly                           |
-| **CONFIRM**   | Requires explicit developer approval        |
+| Level | Behavior |
+| :--- | :--- |
+| **SAFE** | Executes directly |
+| **CONFIRM** | Requires explicit developer approval |
 | **DANGEROUS** | Blocked or requires a higher-level override |
+| **BLOCKED** | Always rejected unconditionally |
 
 ### 6. Runtime Layer
 
@@ -152,8 +181,8 @@ Sherly protects application stability through:
 * Task queue protection
 * Atomic file writes
 * Persistent action history
-* Automatic backups
-* Secret redaction
+* Automatic pre-migration backups (`config.json.bak`)
+* Secret redaction in logs
 * Resilient model execution
 * Resource management
 
@@ -168,12 +197,12 @@ Sherly is designed for hands-free development.
 Use the global hotkey:
 
 ```text
-Ctrl + Shift + S
+Ctrl + Shift + L
 ```
 
 or use the microphone button in the desktop UI.
 
-Voice commands are processed locally through `faster-whisper`.
+Voice commands are processed locally through `faster-whisper` and offline synthesized via `pyttsx3`.
 
 Example commands:
 
@@ -225,7 +254,7 @@ The security system combines:
 * Shell injection protection
 * Sandbox isolation
 * Secret redaction
-* Approval queues
+* Approval queues (120s TTL)
 * Atomic file operations
 
 ## Action Classification
@@ -355,47 +384,43 @@ Sherly can automate the development debugging cycle while keeping the developer 
 
 ```text
 ┌───────────┐
-│    Run    │
+│    Run    │ ───→ Execute project build or test suite
 └─────┬─────┘
       ↓
 ┌───────────┐
-│  Capture  │
-│   Error   │
+│  Capture  │ ───→ Collect error output and traceback
 └─────┬─────┘
       ↓
 ┌───────────┐
-│    RAG    │
-│  Context  │
+│  Context  │ ───→ Retrieve relevant project context and source code
 └─────┬─────┘
       ↓
 ┌───────────┐
-│ AI Fix    │
-│ Proposal  │
+│  AI Fix   │ ───→ Generate proposed multi-file patch
 └─────┬─────┘
       ↓
 ┌───────────┐
-│  Preview  │
+│  Preview  │ ───→ Display colorized visual diff preview
 └─────┬─────┘
       ↓
 ┌───────────┐
-│ Approval  │
+│ Approval  │ ───→ Require explicit developer confirmation
 └─────┬─────┘
       ↓
 ┌───────────┐
-│   Apply   │
-│   Patch   │
+│   Apply   │ ───→ Apply non-destructive atomic write
 └─────┬─────┘
       ↓
    Run Again
       │
-      └──────→ If failure → Analyze new error
+      └──────→ If failure → Analyze new error & iterate
 ```
 
 The workflow is:
 
 1. **Run** — Execute the project or relevant command.
 2. **Capture** — Collect the error and traceback.
-3. **Understand** — Retrieve relevant project context through RAG.
+3. **Understand** — Retrieve relevant project context.
 4. **Fix** — Generate a proposed multi-file patch.
 5. **Preview** — Show the exact changes.
 6. **Approve** — Wait for developer authorization.
@@ -408,9 +433,9 @@ This creates a practical **self-healing development workflow without removing th
 
 # 🧠 Persistent Project Memory
 
-Sherly includes a local **ChromaDB-backed RAG system** for persistent project knowledge.
+Sherly includes local SQLite-backed conversation memory and state indexing for persistent project knowledge.
 
-Projects can be indexed into a local vector store, allowing Sherly to retrieve semantically relevant source files when answering questions or diagnosing failures.
+Projects can be indexed into local memory, allowing Sherly to retrieve relevant source files when answering questions or diagnosing failures.
 
 ### Benefits
 
@@ -443,11 +468,11 @@ Sherly:
 
 Sherly uses specialized agents coordinated by a central `AgentOrchestrator`.
 
-| Agent            | Responsibility                          |
-| ---------------- | --------------------------------------- |
-| **CoderAgent**   | Code analysis, debugging, and fixes     |
-| **SystemAgent**  | System-level operations and diagnostics |
-| **BrowserAgent** | Browser automation through Playwright   |
+| Agent | Responsibility | Modality & Isolation |
+| :--- | :--- | :--- |
+| **CoderAgent** | Code analysis, debugging, multi-file fixes, refactoring | AST / Diff Engine |
+| **SystemAgent** | System-level operations, test runners, terminal diagnostics | `shlex` / PolicyEngine |
+| **BrowserAgent** | Documentation research, web lookups, visual verification | Playwright / Headless |
 
 Complex objectives can be divided into typed subtasks and dispatched to the appropriate specialist.
 
@@ -470,44 +495,36 @@ Combined Result
 Sherly uses a modular sub-router architecture.
 
 ```text
-Voice / Text
+Voice / Text Input
      ↓
-Intent Firewall
+Intent Firewall (Prompt Injection & Jailbreak Scans)
      ↓
 Input Validator
      ↓
 Command Router
      │
-     ├── Known Command
-     │      ↓
-     │  Deterministic Handler
+     ├── Known Command ────────→ Deterministic Handlers
      │
-     ├── File Operation
-     │      ↓
-     │  File Router
+     ├── File Operation ───────→ File Router
      │
-     ├── Development Operation
-     │      ↓
-     │  Dev Router
+     ├── Development Ops ──────→ Dev Router
      │
-     ├── System Operation
-     │      ↓
-     │  System Router
+     ├── System Command ───────→ System Router
      │
-     └── Unknown Intent
-            ↓
-         LLM Agent
-            ↓
-        Safety Guard
+     └── Unknown Intent ───────→ LLM Agent (Tool Execution Loop)
+                                      ↓
+                                 Policy Engine
+                                      ↓
+                       SAFE / CONFIRM / DANGEROUS / BLOCKED
 ```
 
 This keeps predictable operations fast while reserving expensive AI reasoning for tasks that actually require it.
 
 ---
 
-# 🌐 Encrypted P2P Sync
+# 🌐 Encrypted P2P Sync (Future Scope)
 
-Sherly can synchronize memory and configuration between trusted machines on the same network.
+Sherly's modular networking architecture allows memory and configuration exchange between trusted machines on the same network.
 
 The synchronization layer supports:
 
@@ -542,10 +559,10 @@ This allows developers to add new tools and capabilities while keeping the core 
 
 Sherly can run without its desktop UI through **Ghost Mode**.
 
-Start the headless socket server:
+Start the headless server:
 
 ```powershell
-python src/sherly/core/ghost_mode.py
+python -m backend.main --ghost --port 5555
 ```
 
 The server listens on:
@@ -554,28 +571,29 @@ The server listens on:
 5555
 ```
 
-Ghost Mode allows Sherly to integrate with IDE terminals and other developer tooling without requiring the graphical interface.
+Ghost Mode allows Sherly to integrate with IDE terminals, CI pipelines, and other developer tooling without requiring the graphical interface.
 
 ---
 
 # 🎨 Desktop UI
 
-The Sherly desktop application is built with **PySide6 / Qt6**.
+The Sherly desktop application is built with **React 18, Tailwind CSS, Vite, and Tauri v2**.
 
-## Glassmorphism Design
+## Modern Developer Workspace
 
-A modern desktop interface with:
+A high-performance desktop interface with:
 
-* Dark/light mode support
-* Visual status HUD
-* Voice interaction controls
-* Developer-focused workflow panels
+* Dark mode styling and monospace code canvas
+* Visual status HUD and live recording indicator
+* Multi-tab code editor with line gutter and live cursor coordinates (`Ln X, Col Y`)
+* Side-by-side and inline visual patch diff review
+* Integrated terminal runner with command history
 
 ## Action Panel
 
 The action panel provides visibility into:
 
-* Pending approvals
+* Pending approvals (with 120s TTL countdown)
 * Recent actions
 * Undoable operations
 * Execution status
@@ -665,32 +683,35 @@ graph TD
 
 For deeper architectural information, see:
 
-* `docs/GUIDE.md`
-* `docs/STABILITY_REPORT.md`
-* `docs/PRODUCTION_AUDIT.md`
+* `docs/ARCHITECTURE.md`
+* `docs/SAFETY_ARCHITECTURE.md`
+* `docs/VOICE_ARCHITECTURE.md`
+* `docs/API_GUIDE.md`
 
 ---
 
 # 📦 Tech Stack
 
-| Layer                   | Technology                       |
-| ----------------------- | -------------------------------- |
-| **Language**            | Python 3.10+                     |
-| **Desktop UI**          | PySide6 / Qt6                    |
-| **Voice STT**           | `faster-whisper`                 |
-| **Voice TTS**           | `pyttsx3`                        |
-| **Local LLM**           | Ollama                           |
-| **Optional Cloud LLMs** | OpenAI, Gemini, Groq             |
-| **Vector Memory**       | ChromaDB                         |
-| **Browser Automation**  | Playwright                       |
-| **Sandbox**             | Docker + `shlex` + `shell=False` |
-| **Persistence**         | SQLite                           |
-| **Encryption**          | `cryptography` / AES             |
-| **Resilience**          | `tenacity`, circuit breaker      |
-| **Concurrency**         | `ThreadPoolExecutor`             |
-| **Web Search**          | `duckduckgo-search`              |
-| **CI**                  | GitHub Actions                   |
-| **Testing**             | Pytest                           |
+| Layer | Technology | Status |
+| :--- | :--- | :--- |
+| **Language** | Python 3.10+ (Tested on Python 3.13) | **PRIMARY** |
+| **Desktop UI** | React 18, TypeScript, Tailwind CSS, Vite | **PRIMARY** |
+| **Desktop Wrapper**| Tauri v2 (`@tauri-apps/api`) | **PRIMARY** |
+| **API Server** | FastAPI, Uvicorn, WebSockets | **PRIMARY** |
+| **Voice STT** | `faster-whisper` | **PRIMARY** |
+| **Voice TTS** | `pyttsx3` | **PRIMARY** |
+| **Local LLM** | Ollama (`qwen2.5-coder:3b` auto-resolved) | **PRIMARY** |
+| **Optional Cloud LLMs** | OpenAI, Gemini, Groq | **PRIMARY** |
+| **Browser Automation** | Playwright | **PRIMARY** |
+| **Persistence** | SQLite (`sherly_memory.db`) | **PRIMARY** |
+| **Encryption** | `cryptography` / AES | **PRIMARY** |
+| **Resilience** | Scoped circuit breakers, retry with jitter | **PRIMARY** |
+| **Concurrency** | `ThreadPoolExecutor` | **PRIMARY** |
+| **Web Search** | `duckduckgo-search` / `ddgs` | **PRIMARY** |
+| **Testing** | Pytest (115 passing tests) | **PRIMARY** |
+| **Legacy UI** | PySide6 / Qt6 (`sherly_ui/`) | **LEGACY / TRANSITIONAL** |
+| **Docker Sandbox** | `Dockerfile.sandbox` | **DEFERRED / OPTIONAL** |
+| **Vector RAG / P2P**| ChromaDB / UDP broadcast sync | **SUPERSEDED** (Replaced by SQLite) |
 
 ---
 
@@ -698,16 +719,16 @@ For deeper architectural information, see:
 
 Sherly uses defense-in-depth across the complete execution pipeline.
 
-| Layer                      | Mechanism                       | Protection                      |
-| -------------------------- | ------------------------------- | ------------------------------- |
-| **Input Validation**       | Regex + semantic firewall       | Prompt injection and jailbreaks |
-| **Command Classification** | `SAFE / CONFIRM / DANGEROUS`    | Destructive commands            |
-| **Subprocess Execution**   | `shlex.split()` + `shell=False` | Shell injection                 |
-| **Sandbox Isolation**      | Docker                          | Environment corruption          |
-| **Secret Redaction**       | `LogSanitizer`                  | API key/token leakage           |
-| **Atomic Writes**          | Backup + `os.replace()`         | File corruption                 |
-| **Model Lock**             | Thread synchronization          | RAM/VRAM spikes                 |
-| **Approval Queue**         | Human confirmation              | Unauthorized modifications      |
+| Layer | Mechanism | Protection |
+| :--- | :--- | :--- |
+| **Input Validation** | Regex + semantic firewall | Prompt injection and jailbreaks |
+| **Command Classification** | `SAFE / CONFIRM / DANGEROUS / BLOCKED` | Destructive commands |
+| **Subprocess Execution** | `shlex.split()` + `shell=False` | Shell injection |
+| **Sandbox Isolation** | Controlled environment | Environment corruption |
+| **Secret Redaction** | `observability.py` / `LogSanitizer` | API key/token leakage |
+| **Atomic Writes** | Backup + `os.replace()` | File corruption |
+| **Model Lock** | Thread synchronization | RAM/VRAM spikes |
+| **Approval Queue** | Human confirmation (120s TTL) | Unauthorized modifications |
 
 ## Docker Sandbox
 
@@ -719,7 +740,7 @@ Build the sandbox image:
 docker build -f Dockerfile.sandbox -t sherly_sandbox_img .
 ```
 
-> **Security note:** Sandbox availability and protection depend on the specific operation, host configuration, and Docker environment. Destructive operations should remain blocked or explicitly controlled.
+> **Security note:** Sandbox availability and protection depend on the specific operation, host configuration, and Docker environment. Destructive operations remain blocked by the policy engine.
 
 ---
 
@@ -727,22 +748,22 @@ docker build -f Dockerfile.sandbox -t sherly_sandbox_img .
 
 Sherly is optimized to remain responsive while performing background development tasks.
 
-| Optimization              | Implementation                             |
-| ------------------------- | ------------------------------------------ |
-| **Deterministic Routing** | Rule-based command map before LLM          |
-| **RAG Indexing**          | Parallel `ThreadPoolExecutor`              |
-| **LLM Timeout**           | Hard call timeout                          |
-| **VRAM Management**       | Idle model unloading                       |
-| **Circuit Breaker**       | Protects against repeated model failures   |
-| **Context Control**       | Bounded recent conversation history        |
-| **Response Capping**      | Limits excessive model output              |
-| **Background Processing** | Daemon worker thread                       |
-| **Task Queue**            | Thread-safe queue with overflow protection |
-| **Atomic Storage**        | Safe file replacement                      |
+| Optimization | Implementation |
+| :--- | :--- |
+| **Deterministic Routing** | Rule-based command map before LLM (< 5ms) |
+| **RAG Indexing** | Parallel `ThreadPoolExecutor` |
+| **LLM Timeout** | Hard call timeout |
+| **VRAM Management** | Idle model unloading |
+| **Circuit Breaker** | Protects against repeated model failures |
+| **Context Control** | Bounded recent conversation history |
+| **Response Capping** | Limits excessive model output |
+| **Background Processing**| Daemon worker thread |
+| **Task Queue** | Thread-safe queue with overflow protection |
+| **Atomic Storage** | Safe file replacement |
 
 The model manager also enforces a single active-model lock to reduce concurrent RAM/VRAM pressure.
 
-See `docs/PERFORMANCE.md` when available for detailed performance information.
+See `docs/PERFORMANCE.md` for detailed performance benchmarks.
 
 ---
 
@@ -750,13 +771,14 @@ See `docs/PERFORMANCE.md` when available for detailed performance information.
 
 ## Prerequisites
 
-* Python **3.10+**
+* Python **3.10+** (Python 3.13 recommended)
+* Node.js **18+ & npm** (Node 20 LTS recommended)
 * Git
 * Ollama for local LLM inference
 * Microphone access for voice interaction
-* Docker Desktop *(optional but recommended for sandbox isolation)*
+* Docker Desktop *(optional for sandbox isolation)*
 
-For local inference, models such as `phi3` or `llama3` can be used.
+For local inference, `qwen2.5-coder:3b` is recommended and auto-resolved.
 
 ## Clone the Repository
 
@@ -770,29 +792,31 @@ cd sherly
 ### Windows
 
 ```powershell
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
 ### macOS / Linux
 
 ```bash
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 ```
 
 ## Install Dependencies
 
-If the project package is configured through `pyproject.toml`:
-
 ```bash
-pip install -e .
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-Alternatively, if a `requirements.txt` file is provided:
+## Build Frontend Production Assets
 
 ```bash
-pip install -r requirements.txt
+cd frontend
+npm install
+npm run build
+cd ..
 ```
 
 ## Configure Environment
@@ -815,22 +839,14 @@ Local Ollama usage does not require cloud API keys.
 
 ## Pull a Local Model
 
-For example:
-
 ```bash
-ollama pull phi3
-```
-
-or:
-
-```bash
-ollama pull llama3
+ollama pull qwen2.5-coder:3b
 ```
 
 ## Start Sherly
 
 ```bash
-python src/sherly/main.py
+python main.py
 ```
 
 ---
@@ -848,80 +864,31 @@ GROQ_API_KEY=your_key_here
 
 SHERLY_MODEL_PROVIDER=ollama
 SHERLY_LOG_LEVEL=INFO
-QT_ENABLE_HIGHDPI_SCALING=0
 ```
 
 Cloud providers are optional when using Ollama locally.
 
-Sherly can also generate configuration at:
-
-```text
-src/sherly/config/config.json
-```
-
-Example:
+Sherly stores runtime configuration in `config.json` with automatic schema versioning (`CURRENT_CONFIG_SCHEMA_VERSION = 2`):
 
 ```json
 {
-  "current_model": "phi3",
+  "schema_version": 2,
   "auto_mode": false,
+  "model_selection": {
+    "mode": "auto",
+    "current_model": "qwen2.5-coder:3b",
+    "pinned_model": null
+  },
   "api_keys": {
     "openai": "YOUR_OPENAI_KEY",
     "gemini": "YOUR_GEMINI_KEY",
     "groq": "YOUR_GROQ_KEY"
   },
-  "plugins": {},
-  "db_config": {
-    "provider": "sqlite",
-    "url": "sherly_history.db"
-  },
-  "chroma_config": {
-    "mode": "local",
-    "host": "localhost",
-    "port": 8000
-  }
+  "plugins": {}
 }
 ```
 
-Models can be switched at runtime:
-
-```text
-switch to gemini model
-```
-
-No restart is required.
-
----
-
-# 🎛️ Interaction Modes
-
-Sherly provides multiple interaction modes.
-
-| Mode     | Command     | Behavior                           |
-| -------- | ----------- | ---------------------------------- |
-| **Fast** | `fast mode` | Short, speed-optimized responses   |
-| **Deep** | `deep mode` | More detailed structured responses |
-| **Dev**  | `dev mode`  | Technical, command-level output    |
-
----
-
-# 🧪 Progressive Phases
-
-Sherly includes a progressive feature system.
-
-| Phase | Capabilities                                                |
-| ----- | ----------------------------------------------------------- |
-| **A** | Core command routing, safety guard, deterministic shortcuts |
-| **B** | LLM planning and clarification questions                    |
-| **C** | Feedback loop and RLHF data logging                         |
-
-Switch phases with:
-
-```text
-set phase B
-```
-
-The selected phase is persisted across sessions.
+Models can be switched dynamically at runtime without restarting.
 
 ---
 
@@ -929,7 +896,7 @@ The selected phase is persisted across sessions.
 
 ## Fix a Project
 
-Say:
+Say or type:
 
 ```text
 fix my project
@@ -990,7 +957,7 @@ scan this project and tell me what it does
 Run the headless server:
 
 ```powershell
-python src/sherly/core/ghost_mode.py
+python -m backend.main --ghost --port 5555
 ```
 
 Default port:
@@ -1012,81 +979,48 @@ Ghost Mode is useful for:
 
 ```text
 sherly/
-├── .env.example
+├── .env.example                  # Environment template
 ├── .github/
 │   └── workflows/
-│       └── main.yml
-├── Dockerfile.sandbox
-├── pyproject.toml
-├── docs/
-│   ├── GUIDE.md
-│   ├── FUTURE_SCOPE.md
-│   ├── STABILITY_REPORT.md
-│   └── PRODUCTION_AUDIT.md
-├── tests/
-│   ├── test_action_manager.py
-│   ├── test_classify_action.py
-│   ├── test_input_validator.py
-│   ├── test_integration_orchestrator.py
-│   ├── test_model_manager_failures.py
-│   └── test_runtime_utils.py
-└── src/
-    └── sherly/
-        ├── main.py
-        │
-        ├── agents/
-        │   ├── base_agent.py
-        │   ├── coder_agent.py
-        │   ├── system_agent.py
-        │   ├── browser_agent.py
-        │   └── playwright_agent.py
-        │
-        ├── config/
-        │   └── config_manager.py
-        │
-        ├── core/
-        │   ├── orchestrator.py
-        │   ├── safety_guard.py
-        │   ├── input_validator.py
-        │   ├── task_queue.py
-        │   ├── memory_rag.py
-        │   ├── sandbox.py
-        │   ├── p2p_sync.py
-        │   ├── plugin_manager.py
-        │   ├── ghost_mode.py
-        │   ├── biometrics.py
-        │   ├── encryption.py
-        │   └── sanitizer.py
-        │
-        ├── routers/
-        │   ├── dev_router.py
-        │   ├── file_router.py
-        │   └── system_router.py
-        │
-        ├── services/
-        │   ├── command_router.py
-        │   ├── action_manager.py
-        │   ├── model_manager.py
-        │   ├── agent_manager.py
-        │   ├── speech_to_text.py
-        │   ├── text_to_speech.py
-        │   ├── memory_brain.py
-        │   ├── conversation_memory.py
-        │   └── web_search.py
-        │
-        ├── tools/
-        │   ├── ast_tools.py
-        │   ├── file_tools.py
-        │   ├── terminal_tools.py
-        │   ├── screen_tools.py
-        │   ├── fix_project.py
-        │   └── ...
-        │
-        └── ui/
-            ├── app_manager.py
-            ├── window.py
-            ├── overlay.py
-            └── tray_icon.py
+│       ├── ci.yml                # CI regression & compilation workflow
+│       └── release.yml           # Multi-platform release packaging
+├── backend/                      # FastAPI Backend Server
+│   ├── api/
+│   │   ├── routes/               # Modular REST endpoints (health, voice, etc.)
+│   │   └── websocket.py          # Real-time WebSocket streaming handlers
+│   └── main.py                   # Canonical backend server entry point
+├── core/                         # Core Runtime & Security Engines
+│   ├── network_security.py       # SSRF protection & safe client resolution
+│   ├── policy_engine.py          # Action risk classification
+│   └── action_manager.py         # Pending action queue & atomic backups
+├── frontend/                     # Modern React + Vite Desktop Application
+│   ├── src/
+│   │   ├── components/           # UI components (Assistant, Workspace, Voice HUD)
+│   │   ├── hooks/                # WebSocket & hardware state hooks
+│   │   └── store/                # Zustand client state management
+│   ├── package.json              # Node dependencies
+│   └── vite.config.ts            # Vite bundler configuration
+├── sherly_core/                  # Shared Observability & Resilience Utilities
+│   ├── observability.py          # Tracing, structured logs, secret redaction
+│   └── resilience.py             # Circuit breakers & retry with jitter
+├── tools/                        # Capability Tools
+│   ├── filesystem_tools.py       # Safe read/write/list operations
+│   ├── terminal_tools.py         # Policy-controlled command execution
+│   └── preview.py                # Pre-write conflict verification
+├── docs/                         # Technical Documentation & Audits
+│   ├── ARCHITECTURE.md           # Deep system design
+│   ├── API_GUIDE.md              # REST & WebSocket reference
+│   ├── SETUP_GUIDE.md            # Installation walkthrough
+│   ├── SECURITY.md               # Zero-trust security model
+│   ├── PERFORMANCE.md            # Latency benchmarks
+│   ├── TESTING_GUIDE.md          # Test suite documentation
+│   ├── DEPLOYMENT.md             # Production runbook
+│   └── FUTURE_SCOPE.md           # Strategic evolution roadmap
+├── tests/                        # PyTest Regression Test Suite (115 tests)
+├── config_manager.py             # Schema-versioned configuration manager
+├── requirements.txt              # Production Python dependencies
+├── main.py                       # Unified production launcher
+└── README.md                     # Project documentation
 ```
 
 ---
@@ -1110,7 +1044,7 @@ pytest -v
 Run an individual test file:
 
 ```bash
-pytest tests/test_input_validator.py
+pytest tests/test_security.py
 ```
 
 The project CI pipeline tests against:
@@ -1119,6 +1053,7 @@ The project CI pipeline tests against:
 Python 3.10
 Python 3.11
 Python 3.12
+Python 3.13
 ```
 
 ---
@@ -1133,6 +1068,7 @@ The CI matrix covers:
 3.10
 3.11
 3.12
+3.13
 ```
 
 ---
@@ -1146,24 +1082,10 @@ Before opening a pull request:
 1. Fork the repository.
 2. Create a feature branch from `main`.
 3. Implement your change.
-4. Run the test suite.
-5. Run the linter.
+4. Run the test suite (`pytest tests/ -q`).
+5. Run the frontend build (`npm run build`).
 6. Update relevant documentation.
 7. Open a pull request.
-
-Run linting with:
-
-```bash
-ruff check .
-```
-
-### Contribution Guidelines
-
-* One feature or fix per PR.
-* Tests should pass before submitting.
-* Update relevant docstrings.
-* Update `docs/` when adding new tools, routers, or major functionality.
-* Keep security-sensitive changes explicitly documented.
 
 ---
 
@@ -1194,13 +1116,14 @@ See `docs/FUTURE_SCOPE.md` for the broader evolution plan.
 
 Additional documentation includes:
 
-* `docs/GUIDE.md` — Full user guide
+* `docs/ARCHITECTURE.md` — System architecture and design decisions
+* `docs/API_GUIDE.md` — REST and WebSocket event reference
+* `docs/SETUP_GUIDE.md` — Detailed setup and troubleshooting
+* `docs/SECURITY.md` — Threat model and security policies
+* `docs/PERFORMANCE.md` — Performance benchmarks and optimizations
+* `docs/TESTING_GUIDE.md` — Testing strategies and test coverage
+* `docs/DEPLOYMENT.md` — Deployment and operations guide
 * `docs/FUTURE_SCOPE.md` — Strategic roadmap
-* `docs/STABILITY_REPORT.md` — QA and stability status
-* `docs/PRODUCTION_AUDIT.md` — Security and performance audit
-* `docs/ARCHITECTURE.md` — System architecture, when available
-* `docs/PERFORMANCE.md` — Performance details, when available
-* `SECURITY.md` — Security and threat-model documentation, when available
 
 ---
 
@@ -1212,7 +1135,7 @@ See `LICENSE` for details.
 
 ---
 
-# 👨‍💻 Author
+# 👨💻 Author
 
 Developed by **Sarvadnya07** with a focus on privacy-first, developer-centric AI tooling.
 
