@@ -1,11 +1,11 @@
 /**
  * ZUSTAND STATE STORE — frontend/src/stores/useSherlyStore.ts
  * Central state store managing view switching, chat history, model state,
- * active project file, real-time status, and generation lifecycle.
+ * workspace tabs, file editing, real-time status, and generation lifecycle.
  */
 
 import { create } from 'zustand';
-import { ChatMessage, ModelInfo, FileNode, PendingApproval, ToolActivityInfo } from '../types/api';
+import { ChatMessage, ModelInfo, FileNode, PendingApproval, ToolActivityInfo, WorkspaceTab } from '../types/api';
 import { api } from '../services/api';
 import { wsService } from '../services/websocket';
 
@@ -27,10 +27,13 @@ interface SherlyState {
   activeToolActivity: ToolActivityInfo | null;
   composerPrompt: string;
 
-  // Workspace
+  // Workspace & Multi-Tab State
   fileTree: FileNode | null;
+  openTabs: WorkspaceTab[];
   activeFilePath: string | null;
   activeFileContent: string;
+  activeOriginalContent: string;
+  isDirty: boolean;
   diffMode: boolean;
   diffOldCode: string;
   diffNewCode: string;
@@ -58,7 +61,11 @@ interface SherlyState {
   editUserPrompt: (index: number) => void;
   fetchFileTree: () => Promise<void>;
   openFile: (path: string) => Promise<void>;
-  saveFileContent: (path: string, content: string) => Promise<void>;
+  closeTab: (path: string) => void;
+  updateActiveContent: (content: string) => void;
+  saveActiveFile: () => Promise<boolean>;
+  setDiffMode: (mode: boolean, oldCode?: string, newCode?: string, actionId?: string) => void;
+  undoLastAction: () => Promise<string>;
   fetchApprovals: () => Promise<void>;
   approveAction: (id: string) => Promise<void>;
   rejectAction: (id: string) => Promise<void>;
@@ -84,8 +91,11 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
   composerPrompt: '',
 
   fileTree: null,
+  openTabs: [],
   activeFilePath: null,
   activeFileContent: '',
+  activeOriginalContent: '',
+  isDirty: false,
   diffMode: false,
   diffOldCode: '',
   diffNewCode: '',
@@ -156,7 +166,6 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
       activeChatAbort = null;
     }
 
-    // Propagate backend cancellation if supported
     try {
       wsService.send({
         action: 'cancel_generation',
@@ -166,7 +175,6 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     }
 
     set((state) => {
-      // Mark the active generation message as cancelled
       const history = [...state.chatHistory];
       if (history.length > 0) {
         const last = history[history.length - 1];
@@ -271,8 +279,6 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     const history = get().chatHistory;
     const targetMsg = history[index];
     if (!targetMsg) return;
-
-    // Resend the prompt from that index, updating the message in place
     await get().sendChatMessage(targetMsg.user_prompt, targetMsg.attached_file);
   },
 
@@ -280,7 +286,6 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     const history = get().chatHistory;
     const targetMsg = history[index];
     if (!targetMsg) return;
-
     set({ composerPrompt: targetMsg.user_prompt });
   },
 
@@ -294,24 +299,125 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
   },
 
   openFile: async (path: string) => {
-    try {
-      const res = await api.readFile(path);
+    const state = get();
+    // Check if already open in tabs
+    const existing = state.openTabs.find((t) => t.path === path);
+    if (existing) {
       set({
-        activeFilePath: res.path,
-        activeFileContent: res.content,
+        activeFilePath: path,
+        activeFileContent: existing.content,
+        isDirty: existing.isDirty,
         diffMode: false,
       });
+      return;
+    }
+
+    try {
+      const res = await api.readFile(path);
+      const fileName = path.split('/').pop() || path.split('\\').pop() || path;
+      const newTab: WorkspaceTab = {
+        path: res.path,
+        name: fileName,
+        isDirty: false,
+        content: res.content,
+      };
+
+      set((s) => ({
+        openTabs: [...s.openTabs, newTab],
+        activeFilePath: res.path,
+        activeFileContent: res.content,
+        activeOriginalContent: res.content,
+        isDirty: false,
+        diffMode: false,
+      }));
     } catch (e) {
       console.error('Error opening file:', e);
     }
   },
 
-  saveFileContent: async (path: string, content: string) => {
+  closeTab: (path: string) => {
+    const state = get();
+    const remaining = state.openTabs.filter((t) => t.path !== path);
+
+    let nextActivePath: string | null = state.activeFilePath;
+    let nextContent = state.activeFileContent;
+    let nextDirty = false;
+
+    if (state.activeFilePath === path) {
+      if (remaining.length > 0) {
+        const nextTab = remaining[remaining.length - 1];
+        nextActivePath = nextTab.path;
+        nextContent = nextTab.content;
+        nextDirty = nextTab.isDirty;
+      } else {
+        nextActivePath = null;
+        nextContent = '';
+        nextDirty = false;
+      }
+    }
+
+    set({
+      openTabs: remaining,
+      activeFilePath: nextActivePath,
+      activeFileContent: nextContent,
+      isDirty: nextDirty,
+    });
+  },
+
+  updateActiveContent: (content: string) => {
+    const state = get();
+    if (!state.activeFilePath) return;
+
+    const isModified = content !== state.activeOriginalContent;
+    const updatedTabs = state.openTabs.map((t) =>
+      t.path === state.activeFilePath ? { ...t, content, isDirty: isModified } : t
+    );
+
+    set({
+      activeFileContent: content,
+      isDirty: isModified,
+      openTabs: updatedTabs,
+    });
+  },
+
+  saveActiveFile: async () => {
+    const state = get();
+    if (!state.activeFilePath) return false;
+
     try {
-      await api.writeFile(path, content);
-      set({ activeFileContent: content });
+      await api.writeFile(state.activeFilePath, state.activeFileContent);
+      const updatedTabs = state.openTabs.map((t) =>
+        t.path === state.activeFilePath ? { ...t, isDirty: false } : t
+      );
+      set({
+        isDirty: false,
+        activeOriginalContent: state.activeFileContent,
+        openTabs: updatedTabs,
+      });
+      return true;
     } catch (e) {
       console.error('Error saving file:', e);
+      return false;
+    }
+  },
+
+  setDiffMode: (mode: boolean, oldCode = '', newCode = '', actionId = '') => {
+    set({
+      diffMode: mode,
+      diffOldCode: oldCode,
+      diffNewCode: newCode,
+      activeActionId: actionId || null,
+    });
+  },
+
+  undoLastAction: async () => {
+    try {
+      const res = await api.undoLastAction();
+      await get().fetchApprovals();
+      return res.message;
+    } catch (e: any) {
+      console.error('Error undoing action:', e);
+      throw e;
     }
   },
 

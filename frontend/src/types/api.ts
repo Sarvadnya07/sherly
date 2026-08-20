@@ -93,6 +93,13 @@ export interface FileNode {
   children?: FileNode[] | null;
 }
 
+export interface WorkspaceTab {
+  path: string;
+  name: string;
+  isDirty: boolean;
+  content: string;
+}
+
 export interface FileReadResponse {
   path: string;
   content: string;
