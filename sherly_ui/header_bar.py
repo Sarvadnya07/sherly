@@ -6,17 +6,16 @@ model status pill badge, settings action, and window control buttons.
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal, QPoint, QRectF
-from PySide6.QtGui import QPainter, QColor, QPen, QBrush, QPainterPath, QFont
+from PySide6.QtCore import Qt, Signal, QPoint
+from PySide6.QtGui import QPainter, QColor, QBrush, QPainterPath, QFont
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QPushButton, QWidget
 )
 
 from sherly_ui.theme import (
     C_BG_CANVAS, C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_SURFACE,
-    C_BORDER_SUBTLE, C_BORDER_ACCENT, C_GREEN_SUCCESS,
-    FONT_FAMILY_UI, FONT_FAMILY_CODE, get_ui_font, get_code_font
+    C_ACCENT_PRIMARY, C_BORDER_SUBTLE, C_GREEN_SUCCESS,
+    get_ui_font, get_code_font
 )
 
 
@@ -25,30 +24,28 @@ class SherlyLogoMark(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setFixedSize(20, 20)
+        self.setFixedSize(18, 18)
 
     def paintEvent(self, _) -> None:
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         
-        # Draw outer hexagon / diamond prism
         path = QPainterPath()
-        path.moveTo(10, 2)
-        path.lineTo(18, 6.5)
-        path.lineTo(18, 13.5)
-        path.lineTo(10, 18)
-        path.lineTo(2, 13.5)
-        path.lineTo(2, 6.5)
+        path.moveTo(9, 2)
+        path.lineTo(16, 6)
+        path.lineTo(16, 12)
+        path.lineTo(9, 16)
+        path.lineTo(2, 12)
+        path.lineTo(2, 6)
         path.closeSubpath()
 
         p.fillPath(path, QBrush(QColor(C_ACCENT_PRIMARY)))
         
-        # Inner core
         core = QPainterPath()
-        core.moveTo(10, 6)
-        core.lineTo(14, 10)
-        core.lineTo(10, 14)
-        core.lineTo(6, 10)
+        core.moveTo(9, 5)
+        core.lineTo(13, 9)
+        core.lineTo(9, 13)
+        core.lineTo(5, 9)
         core.closeSubpath()
         p.fillPath(core, QBrush(QColor("#ffffff")))
 
@@ -61,25 +58,25 @@ class ModelStatusPill(QFrame):
     def __init__(self, text: str = "No Model Selected", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setFixedHeight(26)
+        self.setFixedHeight(24)
         self.setObjectName("ModelPill")
-        self.setStyleSheet(f"""
-            #ModelPill {{
-                background: {C_ACCENT_SURFACE};
-                border: 1px solid {C_BORDER_ACCENT};
-                border-radius: 13px;
-                padding: 0px 10px;
-            }}
-            #ModelPill:hover {{
-                background: rgba(124, 58, 237, 0.22);
-            }}
+        self.setStyleSheet("""
+            #ModelPill {
+                background: #18181b;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 6px;
+                padding: 0px 8px;
+            }
+            #ModelPill:hover {
+                background: #27272a;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+            }
         """)
         
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(8, 0, 8, 0)
+        lay.setContentsMargins(6, 0, 6, 0)
         lay.setSpacing(6)
         
-        # Emerald status indicator dot
         self.dot = QFrame()
         self.dot.setFixedSize(6, 6)
         self.dot.setStyleSheet(f"""
@@ -89,8 +86,8 @@ class ModelStatusPill(QFrame):
         lay.addWidget(self.dot)
         
         self.label = QLabel(text)
-        self.label.setFont(get_code_font(9, QFont.Weight.DemiBold))
-        self.label.setStyleSheet(f"color: #c4b5fd; background: transparent; border: none;")
+        self.label.setFont(get_code_font(8, QFont.Weight.Medium))
+        self.label.setStyleSheet("color: #d4d4d8; background: transparent; border: none;")
         lay.addWidget(self.label)
 
     def set_text(self, text: str) -> None:
@@ -111,7 +108,7 @@ class HeaderBar(QFrame):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setFixedHeight(44)
+        self.setFixedHeight(38)
         self.setObjectName("HeaderBar")
         self.setStyleSheet(f"""
             #HeaderBar {{
@@ -124,8 +121,8 @@ class HeaderBar(QFrame):
 
     def _setup_ui(self) -> None:
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(14, 0, 14, 0)
-        lay.setSpacing(10)
+        lay.setContentsMargins(12, 0, 12, 0)
+        lay.setSpacing(8)
 
         # ── App Logo Mark ─────────────────────────────────────────────────────
         self.logo = SherlyLogoMark(self)
@@ -133,30 +130,30 @@ class HeaderBar(QFrame):
 
         # ── App Breadcrumb / Title ────────────────────────────────────────────
         self.title_lbl = QLabel("Sherly")
-        self.title_lbl.setFont(get_ui_font(10, QFont.Weight.Bold))
-        self.title_lbl.setStyleSheet(f"color: {C_TEXT_PRIMARY}; letter-spacing: 0.2px;")
+        self.title_lbl.setFont(get_ui_font(9, QFont.Weight.Bold))
+        self.title_lbl.setStyleSheet(f"color: {C_TEXT_PRIMARY};")
         lay.addWidget(self.title_lbl)
 
-        self.sub_sep = QLabel("›")
-        self.sub_sep.setFont(get_ui_font(10, QFont.Weight.Normal))
+        self.sub_sep = QLabel("/")
+        self.sub_sep.setFont(get_ui_font(9, QFont.Weight.Normal))
         self.sub_sep.setStyleSheet(f"color: {C_TEXT_MUTED};")
         lay.addWidget(self.sub_sep)
 
-        self.sub_title = QLabel("Developer Workspace")
-        self.sub_title.setFont(get_ui_font(9, QFont.Weight.Medium))
+        self.sub_title = QLabel("Workspace")
+        self.sub_title.setFont(get_ui_font(9, QFont.Weight.Normal))
         self.sub_title.setStyleSheet(f"color: {C_TEXT_SECONDARY};")
         lay.addWidget(self.sub_title)
 
         lay.addStretch()
 
         # ── Model Status Badge ────────────────────────────────────────────────
-        self.model_badge = ModelStatusPill("Qwen2.5-Coder 3B • Local", self)
+        self.model_badge = ModelStatusPill("qwen2.5-coder:3b • Local", self)
         self.model_badge.clicked.connect(self.settings_clicked.emit)
         lay.addWidget(self.model_badge)
 
         # ── Settings Action ───────────────────────────────────────────────────
         self.settings_btn = QPushButton("⚙")
-        self.settings_btn.setFont(get_ui_font(11, QFont.Weight.Normal))
+        self.settings_btn.setFont(get_ui_font(10, QFont.Weight.Normal))
         self.settings_btn.setToolTip("Settings & Model Configuration")
         self._style_ctrl_btn(self.settings_btn)
         self.settings_btn.clicked.connect(self.settings_clicked.emit)
@@ -164,54 +161,54 @@ class HeaderBar(QFrame):
 
         # ── Window Controls ───────────────────────────────────────────────────
         min_btn = QPushButton("—")
-        min_btn.setFont(get_ui_font(10, QFont.Weight.Normal))
+        min_btn.setFont(get_ui_font(9, QFont.Weight.Normal))
         min_btn.setToolTip("Minimize")
         self._style_ctrl_btn(min_btn)
         min_btn.clicked.connect(self.minimize_clicked.emit)
         lay.addWidget(min_btn)
 
         max_btn = QPushButton("□")
-        max_btn.setFont(get_ui_font(11, QFont.Weight.Normal))
+        max_btn.setFont(get_ui_font(10, QFont.Weight.Normal))
         max_btn.setToolTip("Maximize")
         self._style_ctrl_btn(max_btn)
         max_btn.clicked.connect(self.maximize_clicked.emit)
         lay.addWidget(max_btn)
 
         close_btn = QPushButton("✕")
-        close_btn.setFont(get_ui_font(10, QFont.Weight.Normal))
+        close_btn.setFont(get_ui_font(9, QFont.Weight.Normal))
         close_btn.setToolTip("Close")
         self._style_ctrl_btn(close_btn, is_close=True)
         close_btn.clicked.connect(self.close_clicked.emit)
         lay.addWidget(close_btn)
 
     def _style_ctrl_btn(self, btn: QPushButton, is_close: bool = False) -> None:
-        btn.setFixedSize(28, 28)
+        btn.setFixedSize(24, 24)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         if is_close:
-            btn.setStyleSheet(f"""
-                QPushButton {{
+            btn.setStyleSheet("""
+                QPushButton {
                     background: transparent;
-                    color: {C_TEXT_MUTED};
+                    color: #71717a;
                     border: none;
-                    border-radius: 6px;
-                }}
-                QPushButton:hover {{
-                    background: rgba(244, 63, 94, 0.20);
-                    color: #f43f5e;
-                }}
+                    border-radius: 4px;
+                }
+                QPushButton:hover {
+                    background: rgba(239, 68, 68, 0.20);
+                    color: #ef4444;
+                }
             """)
         else:
-            btn.setStyleSheet(f"""
-                QPushButton {{
+            btn.setStyleSheet("""
+                QPushButton {
                     background: transparent;
-                    color: {C_TEXT_MUTED};
+                    color: #71717a;
                     border: none;
-                    border-radius: 6px;
-                }}
-                QPushButton:hover {{
+                    border-radius: 4px;
+                }
+                QPushButton:hover {
                     background: rgba(255, 255, 255, 0.08);
-                    color: {C_TEXT_PRIMARY};
-                }}
+                    color: #f4f4f5;
+                }
             """)
 
     def set_title(self, title: str) -> None:
@@ -234,7 +231,6 @@ class HeaderBar(QFrame):
         else:
             self.model_badge.set_text("No Model Selected")
 
-    # ── Window Dragging ───────────────────────────────────────────────────────
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             win = self.window()
@@ -246,4 +242,3 @@ class HeaderBar(QFrame):
             win = self.window()
             if win:
                 win.move(event.globalPosition().toPoint() - self._drag_pos)
-

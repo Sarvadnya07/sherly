@@ -1,112 +1,100 @@
 """
 MAIN ASSISTANT VIEW — sherly_ui/views/assistant_view.py
-Modern Cursor / VS Code Copilot style AI assistant view:
-  - Clean timeline stream with elegant user cards and rich assistant markdown responses
-  - Code block formatting and one-click copy to clipboard
-  - Bottom docked composer with file attachment, voice shortcut, and auto-expanding input
+Ultra-sleek ChatGPT / Cursor style AI assistant view:
+  - Clean natural timeline stream with compact user bubbles and elegant assistant responses
+  - High-contrast code block formatting and copy to clipboard
+  - Floating island composer with file attachment, mic trigger, and circular send button
 """
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
-from PySide6.QtCore import Qt, Signal, QTimer, QEvent
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QGuiApplication, QKeyEvent
 from PySide6.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit,
-    QScrollArea, QWidget, QFileDialog, QTextBrowser
+    QScrollArea, QWidget, QFileDialog
 )
 
 from sherly_ui.theme import (
-    C_BG_SURFACE, C_BG_CARD, C_BG_CARD_HOVER, C_BG_INPUT, C_BG_CANVAS,
+    C_BG_SURFACE, C_BG_CARD, C_BG_INPUT, C_BG_CANVAS,
     C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED, C_TEXT_DIM,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_LIGHT, C_ACCENT_SURFACE, C_ACCENT_GLOW,
+    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_LIGHT,
     C_BORDER_SUBTLE, C_BORDER_MEDIUM, C_BORDER_ACCENT,
     C_GREEN_SUCCESS, get_ui_font, get_code_font
 )
 
 
 class UserMessageNode(QWidget):
-    """Modern user prompt timeline card."""
+    """Sleek user prompt bubble aligned to the right."""
 
     def __init__(self, prompt: str, attached_file: str | None = None, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         lay = QHBoxLayout(self)
         lay.setContentsMargins(0, 4, 0, 4)
-        lay.setSpacing(12)
+        lay.setSpacing(10)
         lay.addStretch()
 
         card = QFrame()
-        card.setMaximumWidth(720)
-        card.setStyleSheet(f"""
-            QFrame {{
-                background: #141420;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-                padding: 10px 14px;
-            }}
+        card.setMaximumWidth(680)
+        card.setStyleSheet("""
+            QFrame {
+                background: #27272a;
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 14px;
+                padding: 8px 14px;
+            }
         """)
         c_lay = QVBoxLayout(card)
-        c_lay.setContentsMargins(4, 2, 4, 2)
-        c_lay.setSpacing(6)
+        c_lay.setContentsMargins(2, 2, 2, 2)
+        c_lay.setSpacing(4)
 
         p_lbl = QLabel(prompt)
         p_lbl.setWordWrap(True)
         p_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        p_lbl.setFont(get_ui_font(10, QFont.Weight.Medium))
+        p_lbl.setFont(get_ui_font(9, QFont.Weight.Normal))
         p_lbl.setStyleSheet(f"color: {C_TEXT_PRIMARY}; line-height: 1.4; border: none; background: transparent;")
         c_lay.addWidget(p_lbl)
 
         if attached_file:
-            att_pill = QLabel(f"📎 Attached: {Path(attached_file).name}")
+            att_pill = QLabel(f"📎 {Path(attached_file).name}")
             att_pill.setFont(get_code_font(8, QFont.Weight.Medium))
-            att_pill.setStyleSheet(f"""
-                background: {C_ACCENT_SURFACE};
-                color: #c4b5fd;
-                border: 1px solid {C_BORDER_ACCENT};
+            att_pill.setStyleSheet("""
+                background: #18181b;
+                color: #d4d4d8;
+                border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 4px;
-                padding: 2px 8px;
+                padding: 2px 6px;
             """)
             c_lay.addWidget(att_pill, 0, Qt.AlignmentFlag.AlignLeft)
 
         lay.addWidget(card)
 
-        avatar = QLabel("U")
-        avatar.setFixedSize(28, 28)
-        avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        avatar.setFont(get_ui_font(9, QFont.Weight.Bold))
-        avatar.setStyleSheet(f"""
-            background: rgba(255, 255, 255, 0.08);
-            color: {C_TEXT_PRIMARY};
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 14px;
-        """)
-        lay.addWidget(avatar, 0, Qt.AlignmentFlag.AlignTop)
-
 
 class TaskStatusNode(QWidget):
-    """Task status / processing indicator node."""
+    """Clean thinking indicator node."""
 
     def __init__(self, text: str = "Thinking...", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         lay = QHBoxLayout(self)
-        lay.setContentsMargins(4, 2, 4, 2)
-        lay.setSpacing(10)
+        lay.setContentsMargins(0, 4, 0, 4)
+        lay.setSpacing(8)
 
-        indicator = QLabel("●")
-        indicator.setFixedSize(24, 24)
+        indicator = QLabel("S")
+        indicator.setFixedSize(22, 22)
         indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        indicator.setFont(get_ui_font(9, QFont.Weight.Bold))
+        indicator.setFont(get_ui_font(8, QFont.Weight.Bold))
         indicator.setStyleSheet(f"""
-            background: {C_ACCENT_SURFACE};
-            color: #a78bfa;
-            border-radius: 12px;
+            background: {C_ACCENT_PRIMARY};
+            color: #ffffff;
+            border-radius: 4px;
         """)
         lay.addWidget(indicator)
 
         self.t_lbl = QLabel(text)
         self.t_lbl.setFont(get_ui_font(9, QFont.Weight.Medium))
-        self.t_lbl.setStyleSheet(f"color: {C_TEXT_MUTED};")
+        self.t_lbl.setStyleSheet("color: #a1a1aa;")
         lay.addWidget(self.t_lbl)
         lay.addStretch()
 
@@ -115,14 +103,14 @@ class TaskStatusNode(QWidget):
 
 
 class CodeSnippetBlock(QFrame):
-    """Modern dark code block with copy action."""
+    """Sleek dark code block with copy action."""
 
     def __init__(self, code_text: str, language: str = "python", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._code_text = code_text
         self.setStyleSheet("""
             CodeSnippetBlock {
-                background: #09090f;
+                background: #09090b;
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 8px;
             }
@@ -133,30 +121,30 @@ class CodeSnippetBlock(QFrame):
 
         # Header bar with language tag and copy button
         hdr = QFrame()
-        hdr.setStyleSheet("background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding: 4px 10px;")
+        hdr.setStyleSheet("background: #141418; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding: 4px 8px;")
         h_lay = QHBoxLayout(hdr)
-        h_lay.setContentsMargins(6, 4, 6, 4)
+        h_lay.setContentsMargins(6, 3, 6, 3)
 
         lang_lbl = QLabel(language.upper() if language else "CODE")
         lang_lbl.setFont(get_code_font(8, QFont.Weight.Bold))
-        lang_lbl.setStyleSheet("color: #a78bfa; border: none; background: transparent;")
+        lang_lbl.setStyleSheet("color: #a1a1aa; border: none; background: transparent;")
         h_lay.addWidget(lang_lbl)
         h_lay.addStretch()
 
-        self.copy_btn = QPushButton("Copy Code")
+        self.copy_btn = QPushButton("Copy")
         self.copy_btn.setFont(get_ui_font(8, QFont.Weight.Medium))
         self.copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.copy_btn.setFixedHeight(20)
         self.copy_btn.setStyleSheet("""
             QPushButton {
-                background: rgba(255, 255, 255, 0.06);
-                color: #94a3b8;
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                background: #27272a;
+                color: #d4d4d8;
+                border: 1px solid rgba(255, 255, 255, 0.06);
                 border-radius: 4px;
                 padding: 0px 8px;
             }
             QPushButton:hover {
-                background: rgba(255, 255, 255, 0.12);
+                background: #3f3f46;
                 color: #ffffff;
             }
         """)
@@ -168,7 +156,7 @@ class CodeSnippetBlock(QFrame):
         code_lbl = QLabel(code_text)
         code_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         code_lbl.setFont(get_code_font(9, QFont.Weight.Normal))
-        code_lbl.setStyleSheet("color: #f1f5f9; padding: 10px 12px; background: transparent; border: none;")
+        code_lbl.setStyleSheet("color: #f4f4f5; padding: 10px 12px; background: transparent; border: none;")
         lay.addWidget(code_lbl)
 
     def _copy_code(self) -> None:
@@ -176,83 +164,65 @@ class CodeSnippetBlock(QFrame):
         if clipboard:
             clipboard.setText(self._code_text)
             self.copy_btn.setText("✓ Copied")
-            QTimer.singleShot(1500, lambda: self.copy_btn.setText("Copy Code"))
+            QTimer.singleShot(1500, lambda: self.copy_btn.setText("Copy"))
 
 
 class AssistantMessageNode(QWidget):
-    """Modern Assistant response timeline card."""
+    """Natural flow Assistant response node."""
 
     def __init__(self, response_text: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._response_text = response_text
         lay = QHBoxLayout(self)
         lay.setContentsMargins(0, 4, 0, 4)
-        lay.setSpacing(12)
+        lay.setSpacing(10)
 
         # Avatar
         avatar = QLabel("S")
-        avatar.setFixedSize(28, 28)
+        avatar.setFixedSize(22, 22)
         avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        avatar.setFont(get_ui_font(10, QFont.Weight.Bold))
+        avatar.setFont(get_ui_font(8, QFont.Weight.Bold))
         avatar.setStyleSheet(f"""
             background: {C_ACCENT_PRIMARY};
             color: #ffffff;
-            border-radius: 14px;
+            border-radius: 4px;
         """)
         lay.addWidget(avatar, 0, Qt.AlignmentFlag.AlignTop)
 
-        # Content Card
-        card = QFrame()
-        card.setStyleSheet(f"""
-            QFrame {{
-                background: {C_BG_CARD};
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 12px;
-                padding: 12px 16px;
-            }}
-        """)
-        c_lay = QVBoxLayout(card)
-        c_lay.setContentsMargins(4, 2, 4, 2)
-        c_lay.setSpacing(8)
-
-        # Header with Copy button
-        hdr = QHBoxLayout()
-        hdr_lbl = QLabel("Sherly Assistant")
-        hdr_lbl.setFont(get_ui_font(9, QFont.Weight.Bold))
-        hdr_lbl.setStyleSheet(f"color: {C_ACCENT_LIGHT}; border: none; background: transparent;")
-        hdr.addWidget(hdr_lbl)
-
-        badge = QLabel("Copilot")
-        badge.setFont(get_code_font(8, QFont.Weight.Bold))
-        badge.setStyleSheet("color: #a78bfa; background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 4px; padding: 1px 6px;")
-        hdr.addWidget(badge)
-        hdr.addStretch()
-
-        self.copy_btn = QPushButton("Copy")
-        self.copy_btn.setFont(get_ui_font(8, QFont.Weight.Medium))
-        self.copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.copy_btn.setFixedHeight(22)
-        self.copy_btn.setStyleSheet("""
-            QPushButton {{
-                background: rgba(255, 255, 255, 0.05);
-                color: #94a3b8;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 4px;
-                padding: 0px 8px;
-            }}
-            QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.10);
-                color: #ffffff;
-            }}
-        """)
-        self.copy_btn.clicked.connect(self._copy_content)
-        hdr.addWidget(self.copy_btn)
-        c_lay.addLayout(hdr)
+        # Content Stream
+        content_container = QWidget()
+        c_lay = QVBoxLayout(content_container)
+        c_lay.setContentsMargins(0, 0, 0, 0)
+        c_lay.setSpacing(6)
 
         # Render Text & Code Blocks
         self._render_content(c_lay, response_text)
 
-        lay.addWidget(card, stretch=1)
+        # Bottom subtle action row
+        act_row = QHBoxLayout()
+        act_row.setSpacing(6)
+        
+        self.copy_btn = QPushButton("Copy")
+        self.copy_btn.setFont(get_ui_font(8, QFont.Weight.Normal))
+        self.copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.copy_btn.setFixedHeight(18)
+        self.copy_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #71717a;
+                border: none;
+                padding: 0px 4px;
+            }
+            QPushButton:hover {
+                color: #d4d4d8;
+            }
+        """)
+        self.copy_btn.clicked.connect(self._copy_content)
+        act_row.addWidget(self.copy_btn)
+        act_row.addStretch()
+        c_lay.addLayout(act_row)
+
+        lay.addWidget(content_container, stretch=1)
 
     def _render_content(self, layout: QVBoxLayout, text: str) -> None:
         """Parse markdown code blocks and render clean widgets."""
@@ -260,8 +230,8 @@ class AssistantMessageNode(QWidget):
             r_lbl = QLabel(text)
             r_lbl.setWordWrap(True)
             r_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-            r_lbl.setFont(get_ui_font(10, QFont.Weight.Normal))
-            r_lbl.setStyleSheet(f"color: {C_TEXT_PRIMARY}; line-height: 1.5; border: none; background: transparent;")
+            r_lbl.setFont(get_ui_font(9, QFont.Weight.Normal))
+            r_lbl.setStyleSheet("color: #e4e4e7; line-height: 1.5; border: none; background: transparent;")
             layout.addWidget(r_lbl)
             return
 
@@ -277,8 +247,8 @@ class AssistantMessageNode(QWidget):
                 t_lbl = QLabel(part.strip())
                 t_lbl.setWordWrap(True)
                 t_lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-                t_lbl.setFont(get_ui_font(10, QFont.Weight.Normal))
-                t_lbl.setStyleSheet(f"color: {C_TEXT_PRIMARY}; line-height: 1.5; border: none; background: transparent;")
+                t_lbl.setFont(get_ui_font(9, QFont.Weight.Normal))
+                t_lbl.setStyleSheet("color: #e4e4e7; line-height: 1.5; border: none; background: transparent;")
                 layout.addWidget(t_lbl)
 
     def _copy_content(self) -> None:
@@ -317,175 +287,228 @@ class AssistantView(QFrame):
         self.setObjectName("AssistantView")
         self.setStyleSheet(f"""
             #AssistantView {{
-                background: {C_BG_SURFACE};
+                background: {C_BG_CANVAS};
             }}
         """)
         self._setup_ui()
 
     def _setup_ui(self) -> None:
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(0, 0, 0, 0)
-        lay.setSpacing(0)
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(0, 0, 0, 0)
+        main_lay.setSpacing(0)
 
-        # Timeline Scroll Area
+        # ── Scrollable Chat Timeline Stream ───────────────────────────────────
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.scroll.setStyleSheet("background: transparent; border: none;")
 
-        self.stream_container = QWidget()
-        self.stream_lay = QVBoxLayout(self.stream_container)
-        self.stream_lay.setContentsMargins(28, 20, 28, 20)
-        self.stream_lay.setSpacing(14)
-        self.stream_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.timeline_widget = QWidget()
+        self.timeline_widget.setStyleSheet("background: transparent;")
+        self.timeline_lay = QVBoxLayout(self.timeline_widget)
+        self.timeline_lay.setContentsMargins(20, 16, 20, 16)
+        self.timeline_lay.setSpacing(14)
+        self.timeline_lay.addStretch()
 
-        # Welcome message
-        welcome_node = AssistantMessageNode("Hello! I'm Sherly. How can I assist you with your project today?")
-        self.stream_lay.addWidget(welcome_node)
+        self.scroll.setWidget(self.timeline_widget)
+        main_lay.addWidget(self.scroll, stretch=1)
 
-        self.scroll.setWidget(self.stream_container)
-        lay.addWidget(self.scroll, stretch=1)
+        # ── Docked Floating Island Composer ──────────────────────────────────
+        composer_container = QWidget()
+        composer_container.setStyleSheet("background: transparent;")
+        c_outer_lay = QVBoxLayout(composer_container)
+        c_outer_lay.setContentsMargins(20, 4, 20, 14)
 
-        # Bottom Docked Composer Container
-        input_container = QWidget()
-        ic_lay = QVBoxLayout(input_container)
-        ic_lay.setContentsMargins(28, 8, 28, 16)
-        ic_lay.setSpacing(6)
-
-        # Attached File Indicator Pill
-        self.att_pill = QFrame()
-        self.att_pill.hide()
-        self.att_pill.setStyleSheet(f"""
-            background: {C_ACCENT_SURFACE};
-            border: 1px solid {C_BORDER_ACCENT};
-            border-radius: 6px;
-        """)
-        att_lay = QHBoxLayout(self.att_pill)
-        att_lay.setContentsMargins(8, 4, 8, 4)
-        
-        self.att_lbl = QLabel()
-        self.att_lbl.setFont(get_code_font(8, QFont.Weight.Medium))
-        self.att_lbl.setStyleSheet("color: #c4b5fd;")
-        att_lay.addWidget(self.att_lbl)
-        
-        att_close = QPushButton("✕")
-        att_close.setFixedSize(16, 16)
-        att_close.setCursor(Qt.CursorShape.PointingHandCursor)
-        att_close.setStyleSheet("background: transparent; color: #a78bfa; border: none; font-size: 10px;")
-        att_close.clicked.connect(self._clear_attachment)
-        att_lay.addWidget(att_close)
-        att_lay.addStretch()
-        ic_lay.addWidget(self.att_pill, 0, Qt.AlignmentFlag.AlignLeft)
-
-        # Composer bar
-        bar = QFrame()
-        bar.setStyleSheet(f"""
-            QFrame {{
-                background: {C_BG_INPUT};
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-            }}
-            QFrame:focus-within {{
-                border: 1px solid {C_ACCENT_PRIMARY};
-            }}
-        """)
-        b_lay = QHBoxLayout(bar)
-        b_lay.setContentsMargins(10, 6, 10, 6)
-        b_lay.setSpacing(8)
-
-        attach_btn = QPushButton("📎")
-        attach_btn.setFont(get_ui_font(11, QFont.Weight.Normal))
-        attach_btn.setFixedSize(28, 28)
-        attach_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        attach_btn.setToolTip("Attach File")
-        attach_btn.setStyleSheet("""
-            QPushButton {
-                background: rgba(255, 255, 255, 0.05);
-                color: #94a3b8;
-                border: none;
+        # Attachment Banner
+        self.att_banner = QFrame()
+        self.att_banner.setStyleSheet("""
+            QFrame {
+                background: #18181b;
+                border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 6px;
+                padding: 2px 8px;
+            }
+        """)
+        att_lay = QHBoxLayout(self.att_banner)
+        att_lay.setContentsMargins(4, 2, 4, 2)
+        att_lay.setSpacing(6)
+
+        self.att_label = QLabel("")
+        self.att_label.setFont(get_code_font(8, QFont.Weight.Medium))
+        self.att_label.setStyleSheet("color: #d4d4d8;")
+        att_lay.addWidget(self.att_label)
+        att_lay.addStretch()
+
+        att_remove_btn = QPushButton("✕")
+        att_remove_btn.setFont(get_ui_font(8, QFont.Weight.Bold))
+        att_remove_btn.setFixedSize(16, 16)
+        att_remove_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        att_remove_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #71717a;
+                border: none;
             }
             QPushButton:hover {
-                background: rgba(255, 255, 255, 0.10);
-                color: #ffffff;
+                color: #ef4444;
             }
         """)
-        attach_btn.clicked.connect(self._browse_file)
-        b_lay.addWidget(attach_btn)
+        att_remove_btn.clicked.connect(self._clear_attachment)
+        att_lay.addWidget(att_remove_btn)
+        self.att_banner.hide()
+        c_outer_lay.addWidget(self.att_banner)
 
-        self.input_edit = AssistantComposerEdit()
-        self.input_edit.setFont(get_ui_font(10, QFont.Weight.Normal))
-        self.input_edit.setPlaceholderText("Ask Sherly anything (Enter to send, Shift+Enter for newline)...")
-        self.input_edit.setFixedHeight(36)
-        self.input_edit.setFrameShape(QFrame.Shape.NoFrame)
-        self.input_edit.setStyleSheet(f"background: transparent; color: {C_TEXT_PRIMARY}; border: none;")
-        self.input_edit.return_pressed.connect(self._submit)
-        b_lay.addWidget(self.input_edit, stretch=1)
+        # Composer Box
+        self.composer_box = QFrame()
+        self.composer_box.setStyleSheet("""
+            QFrame {
+                background: #18181b;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+            }
+            QFrame:focus-within {
+                border: 1px solid rgba(255, 255, 255, 0.16);
+            }
+        """)
+        comp_lay = QHBoxLayout(self.composer_box)
+        comp_lay.setContentsMargins(8, 6, 8, 6)
+        comp_lay.setSpacing(6)
 
-        send_btn = QPushButton("↑")
-        send_btn.setFont(get_ui_font(12, QFont.Weight.Bold))
-        send_btn.setFixedSize(30, 30)
-        send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        send_btn.setToolTip("Send Prompt")
-        send_btn.setStyleSheet(f"""
-            QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {C_ACCENT_PRIMARY}, stop:1 #9333ea);
-                color: #ffffff;
+        # File Attach Button
+        self.attach_btn = QPushButton("📎")
+        self.attach_btn.setFont(get_ui_font(10, QFont.Weight.Normal))
+        self.attach_btn.setFixedSize(26, 26)
+        self.attach_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.attach_btn.setToolTip("Attach File")
+        self.attach_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #71717a;
                 border: none;
-                border-radius: 8px;
-            }}
-            QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {C_ACCENT_HOVER}, stop:1 #a855f7);
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.08);
+                color: #f4f4f5;
+            }
+        """)
+        self.attach_btn.clicked.connect(self._open_file_attachment)
+        comp_lay.addWidget(self.attach_btn, 0, Qt.AlignmentFlag.AlignBottom)
+
+        # Text Input
+        self.input_edit = AssistantComposerEdit()
+        self.input_edit.setPlaceholderText("Ask Sherly anything (Enter to send, Shift+Enter for newline)...")
+        self.input_edit.setFont(get_ui_font(9, QFont.Weight.Normal))
+        self.input_edit.setFixedHeight(34)
+        self.input_edit.setStyleSheet(f"""
+            QTextEdit {{
+                background: transparent;
+                color: {C_TEXT_PRIMARY};
+                border: none;
+                padding: 6px 4px;
             }}
         """)
-        send_btn.clicked.connect(self._submit)
-        b_lay.addWidget(send_btn)
+        self.input_edit.return_pressed.connect(self._handle_submit)
+        comp_lay.addWidget(self.input_edit, stretch=1)
 
-        ic_lay.addWidget(bar)
-        lay.addWidget(input_container)
+        # Voice Input Trigger
+        self.voice_btn = QPushButton("🎙")
+        self.voice_btn.setFont(get_ui_font(10, QFont.Weight.Normal))
+        self.voice_btn.setFixedSize(26, 26)
+        self.voice_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.voice_btn.setToolTip("Voice Input (Ctrl+Shift+L)")
+        self.voice_btn.setStyleSheet("""
+            QPushButton {
+                background: transparent;
+                color: #71717a;
+                border: none;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.08);
+                color: #f4f4f5;
+            }
+        """)
+        comp_lay.addWidget(self.voice_btn, 0, Qt.AlignmentFlag.AlignBottom)
 
-    def _browse_file(self) -> None:
-        file_path, _ = QFileDialog.getOpenFileName(self, "Attach File to Assistant", str(Path.cwd()))
+        # Send Button
+        self.send_btn = QPushButton("↑")
+        self.send_btn.setFont(get_ui_font(10, QFont.Weight.Bold))
+        self.send_btn.setFixedSize(26, 26)
+        self.send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.send_btn.setToolTip("Send Prompt (Enter)")
+        self.send_btn.setStyleSheet("""
+            QPushButton {
+                background: #f4f4f5;
+                color: #18181b;
+                border: none;
+                border-radius: 13px;
+            }
+            QPushButton:hover {
+                background: #ffffff;
+            }
+            QPushButton:pressed {
+                background: #d4d4d8;
+            }
+        """)
+        self.send_btn.clicked.connect(self._handle_submit)
+        comp_lay.addWidget(self.send_btn, 0, Qt.AlignmentFlag.AlignBottom)
+
+        c_outer_lay.addWidget(self.composer_box)
+        main_lay.addWidget(composer_container)
+
+    def _open_file_attachment(self) -> None:
+        file_path, _ = QFileDialog.getOpenFileName(self, "Attach File to Context", str(Path.cwd()))
         if file_path:
             self._attached_file_path = file_path
-            self.att_lbl.setText(f"Attached: {Path(file_path).name}")
-            self.att_pill.show()
+            self.att_label.setText(f"Attached: {Path(file_path).name}")
+            self.att_banner.show()
 
     def _clear_attachment(self) -> None:
         self._attached_file_path = None
-        self.att_pill.hide()
+        self.att_label.setText("")
+        self.att_banner.hide()
 
-    def _submit(self) -> None:
+    def _handle_submit(self) -> None:
         text = self.input_edit.toPlainText().strip()
         if not text:
             return
 
+        self.add_user_message(text, self._attached_file_path)
         self.input_edit.clear()
-        att = self._attached_file_path
         self._clear_attachment()
+        self.show_task_status("Thinking...")
+        self.message_submitted.emit(text)
 
-        # Add user prompt node
-        u_node = UserMessageNode(text, attached_file=att)
-        self.stream_lay.addWidget(u_node)
-
-        # Show task status node
-        self._task_node = TaskStatusNode("Thinking...")
-        self.stream_lay.addWidget(self._task_node)
-
+    def add_user_message(self, prompt: str, attached_file: str | None = None) -> None:
+        node = UserMessageNode(prompt, attached_file, self.timeline_widget)
+        self.timeline_lay.insertWidget(self.timeline_lay.count() - 1, node)
         self._scroll_to_bottom()
-        full_prompt = f"File: {att}\n{text}" if att else text
-        self.message_submitted.emit(full_prompt)
 
-    def add_response(self, text: str, response: str) -> None:
-        """Called when AI worker completes response."""
+    def add_assistant_message(self, response: str) -> None:
+        self.hide_task_status()
+        node = AssistantMessageNode(response, self.timeline_widget)
+        self.timeline_lay.insertWidget(self.timeline_lay.count() - 1, node)
+        self._scroll_to_bottom()
+
+    def add_response(self, prompt: str, response: str) -> None:
+        self.add_user_message(prompt)
+        self.add_assistant_message(response)
+
+    def show_task_status(self, text: str = "Thinking...") -> None:
+        if self._task_node is None:
+            self._task_node = TaskStatusNode(text, self.timeline_widget)
+            self.timeline_lay.insertWidget(self.timeline_lay.count() - 1, self._task_node)
+        else:
+            self._task_node.set_text(text)
+            self._task_node.show()
+        self._scroll_to_bottom()
+
+    def hide_task_status(self) -> None:
         if self._task_node:
-            self.stream_lay.removeWidget(self._task_node)
-            self._task_node.deleteLater()
-            self._task_node = None
-
-        a_node = AssistantMessageNode(response)
-        self.stream_lay.addWidget(a_node)
-        self._scroll_to_bottom()
+            self._task_node.hide()
 
     def _scroll_to_bottom(self) -> None:
-        sb = self.scroll.verticalScrollBar()
-        sb.setValue(sb.maximum())
+        QTimer.singleShot(50, lambda: self.scroll.verticalScrollBar().setValue(
+            self.scroll.verticalScrollBar().maximum()
+        ))
