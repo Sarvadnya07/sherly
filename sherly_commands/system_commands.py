@@ -1,11 +1,12 @@
 import os
+import platform
 import subprocess
 import webbrowser
+from pathlib import Path
 
 
 def run_system_command(text):
-
-    text = text.lower()
+    text = text.lower().strip()
 
     if "open chrome" in text:
         webbrowser.open("https://google.com")
@@ -16,15 +17,26 @@ def run_system_command(text):
         return "Opening YouTube"
 
     if "open vscode" in text:
-        subprocess.Popen("code")
-        return "Opening VS Code"
+        try:
+            subprocess.Popen(["code"], shell=False)
+            return "Opening VS Code"
+        except FileNotFoundError:
+            return "VS Code command 'code' was not found."
 
     if "open downloads" in text:
-        os.startfile("C:\\Users\\ASUS\\Downloads")
+        downloads = Path.home() / "Downloads"
+        if platform.system() == "Windows":
+            os.startfile(downloads)  # type: ignore[attr-defined]
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", str(downloads)], shell=False)
+        else:
+            subprocess.Popen(["xdg-open", str(downloads)], shell=False)
         return "Opening Downloads"
 
     if "shutdown computer" in text:
-        subprocess.run(["shutdown", "/s", "/t", "1"], check=False)
-        return "Shutting down computer"
+        if platform.system() == "Windows":
+            subprocess.run(["shutdown", "/s", "/t", "1"], check=False, shell=False)
+            return "Shutting down computer"
+        return "Shutdown is only implemented for Windows."
 
     return None
