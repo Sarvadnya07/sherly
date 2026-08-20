@@ -1,33 +1,25 @@
-# Future Scope & Roadmap
+# Sherly AI — Future Scope & Strategic Roadmap
 
-Sherly is continuously evolving. This document outlines the short-term and long-term roadmap for the project, focusing on scalability, agentic capabilities, and deployment.
+**Document Version**: 2.0.0  
+**Status**: ACTIVE ROADMAP  
 
-## 🚀 Short-Term Improvements (Next 3-6 Months)
+---
 
-1. **Enhanced Visual UI Debugger**
-   - Provide a visual tree of the DOM/Desktop UI for the agent to inspect.
-   - Allow Sherly to visually highlight the exact lines of code it plans to change directly within the IDE, rather than just in the Sherly PySide6 app.
+## 1. Short-Term Roadmap (v2.1.0)
+- **Native OS Binary Distribution**: Automated multi-platform code signing for Windows `.msi`/`.exe`, macOS `.dmg`, and Linux `.deb`/`.AppImage`.
+- **Enhanced Voice Activity Detection (VAD)**: Adaptive background noise profiling for robust speech onset detection in noisy office environments.
+- **Advanced Workspace Navigation**: File tree directory sidebar in the Workspace tab with symbol/fuzzy search (`Ctrl+P`).
 
-2. **Multi-Agent Swarm (MAS)**
-   - Transition from a single orchestrator to a multi-agent system.
-   - Example: A `Planner Agent` breaks down a task, a `Coder Agent` writes the code, and a `QA Agent` runs tests before presenting the final patch to the user.
+---
 
-3. **Expanded Cloud Fallbacks (Opt-In)**
-   - While Sherly is local-first, we will add support for OpenAI/Anthropic APIs for users who explicitly opt-in and require heavier reasoning models than their local hardware supports.
+## 2. Mid-Term Roadmap (v2.2.0 — v2.3.0)
+- **Multi-Tenant Remote API**: Database-backed user management and scoped API keys for remote team collaboration.
+- **Language Server Protocol (LSP) Integration**: Direct integration with `pyright`, `gopls`, and `tsserver` for real-time in-editor autocompletion and diagnostic squiggles.
+- **Interactive Multi-Agent Teamwork**: Visual agent graph orchestrating `CoderAgent`, `SystemAgent`, and `BrowserAgent` in parallel subtasks.
 
-## 📈 Long-Term Roadmap (6-12 Months)
+---
 
-1. **Full Workspace Autonomy**
-   - Implement persistent background monitoring. Sherly can proactively suggest fixes when a test suite fails in the background or a linter throws an error, without being explicitly invoked.
-
-2. **Custom Skill & Plugin Ecosystem**
-   - Open up the `plugins/` directory to allow the community to build custom deterministic tools and share them via a central registry.
-   - E.g., A dedicated `Kubernetes` plugin to let Sherly interact with clusters safely.
-
-3. **DevOps & CI/CD Evolution**
-   - Deploy Sherly as a GitHub Action or GitLab CI runner that reviews PRs deterministically using the exact same safety constraints used locally.
-
-## 🤖 AI / Automation Opportunities
-
-- **Self-Healing Tests**: Allow Sherly to not just write tests, but automatically update brittle tests when UI/API contracts change.
-- **Contextual Pre-Fetching**: Use smaller models (like Llama 3 8B) to pre-fetch relevant files into context *while* the user is typing or speaking, drastically reducing time-to-first-token.
+## 3. Long-Term Evolution (v3.0.0+)
+- **Hardware-Accelerated Local Inference**: Direct integration with WebGPU / ONNX Runtime for ultra-low latency sub-second model responses without external daemons.
+- **Autonomous Project Healing Engine**: Background CI loop automatically diagnosing failed unit tests and presenting ready-to-merge patch pull requests.
+- **Decentralized Team Knowledge**: P2P encrypted memory exchange between team members on private networks.

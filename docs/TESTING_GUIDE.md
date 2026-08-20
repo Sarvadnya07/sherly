@@ -1,41 +1,31 @@
-# Testing Guide
+# Sherly AI — Testing Strategy & Verification Guide
 
-Sherly relies on a comprehensive test suite to ensure the deterministic safety layers, parsing logic, and state management remain intact. We currently have over 210 passing tests.
+**Test Suite Size**: 115 Tests Passing  
+**Framework**: PyTest, Vitest, Playwright  
 
-## 🏃 Running Tests
+---
 
-We use `pytest` as our testing framework. 
+## 1. Running Automated Tests
 
-To run the entire test suite:
+### Python Backend Suite
 ```bash
-pytest tests/
+# Run all unit and integration tests
+pytest tests/ -q
+
+# Run specific test file
+pytest tests/test_security.py -v
 ```
 
-To run a specific test file:
+### Packaging & Integrity Verification
 ```bash
-pytest tests/test_command_router.py
+python scripts/package.py --verify
 ```
 
-## 🎯 Test Strategy
+---
 
-1. **Unit Tests (Core Logic):**
-   - The majority of our tests focus on `sherly_core` and `safety_guard`. 
-   - We mock out the LLM responses to ensure tests run quickly and deterministically without requiring a local GPU.
-   
-2. **Integration Tests:**
-   - We test the flow from `input_validator` -> `command_router` -> `action_manager`.
-   - These tests ensure that when an action is flagged as `CONFIRM`, it is properly staged in memory and *not* written to disk automatically.
+## 2. Test Suite Architecture
 
-3. **UI Tests:**
-   - PySide6 UI tests verify that the patching window opens correctly and handles `approve`/`reject` signals accurately.
-
-## 🚧 Edge Cases Handled
-
-- **Malformed Diff Generation:** LLMs frequently generate malformed markdown diffs. Our test suite includes dozens of examples of hallucinated or badly formatted diffs to ensure `action_manager.py` fails gracefully rather than corrupting user files.
-- **Prompt Injection:** We test against known jailbreak strings to ensure `safety_guard.py` triggers an immediate block.
-- **Concurrent Requests:** Tests simulate rapid-fire inputs to ensure the locking mechanisms prevent race conditions.
-
-## 🔮 Future Automation
-
-- **GitHub Actions:** We plan to integrate `pytest` into a CI pipeline for every PR.
-- **Mocked Ollama Server:** A lightweight mock server to simulate slow LLM responses and test the timeout/circuit-breaker logic under load.
+- **`tests/test_security.py`**: Validates SSRF defense, command injection blocking, path traversal rejection, and secret redaction.
+- **`tests/test_policy.py`**: Validates action classification (`SAFE`, `CONFIRM`, `DANGEROUS`, `BLOCKED`).
+- **`tests/test_action_manager.py`**: Validates 120s TTL expiration, idempotent approval, and deterministic rollback.
+- **`tests/test_preview.py`**: Validates pre-write base state conflict detection.

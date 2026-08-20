@@ -1,73 +1,34 @@
 # Contributing to Sherly AI
 
-First off, thank you for considering contributing to Sherly AI! It's people like you that make Sherly such a powerful and secure local orchestrator.
+Thank you for contributing to Sherly AI! We welcome bug fixes, documentation improvements, and capability plugins.
 
-## 🤝 Code of Conduct
-By participating in this project, you are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md). Please report unacceptable behavior to the project maintainers.
+---
 
-## 🛠️ Getting Started
+## 1. Development Workflow
 
-### 1. Fork and Clone
-Fork the repository on GitHub and clone your fork locally:
-```bash
-git clone https://github.com/YOUR-USERNAME/sherly.git
-cd sherly
-```
+1. **Fork & Branch**:
+   ```bash
+   git checkout -b fix/issue-description
+   ```
+2. **Set Up Development Environment**:
+   Follow [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md).
+3. **Coding Standards**:
+   - Python: Type annotations, clean docstrings, snake_case.
+   - Frontend: TypeScript, React hooks, Tailwind CSS classes.
+4. **Run Test Suite**:
+   ```bash
+   pytest tests/ -q
+   ```
+5. **Submit Pull Request**:
+   Describe your changes clearly with relevant issue references.
 
-### 2. Set Up the Environment
-Create a virtual environment and install the required dependencies:
-```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+---
 
-### 3. Pre-Commit Hooks
-We use `pre-commit` to maintain code quality. Install it using:
-```bash
-pre-commit install
-```
-This ensures your code is formatted (with Ruff) before every commit.
+## 2. Commit Message Guidelines
 
-## 🌿 Branching Strategy
-
-- **`main`**: The primary, stable branch.
-- **`dev`** or **`develop`**: Integration branch for upcoming releases.
-- **Feature Branches**: Branch off `dev` using the format `feature/your-feature-name`.
-- **Bugfix Branches**: Branch off `dev` using the format `bugfix/issue-description`.
-
-## 💻 Coding Standards
-
-- **Python Version**: 3.10+
-- **Type Hinting**: All new functions must include type hints.
-- **Docstrings**: We follow Google-style docstrings.
-- **Linting**: Code must pass `ruff` validation.
-- **UI Framework**: PySide6 is used for the desktop frontend. Ensure UI logic is decoupled from `sherly_core`.
-
-## 🧪 Testing
-
-Sherly relies heavily on tests to ensure the deterministic safety layers remain intact.
-
-- Run the full test suite before submitting a PR:
-  ```bash
-  pytest tests/
-  ```
-- Any new features must include corresponding unit tests.
-- Bug fixes should include regression tests to prevent the issue from reappearing.
-
-## 📝 Pull Request Process
-
-1. Ensure your branch is up-to-date with `dev`.
-2. Push your changes to your fork.
-3. Open a Pull Request against the `dev` branch.
-4. Fill out the PR template completely.
-5. Wait for CI checks to pass and a maintainer to review.
-
-### PR Title Format
-Please use [Conventional Commits](https://www.conventionalcommits.org/):
-- `feat:` for new features
-- `fix:` for bug fixes
-- `docs:` for documentation updates
-- `refactor:` for code restructuring without behavioral changes
-
-Thank you for helping us bring agency back to the local development environment!
+We follow Conventional Commits:
+- `feat:` New features or capabilities
+- `fix:` Bug fixes
+- `docs:` Documentation updates
+- `test:` Unit or integration test additions
+- `refactor:` Code improvements with zero behavior change

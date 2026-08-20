@@ -1,64 +1,62 @@
-# Setup & Installation Guide
+# Sherly AI — Complete Environment Setup & Troubleshooting Guide
 
-This guide provides detailed instructions on how to set up Sherly for local development and usage.
+**Target Version**: 2.0.0  
 
-## 🛠️ Environment Prerequisites
+---
 
-- **OS:** Windows 10/11, macOS (Apple Silicon recommended), or Linux (Ubuntu 20.04+)
-- **Python:** Version 3.10 or higher
-- **Git:** Installed and available in PATH
-- **Ollama:** Installed and running locally
+## 1. System Requirements
 
-## 📦 Installation Steps
+- **Operating System**: Windows 10/11 (Primary Runtime Verified), macOS 12+, Ubuntu 22.04+
+- **Python**: Version 3.10 to 3.13 (Python 3.13 recommended)
+- **Node.js**: Version 18.x or 20.x LTS
+- **RAM**: Minimum 8GB (16GB recommended for local 7B models)
+- **Hardware**: Dedicated microphone for voice commands (optional)
 
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/Sarvadnya07/sherly.git
-   cd sherly
-   ```
+---
 
-2. **Create a Virtual Environment**
-   It is highly recommended to isolate dependencies.
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
-   
-   # macOS / Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+## 2. Installation Steps
 
-3. **Install Python Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *Note: `faster-whisper` and `PySide6` are large packages and may take some time to download.*
+### Step 1: Clone & Python Environment
+```bash
+git clone https://github.com/Sarvadnya07/sherly.git
+cd sherly
 
-4. **Pull an Ollama Model**
-   Sherly needs a local model to fall back on when deterministic logic isn't enough. We recommend Llama 3 for general use.
-   ```bash
-   ollama pull llama3
-   ```
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
 
-## 🚀 Running Sherly
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-Run the main entry point:
+### Step 2: Build Frontend Assets
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+### Step 3: Local Model Setup (Ollama)
+```bash
+# In a separate terminal:
+ollama serve
+ollama pull qwen2.5-coder:3b
+```
+
+### Step 4: Run Application
 ```bash
 python main.py
 ```
-This will initialize the dependency check, connect to Ollama, and launch the PySide6 UI.
 
-## 🔧 Troubleshooting
+---
 
-### Audio / Microphone Issues
-- **Windows:** Ensure your default recording device is correctly set in Sound Settings. `sounddevice` relies on the OS default.
-- **macOS:** You may be prompted to grant Terminal/Python access to the microphone. Ensure you allow this in `System Settings > Privacy & Security > Microphone`.
+## 3. Common Troubleshooting
 
-### "Ollama Not Connected" Warning
-If you see this on startup:
-1. Verify Ollama is running (`ollama serve` or via the desktop app).
-2. Check if it's running on the default port (`localhost:11434`). If not, set the `OLLAMA_URL` in your `.env`.
-
-### PySide6 High DPI Issues (Windows)
-If the UI looks blurry or improperly scaled, ensure the environment variable `QT_ENABLE_HIGHDPI_SCALING=0` is being respected. This is set automatically in `main.py`, but you may need to adjust your OS display scaling.
+| Symptom | Cause | Resolution |
+| :--- | :--- | :--- |
+| `Ollama connection refused` | Ollama daemon not running. | Run `ollama serve` or configure cloud API keys. |
+| `Port 8000 in use` | Background process holding port 8000. | Set `SHERLY_PORT=8080` in environment. |
+| `No module named sounddevice` | Missing PortAudio libraries on Linux. | Run `sudo apt install libportaudio2`. |
