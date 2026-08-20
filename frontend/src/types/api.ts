@@ -199,6 +199,17 @@ export interface ModelChangedEvent {
   request_id?: string;
 }
 
+export interface TokenStreamEvent {
+  event_type: 'token_stream';
+  payload: {
+    token: string;
+    message_id?: string;
+    is_final?: boolean;
+  };
+  timestamp?: number;
+  request_id?: string;
+}
+
 export interface PongEvent {
   event_type: 'pong';
   payload: Record<string, never>;
@@ -211,4 +222,5 @@ export type SherlyEvent =
   | SttTextEvent
   | ActionUpdateEvent
   | ModelChangedEvent
+  | TokenStreamEvent
   | PongEvent;

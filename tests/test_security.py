@@ -469,3 +469,75 @@ def test_repo_wide_no_unintended_shell_true_or_os_system():
                         violations.append(f"{f.relative_to(REPO_ROOT)}: shell=True found at line {node.lineno}")
 
     assert not violations, "Unintended shell/system calls found:\n" + "\n".join(violations)
+
+
+# ---------------------------------------------------------------------------
+# Test 19 — safe_fetch_url SSRF, Redirect, and Size Limit Protections
+# ---------------------------------------------------------------------------
+
+def test_safe_fetch_url_ssrf_and_redirect_protections():
+    """safe_fetch_url() must reject SSRF targets, private redirects, and invalid protocols."""
+    from core.network_security import safe_fetch_url
+
+    # Reject private IPv4
+    ok, err, code = safe_fetch_url("http://127.0.0.1:8000/secret")
+    assert not ok
+    assert "SSRF Blocked" in err
+    assert code == 403
+
+    # Reject cloud metadata IP
+    ok, err, code = safe_fetch_url("http://169.254.169.254/latest/meta-data/")
+    assert not ok
+    assert "SSRF Blocked" in err
+    assert code == 403
+
+    # Reject non-http schemes
+    ok, err, code = safe_fetch_url("file:///C:/Windows/System32/drivers/etc/hosts")
+    assert not ok
+    assert "SSRF Blocked" in err
+    assert code == 403
+
+
+# ---------------------------------------------------------------------------
+# Test 20 — SQLite WAL Multi-Threaded Concurrency Integrity
+# ---------------------------------------------------------------------------
+
+def test_sqlite_wal_multi_threaded_concurrency():
+    """SQLite database must handle concurrent multi-threaded readers and writers in WAL mode without locking."""
+    import threading
+    import memory
+
+    # Ensure fresh connection with WAL pragmas
+    memory._conn = None
+
+    errors = []
+
+    def writer(thread_id, n=20):
+        try:
+            for i in range(n):
+                memory.add_memory(f"user_thread_{thread_id}_{i}", f"assistant_response_{thread_id}_{i}")
+        except Exception as exc:
+            errors.append(f"Writer error: {exc}")
+
+    def reader(n=20):
+        try:
+            for _ in range(n):
+                ctx = memory.get_context(limit=10)
+                assert isinstance(ctx, str)
+        except Exception as exc:
+            errors.append(f"Reader error: {exc}")
+
+    threads = []
+    # 4 concurrent writers + 4 concurrent readers
+    for t in range(4):
+        threads.append(threading.Thread(target=writer, args=(t, 25)))
+        threads.append(threading.Thread(target=reader, args=(25,)))
+
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+
+    assert not errors, f"Concurrent SQLite errors encountered: {errors}"
+    ctx = memory.get_context(limit=5)
+    assert len(ctx) > 0

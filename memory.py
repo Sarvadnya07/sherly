@@ -20,9 +20,12 @@ _conn: sqlite3.Connection | None = None
 def _get_conn() -> sqlite3.Connection:
     global _conn
     if _conn is None:
-        _conn = sqlite3.connect("sherly_memory.db", check_same_thread=False)
-        _conn.execute("PRAGMA journal_mode=WAL")   # concurrent reads
-        _conn.execute("PRAGMA synchronous=NORMAL")
+        _conn = sqlite3.connect("sherly_memory.db", check_same_thread=False, timeout=10.0)
+        _conn.execute("PRAGMA journal_mode=WAL")       # Enables non-blocking concurrent reads during writes
+        _conn.execute("PRAGMA synchronous=NORMAL")      # Safe durability in WAL mode with fast writes
+        _conn.execute("PRAGMA busy_timeout=5000")       # 5000ms wait to avoid 'database is locked' errors
+        _conn.execute("PRAGMA cache_size=-64000")       # 64MB page cache
+        _conn.execute("PRAGMA temp_store=MEMORY")       # Fast in-memory temp tables
         _conn.execute(
             "CREATE TABLE IF NOT EXISTS memory "
             "(key TEXT UNIQUE, value TEXT)"
@@ -31,6 +34,7 @@ def _get_conn() -> sqlite3.Connection:
             "CREATE TABLE IF NOT EXISTS chat_history "
             "(id INTEGER PRIMARY KEY, user TEXT, assistant TEXT)"
         )
+        _conn.execute("CREATE INDEX IF NOT EXISTS idx_chat_history_id ON chat_history (id DESC)")
         _conn.commit()
     return _conn
 

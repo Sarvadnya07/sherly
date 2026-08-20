@@ -92,9 +92,22 @@ interface SherlyState {
   cancelVoiceSession: () => Promise<void>;
   stopVoiceSpeaking: () => Promise<void>;
   initWebSocket: () => void;
+  appendStreamToken: (token: string, messageId?: string) => void;
+  flushStreamBuffer: () => void;
 }
 
 let activeChatAbort: AbortController | null = null;
+
+// ── Item 1 (P1): React Token Stream Batching Buffer ────────────────────────
+interface TokenBatchBuffer {
+  tokensByMessageId: Map<string, string[]>;
+  rafHandle: number | null;
+}
+
+const streamBuffer: TokenBatchBuffer = {
+  tokensByMessageId: new Map(),
+  rafHandle: null,
+};
 
 export const useSherlyStore = create<SherlyState>((set, get) => ({
   activeView: 'workspace',
@@ -190,6 +203,9 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
       activeChatAbort.abort();
       activeChatAbort = null;
     }
+
+    // Flush any pending buffered tokens immediately before cancelling
+    get().flushStreamBuffer();
 
     try {
       wsService.send({
@@ -552,6 +568,68 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     setTimeout(() => set({ voiceState: 'idle' }), 500);
   },
 
+  appendStreamToken: (token: string, messageId?: string) => {
+    const key = messageId || 'latest';
+    const existing = streamBuffer.tokensByMessageId.get(key) || [];
+    existing.push(token);
+    streamBuffer.tokensByMessageId.set(key, existing);
+
+    if (streamBuffer.rafHandle === null) {
+      const scheduleRaf = typeof requestAnimationFrame === 'function'
+        ? requestAnimationFrame
+        : (cb: FrameRequestCallback) => setTimeout(cb, 16);
+      streamBuffer.rafHandle = scheduleRaf(() => {
+        streamBuffer.rafHandle = null;
+        get().flushStreamBuffer();
+      });
+    }
+  },
+
+  flushStreamBuffer: () => {
+    if (streamBuffer.rafHandle !== null) {
+      if (typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(streamBuffer.rafHandle);
+      } else {
+        clearTimeout(streamBuffer.rafHandle as any);
+      }
+      streamBuffer.rafHandle = null;
+    }
+    if (streamBuffer.tokensByMessageId.size === 0) return;
+
+    const snapshot = new Map(streamBuffer.tokensByMessageId);
+    streamBuffer.tokensByMessageId.clear();
+
+    set((state) => {
+      const history = [...state.chatHistory];
+      let mutated = false;
+
+      snapshot.forEach((tokens, msgId) => {
+        const appended = tokens.join('');
+        if (!appended) return;
+
+        let targetIdx = -1;
+        if (msgId && msgId !== 'latest') {
+          targetIdx = history.findIndex((m) => m.id === msgId);
+        }
+        if (targetIdx === -1) {
+          targetIdx = history.length - 1;
+        }
+
+        if (targetIdx >= 0 && targetIdx < history.length) {
+          const target = history[targetIdx];
+          history[targetIdx] = {
+            ...target,
+            status: target.status === 'thinking' ? 'streaming' : target.status,
+            assistant_response: (target.assistant_response || '') + appended,
+          };
+          mutated = true;
+        }
+      });
+
+      return mutated ? { chatHistory: history } : state;
+    });
+  },
+
   initWebSocket: () => {
     wsService.connect();
     wsService.subscribe((event) => {
@@ -576,6 +654,11 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
 
         if (st === 'listening') {
           get().setActiveView('voice');
+        }
+      } else if (event.event_type === 'token_stream') {
+        get().appendStreamToken(event.payload.token, event.payload.message_id);
+        if (event.payload.is_final) {
+          get().flushStreamBuffer();
         }
       } else if (event.event_type === 'model_changed') {
         set({
