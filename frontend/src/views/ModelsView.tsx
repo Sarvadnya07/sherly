@@ -190,22 +190,18 @@ export const ModelsView: React.FC = () => {
               </p>
             </div>
 
-            {/* Capabilities Grid */}
+            {/* Capabilities Badge Grid */}
             <div className="flex flex-col gap-2">
-              <span className="text-[9px] font-bold text-gray-500 tracking-wider">CAPABILITIES</span>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-brand-surface border border-brand-border rounded-lg p-2 text-center text-purple-300 font-semibold text-[11px]">
-                  Code Gen
-                </div>
-                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-2 text-center text-gray-600 text-[11px]">
-                  Vision
-                </div>
-                <div className="bg-brand-surface border border-brand-border rounded-lg p-2 text-center text-purple-300 font-semibold text-[11px]">
-                  Reasoning
-                </div>
-                <div className="bg-brand-surface border border-brand-border rounded-lg p-2 text-center text-purple-300 font-semibold text-[11px]">
-                  Instruct
-                </div>
+              <span className="text-[9px] font-bold text-gray-500 tracking-wider">CAPABILITIES & METADATA</span>
+              <div className="flex flex-wrap gap-1.5 text-xs">
+                {activeModelInfo.coding && (
+                  <Badge variant="brand" size="md">Coding Specialist</Badge>
+                )}
+                <Badge variant="neutral" size="md" className="uppercase">{activeModelInfo.family}</Badge>
+                {activeModelInfo.tag && activeModelInfo.tag !== 'latest' && (
+                  <Badge variant="neutral" size="md">{activeModelInfo.tag}</Badge>
+                )}
+                <Badge variant="neutral" size="md">{activeModelInfo.local ? 'Local Inference' : 'Cloud Endpoint'}</Badge>
               </div>
             </div>
 
@@ -213,32 +209,32 @@ export const ModelsView: React.FC = () => {
             <div className="flex flex-col gap-2.5">
               <span className="text-[9px] font-bold text-gray-500 tracking-wider">RESOURCE ALLOCATION</span>
 
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-400">Disk Footprint</span>
-                <span className="text-gray-100 font-bold">
-                  {(activeModelInfo.size / (1024 * 1024 * 1024)).toFixed(1)} GB
-                </span>
-              </div>
+              {activeModelInfo.size > 0 && (
+                <>
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-gray-400">Disk Footprint</span>
+                    <span className="text-gray-100 font-bold">
+                      {(activeModelInfo.size / (1024 * 1024 * 1024)).toFixed(2)} GB
+                    </span>
+                  </div>
 
-              {/* Memory Visual Bar */}
-              <div className="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-brand rounded-full"
-                  style={{ width: `${Math.min(100, Math.max(15, (activeModelInfo.size / (1024 * 1024 * 1024 * 8)) * 100))}%` }}
-                />
-              </div>
+                  {/* Memory Visual Bar */}
+                  <div className="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-brand rounded-full"
+                      style={{ width: `${Math.min(100, Math.max(15, (activeModelInfo.size / (1024 * 1024 * 1024 * 8)) * 100))}%` }}
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="flex items-center justify-between text-xs font-mono pt-1">
-                <span className="text-gray-400">Host</span>
-                <span className="text-gray-200 font-medium">127.0.0.1:11434</span>
-              </div>
-              <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-gray-400">Provider</span>
-                <span className="text-gray-200 font-medium">Ollama Local</span>
+                <span className="text-gray-200 font-medium">{activeModelInfo.local ? 'Ollama' : 'Cloud Provider'}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-400">Context Window</span>
-                <span className="text-gray-200 font-medium">32k tokens</span>
+                <span className="text-gray-400">Host</span>
+                <span className="text-gray-200 font-medium">{activeModelInfo.local ? '127.0.0.1:11434' : 'Remote API'}</span>
               </div>
             </div>
           </div>
