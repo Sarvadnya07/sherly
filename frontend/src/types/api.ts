@@ -21,6 +21,12 @@ export interface ChatRequest {
   file_attachment?: string;
 }
 
+export interface ToolActivityInfo {
+  name: string;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  duration_ms?: number;
+}
+
 export interface ChatMessage {
   id?: string;
   user_prompt: string;
@@ -28,6 +34,9 @@ export interface ChatMessage {
   timestamp: string;
   attached_file?: string;
   request_id?: string;
+  status?: 'sending' | 'thinking' | 'streaming' | 'completed' | 'error' | 'cancelled';
+  tool_activity?: ToolActivityInfo;
+  error?: string;
 }
 
 export interface ChatHistoryResponse {

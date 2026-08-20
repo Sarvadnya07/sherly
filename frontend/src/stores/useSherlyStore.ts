@@ -1,11 +1,11 @@
 /**
  * ZUSTAND STATE STORE — frontend/src/stores/useSherlyStore.ts
  * Central state store managing view switching, chat history, model state,
- * active project file, and real-time status.
+ * active project file, real-time status, and generation lifecycle.
  */
 
 import { create } from 'zustand';
-import { ChatMessage, ModelInfo, FileNode, PendingApproval } from '../types/api';
+import { ChatMessage, ModelInfo, FileNode, PendingApproval, ToolActivityInfo } from '../types/api';
 import { api } from '../services/api';
 import { wsService } from '../services/websocket';
 
@@ -20,10 +20,12 @@ interface SherlyState {
   isOllamaRunning: boolean;
   modelsList: ModelInfo[];
 
-  // Chat
+  // Chat & Generation Lifecycle
   chatHistory: ChatMessage[];
   isThinking: boolean;
   statusText: string;
+  activeToolActivity: ToolActivityInfo | null;
+  composerPrompt: string;
 
   // Workspace
   fileTree: FileNode | null;
@@ -45,13 +47,15 @@ interface SherlyState {
 
   // Methods
   setActiveView: (view: ViewType) => void;
+  setComposerPrompt: (prompt: string) => void;
   fetchModels: () => Promise<void>;
   selectModel: (modelName: string) => Promise<void>;
   setMode: (mode: 'auto' | 'manual') => Promise<void>;
   fetchChatHistory: () => Promise<void>;
   sendChatMessage: (prompt: string, attachment?: string) => Promise<void>;
-  cancelGeneration: () => void;
+  cancelGeneration: () => Promise<void>;
   regenerateMessage: (index: number) => Promise<void>;
+  editUserPrompt: (index: number) => void;
   fetchFileTree: () => Promise<void>;
   openFile: (path: string) => Promise<void>;
   saveFileContent: (path: string, content: string) => Promise<void>;
@@ -76,6 +80,8 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
   chatHistory: [],
   isThinking: false,
   statusText: 'Ready',
+  activeToolActivity: null,
+  composerPrompt: '',
 
   fileTree: null,
   activeFilePath: null,
@@ -99,6 +105,8 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     if (view === 'voice') title = 'Sherly — Voice Listening';
     set({ activeView: view, currentTitle: title });
   },
+
+  setComposerPrompt: (prompt: string) => set({ composerPrompt: prompt }),
 
   fetchModels: async () => {
     try {
@@ -142,12 +150,41 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     }
   },
 
-  cancelGeneration: () => {
+  cancelGeneration: async () => {
     if (activeChatAbort) {
       activeChatAbort.abort();
       activeChatAbort = null;
     }
-    set({ isThinking: false });
+
+    // Propagate backend cancellation if supported
+    try {
+      wsService.send({
+        action: 'cancel_generation',
+      });
+    } catch (e) {
+      console.warn('Error broadcasting cancel signal:', e);
+    }
+
+    set((state) => {
+      // Mark the active generation message as cancelled
+      const history = [...state.chatHistory];
+      if (history.length > 0) {
+        const last = history[history.length - 1];
+        if (last.status === 'thinking' || last.status === 'streaming') {
+          history[history.length - 1] = {
+            ...last,
+            status: 'cancelled',
+            assistant_response: last.assistant_response || '[Generation stopped by user]',
+          };
+        }
+      }
+      return {
+        isThinking: false,
+        statusText: 'Ready',
+        activeToolActivity: null,
+        chatHistory: history,
+      };
+    });
   },
 
   sendChatMessage: async (prompt: string, attachment?: string) => {
@@ -155,23 +192,78 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
       activeChatAbort.abort();
     }
     activeChatAbort = new AbortController();
-    set({ isThinking: true });
+
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const pendingMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      user_prompt: prompt,
+      assistant_response: '',
+      timestamp,
+      attached_file: attachment,
+      status: 'thinking',
+    };
+
+    set((state) => ({
+      chatHistory: [...state.chatHistory, pendingMsg],
+      isThinking: true,
+      statusText: 'thinking',
+      activeToolActivity: null,
+    }));
 
     try {
       const response = await api.sendChat(prompt, attachment, activeChatAbort.signal);
       activeChatAbort = null;
-      set((state) => ({
-        chatHistory: [...state.chatHistory, response],
-        isThinking: false,
-      }));
+
+      set((state) => {
+        const history = [...state.chatHistory];
+        const lastIdx = history.length - 1;
+        if (lastIdx >= 0 && history[lastIdx].status === 'thinking') {
+          history[lastIdx] = {
+            ...response,
+            status: 'completed',
+          };
+        } else {
+          history.push({ ...response, status: 'completed' });
+        }
+        return {
+          chatHistory: history,
+          isThinking: false,
+          statusText: 'ready',
+          activeToolActivity: null,
+        };
+      });
     } catch (e: any) {
       if (e.name === 'AbortError') {
         console.log('Chat generation aborted by user.');
+        set((state) => {
+          const history = [...state.chatHistory];
+          const lastIdx = history.length - 1;
+          if (lastIdx >= 0 && history[lastIdx].status === 'thinking') {
+            history[lastIdx] = {
+              ...history[lastIdx],
+              status: 'cancelled',
+              assistant_response: '[Generation stopped by user]',
+            };
+          }
+          return { chatHistory: history, isThinking: false, statusText: 'ready', activeToolActivity: null };
+        });
       } else {
         console.error('Error sending chat:', e);
+        set((state) => {
+          const history = [...state.chatHistory];
+          const lastIdx = history.length - 1;
+          if (lastIdx >= 0 && history[lastIdx].status === 'thinking') {
+            history[lastIdx] = {
+              ...history[lastIdx],
+              status: 'error',
+              error: e.message || 'Failed to generate response.',
+              assistant_response: `Error: ${e.message || 'Unable to complete request. Please check model connection.'}`,
+            };
+          }
+          return { chatHistory: history, isThinking: false, statusText: 'error', activeToolActivity: null };
+        });
       }
       activeChatAbort = null;
-      set({ isThinking: false });
     }
   },
 
@@ -180,8 +272,16 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     const targetMsg = history[index];
     if (!targetMsg) return;
 
-    // Resend the prompt from that index
+    // Resend the prompt from that index, updating the message in place
     await get().sendChatMessage(targetMsg.user_prompt, targetMsg.attached_file);
+  },
+
+  editUserPrompt: (index: number) => {
+    const history = get().chatHistory;
+    const targetMsg = history[index];
+    if (!targetMsg) return;
+
+    set({ composerPrompt: targetMsg.user_prompt });
   },
 
   fetchFileTree: async () => {

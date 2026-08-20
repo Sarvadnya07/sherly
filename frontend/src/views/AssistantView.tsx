@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSherlyStore } from '../stores/useSherlyStore';
 import {
   Sparkles,
@@ -19,6 +19,7 @@ import {
   ArrowDown,
   ExternalLink,
   Wrench,
+  AlertCircle,
 } from 'lucide-react';
 import { CodeBlock } from '../components/ui/CodeBlock';
 import { IconButton } from '../components/ui/Button';
@@ -30,25 +31,28 @@ interface MarkdownRendererProps {
   searchQuery?: string;
 }
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuery }) => {
-  const highlightText = (text: string) => {
-    if (!searchQuery || !searchQuery.trim()) return text;
-    const query = searchQuery.trim();
-    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-    return parts.map((part, i) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <mark key={i} className="bg-status-warning/30 text-status-warning px-0.5 rounded">
-          {part}
-        </mark>
-      ) : (
-        part
-      )
-    );
-  };
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = React.memo(({ content, searchQuery }) => {
+  const highlightText = useCallback(
+    (text: string) => {
+      if (!searchQuery || !searchQuery.trim()) return text;
+      const query = searchQuery.trim();
+      const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+      return parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-status-warning/30 text-status-warning px-0.5 rounded">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      );
+    },
+    [searchQuery]
+  );
 
-  const renderInline = (text: string) => {
-    const processParagraph = (raw: string): React.ReactNode => {
-      const codeParts = raw.split(/(`[^`]+`)/g);
+  const renderInline = useCallback(
+    (text: string) => {
+      const codeParts = text.split(/(`[^`]+`)/g);
       return codeParts.map((cp, cIdx) => {
         if (cp.startsWith('`') && cp.endsWith('`') && cp.length > 2) {
           return (
@@ -94,10 +98,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
           });
         });
       });
-    };
-
-    return processParagraph(text);
-  };
+    },
+    [highlightText]
+  );
 
   if (content.includes('```')) {
     const parts = content.split(/(```[\s\S]*?```)/g);
@@ -201,7 +204,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
   flushList();
 
   return <div className="flex flex-col select-text">{elements}</div>;
-};
+});
 
 // ── Assistant Main View Component ────────────────────────────────────────────
 
@@ -210,21 +213,30 @@ export const AssistantView: React.FC = () => {
     chatHistory,
     isThinking,
     statusText,
+    composerPrompt,
+    setComposerPrompt,
     sendChatMessage,
     cancelGeneration,
     regenerateMessage,
     fetchChatHistory,
   } = useSherlyStore();
 
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState(composerPrompt);
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [userCopiedIndex, setUserCopiedIndex] = useState<number | null>(null);
 
+  // Synchronize composer prompt from store when editing an old message
+  useEffect(() => {
+    if (composerPrompt !== prompt) {
+      setPrompt(composerPrompt);
+      textareaRef.current?.focus();
+    }
+  }, [composerPrompt]);
+
   // In-conversation search state
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [matchCount, setMatchCount] = useState(0);
   const [currentMatchIdx, setCurrentMatchIdx] = useState(0);
 
   // Auto-scroll tracking
@@ -267,13 +279,15 @@ export const AssistantView: React.FC = () => {
     }
   }, [prompt]);
 
-  // Global & Context-Aware Keyboard Shortcuts (Ctrl+F, Esc)
+  // Context-Aware Global Shortcuts (Ctrl+F, Ctrl+A, Esc)
   useEffect(() => {
     const handleGlobalKeys = (e: KeyboardEvent) => {
-      // Scoped Ctrl+F: Open search only if not typing inside an active selection
+      const activeEl = document.activeElement;
+      const isInputFocused =
+        activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+      // Scoped Ctrl+F: open search only if not typing inside an active selection
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-        const activeEl = document.activeElement;
-        const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         if (!isInputFocused) {
           e.preventDefault();
           setSearchOpen(true);
@@ -293,25 +307,26 @@ export const AssistantView: React.FC = () => {
     return () => window.removeEventListener('keydown', handleGlobalKeys);
   }, [searchOpen, isThinking, cancelGeneration]);
 
-  // Search match computation
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setMatchCount(0);
-      setCurrentMatchIdx(0);
-      return;
-    }
-
+  // Canonical Message State Search Calculation
+  const totalMatches = useMemo(() => {
+    if (!searchQuery.trim()) return 0;
     const q = searchQuery.toLowerCase();
-    let total = 0;
+    let count = 0;
     chatHistory.forEach((msg) => {
       const pMatches = (msg.user_prompt.toLowerCase().match(new RegExp(q, 'g')) || []).length;
       const aMatches = (msg.assistant_response.toLowerCase().match(new RegExp(q, 'g')) || []).length;
-      total += pMatches + aMatches;
+      count += pMatches + aMatches;
     });
-
-    setMatchCount(total);
-    setCurrentMatchIdx(total > 0 ? 1 : 0);
+    return count;
   }, [searchQuery, chatHistory]);
+
+  useEffect(() => {
+    if (totalMatches > 0 && currentMatchIdx === 0) {
+      setCurrentMatchIdx(1);
+    } else if (totalMatches === 0) {
+      setCurrentMatchIdx(0);
+    }
+  }, [totalMatches, currentMatchIdx]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -320,6 +335,7 @@ export const AssistantView: React.FC = () => {
     const currentPrompt = prompt.trim();
     const currentAtt = attachedFile || undefined;
     setPrompt('');
+    setComposerPrompt('');
     setAttachedFile(null);
 
     sendChatMessage(currentPrompt, currentAtt);
@@ -361,6 +377,7 @@ export const AssistantView: React.FC = () => {
 
   const handleEditUserPrompt = (text: string) => {
     setPrompt(text);
+    setComposerPrompt(text);
     textareaRef.current?.focus();
   };
 
@@ -380,7 +397,7 @@ export const AssistantView: React.FC = () => {
           />
 
           <span className="text-[10px] text-txt-muted font-mono select-none">
-            {matchCount > 0 ? `${currentMatchIdx} of ${matchCount}` : 'No matches'}
+            {totalMatches > 0 ? `${currentMatchIdx} of ${totalMatches}` : 'No matches'}
           </span>
 
           <div className="flex items-center gap-0.5">
@@ -388,15 +405,15 @@ export const AssistantView: React.FC = () => {
               icon={<ChevronUp className="w-3 h-3" />}
               aria-label="Previous match"
               size="sm"
-              onClick={() => setCurrentMatchIdx((prev) => (prev > 1 ? prev - 1 : matchCount))}
-              disabled={matchCount === 0}
+              onClick={() => setCurrentMatchIdx((prev) => (prev > 1 ? prev - 1 : totalMatches))}
+              disabled={totalMatches === 0}
             />
             <IconButton
               icon={<ChevronDown className="w-3 h-3" />}
               aria-label="Next match"
               size="sm"
-              onClick={() => setCurrentMatchIdx((prev) => (prev < matchCount ? prev + 1 : 1))}
-              disabled={matchCount === 0}
+              onClick={() => setCurrentMatchIdx((prev) => (prev < totalMatches ? prev + 1 : 1))}
+              disabled={totalMatches === 0}
             />
             <IconButton
               icon={<X className="w-3 h-3" />}
@@ -430,7 +447,7 @@ export const AssistantView: React.FC = () => {
         )}
 
         {chatHistory.map((msg, index) => (
-          <div key={index} className="flex flex-col gap-4">
+          <div key={msg.id || index} className="flex flex-col gap-4">
             {/* User Prompt (Right aligned sleek bubble) */}
             <div className="flex items-start gap-2.5 justify-end group">
               {/* User Hover Action Toolbar */}
@@ -472,57 +489,73 @@ export const AssistantView: React.FC = () => {
               </div>
             </div>
 
-            {/* Assistant Response (Clean natural flow without enclosing card) */}
-            <div className="flex items-start gap-3 group">
-              <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
-                S
-              </div>
-
-              <div className="flex flex-col gap-2 flex-1 min-w-0">
-                {/* Assistant Content */}
-                <div className="text-xs text-txt-primary leading-relaxed select-text">
-                  <MarkdownRenderer content={msg.assistant_response} searchQuery={searchQuery} />
+            {/* Assistant Response */}
+            {msg.assistant_response && (
+              <div className="flex items-start gap-3 group">
+                <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
+                  S
                 </div>
 
-                {/* Subtle Hover Action Toolbar */}
-                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pt-1 select-none">
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(msg.assistant_response, index, false)}
-                    className="flex items-center gap-1 text-[11px] font-medium text-txt-muted hover:text-txt-primary transition px-1.5 py-0.5 rounded hover:bg-card cursor-pointer"
-                    title="Copy response"
-                    aria-label="Copy response"
-                  >
-                    {copiedIndex === index ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-status-success" />
-                        <span className="text-status-success">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
+                <div className="flex flex-col gap-2 flex-1 min-w-0">
+                  {/* Assistant Content */}
+                  <div className="text-xs text-txt-primary leading-relaxed select-text">
+                    <MarkdownRenderer content={msg.assistant_response} searchQuery={searchQuery} />
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => regenerateMessage(index)}
-                    className="flex items-center gap-1 text-[11px] font-medium text-txt-muted hover:text-txt-primary transition px-1.5 py-0.5 rounded hover:bg-card cursor-pointer"
-                    title="Regenerate response"
-                    aria-label="Regenerate response"
-                  >
-                    <RotateCw className="w-3.5 h-3.5" />
-                    <span>Retry</span>
-                  </button>
+                  {/* Status / Error indicator */}
+                  {msg.status === 'cancelled' && (
+                    <div className="inline-flex items-center gap-1 text-[11px] text-txt-muted font-mono select-none">
+                      <span>[Stopped]</span>
+                    </div>
+                  )}
+
+                  {msg.status === 'error' && (
+                    <div className="inline-flex items-center gap-1 text-[11px] text-status-danger font-mono select-none">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{msg.error || 'Request failed'}</span>
+                    </div>
+                  )}
+
+                  {/* Subtle Hover Action Toolbar */}
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pt-1 select-none">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(msg.assistant_response, index, false)}
+                      className="flex items-center gap-1 text-[11px] font-medium text-txt-muted hover:text-txt-primary transition px-1.5 py-0.5 rounded hover:bg-card cursor-pointer"
+                      title="Copy response"
+                      aria-label="Copy response"
+                    >
+                      {copiedIndex === index ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-status-success" />
+                          <span className="text-status-success">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => regenerateMessage(index)}
+                      className="flex items-center gap-1 text-[11px] font-medium text-txt-muted hover:text-txt-primary transition px-1.5 py-0.5 rounded hover:bg-card cursor-pointer"
+                      title="Regenerate response"
+                      aria-label="Regenerate response"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                      <span>Retry</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
 
-        {/* Task / Tool Execution Activity Status */}
+        {/* Task / Canonical Tool Execution Activity Status */}
         {isThinking && (
           <div className="flex items-center gap-3 animate-in fade-in duration-150 select-none py-1">
             <div className="w-6 h-6 rounded-md bg-card border border-border-subtle flex items-center justify-center text-brand text-xs shrink-0">
@@ -533,14 +566,18 @@ export const AssistantView: React.FC = () => {
               )}
             </div>
             <div className="flex items-center gap-2 text-xs text-txt-secondary font-medium">
-              <span>{statusText.startsWith('tool:') ? `Executing tool: ${statusText.replace('tool:', '')}` : 'Thinking...'}</span>
+              <span>
+                {statusText.startsWith('tool:')
+                  ? `Executing ${statusText.replace('tool:', '')}...`
+                  : 'Thinking...'}
+              </span>
               <button
                 type="button"
                 onClick={cancelGeneration}
                 className="text-[11px] text-status-danger hover:underline cursor-pointer ml-1"
                 aria-label="Cancel generation"
               >
-                (Cancel)
+                (Stop)
               </button>
             </div>
           </div>
