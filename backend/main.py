@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
@@ -46,7 +47,29 @@ _root_logger.addHandler(_ch)
 
 logger = logging.getLogger("sherly.backend")
 
-app = FastAPI(title="Sherly AI Assistant API", version="2.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup phase
+    logger.info("Sherly FastAPI Backend starting up...")
+    try:
+        resolved = resolve_model(config_manager, model_scanner)
+        logger.info(f"Sherly model resolved on startup: {resolved}")
+    except Exception as exc:
+        logger.warning(f"Model resolution on startup warning: {exc}")
+
+    yield
+
+    # Shutdown phase
+    logger.info("Sherly FastAPI Backend shutting down gracefully...")
+    try:
+        text_to_speech.stop_tts()
+        sd.stop()
+    except Exception as exc:
+        logger.warning(f"Error releasing audio on shutdown: {exc}")
+
+
+app = FastAPI(title="Sherly AI Assistant API", version="2.0.0", lifespan=lifespan)
 
 # Correlation ID Middleware: Attaches trace_id and request_id to incoming requests
 @app.middleware("http")
@@ -88,23 +111,6 @@ app.include_router(files.router)
 app.include_router(actions.router)
 app.include_router(settings.router)
 app.include_router(health.router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Sherly FastAPI Backend starting up...")
-    resolved = resolve_model(config_manager, model_scanner)
-    logger.info(f"Sherly model resolved on startup: {resolved}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Sherly FastAPI Backend shutting down gracefully...")
-    try:
-        text_to_speech.stop_tts()
-        sd.stop()
-    except Exception as exc:
-        logger.warning(f"Error releasing audio on shutdown: {exc}")
 
 
 @app.get("/health")

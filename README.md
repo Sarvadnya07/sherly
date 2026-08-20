@@ -13,7 +13,7 @@
 <p>
 <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
 <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg" alt="Python 3.10+" />
-<img src="https://img.shields.io/badge/tests-66%20passing-success.svg" alt="66 tests passing" />
+<img src="https://img.shields.io/badge/tests-115%20passing-success.svg" alt="115 tests passing" />
 <img src="https://img.shields.io/badge/sandbox-shlex%20%2B%20SafetyGuard-blueviolet.svg" alt="SafetyGuard Sandbox" />
 <img src="https://img.shields.io/badge/Memory-SQLite%20%2B%20JSON-orange.svg" alt="Local Memory" />
 </p>

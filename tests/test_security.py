@@ -325,3 +325,147 @@ def test_env_example_is_tracked():
     assert ".env.example" in result.stdout, (
         ".env.example is not tracked by git"
     )
+
+
+# ---------------------------------------------------------------------------
+# Test 13 — Network security & SSRF Validator
+# ---------------------------------------------------------------------------
+
+def test_ssrf_validator_blocks_dangerous_schemes_and_private_ips():
+    """is_safe_url() must reject dangerous URL schemes and local/private addresses."""
+    from core.network_security import is_safe_url
+
+    # Dangerous schemes
+    for bad_scheme_url in [
+        "file:///etc/passwd",
+        "ftp://example.com/file",
+        "javascript:alert(1)",
+        "data:text/plain;base64,SGVsbG8=",
+        "gopher://evil.com",
+    ]:
+        safe, reason = is_safe_url(bad_scheme_url)
+        assert not safe, f"Expected {bad_scheme_url} to be blocked, but got safe: {reason}"
+
+    # Private and loopback IPs
+    for bad_ip_url in [
+        "http://127.0.0.1:8080/admin",
+        "http://localhost:5000",
+        "http://10.0.0.1/status",
+        "http://192.168.1.1/router",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://[::1]/",
+    ]:
+        safe, reason = is_safe_url(bad_ip_url, allow_localhost=False)
+        assert not safe, f"Expected {bad_ip_url} to be blocked, but got safe: {reason}"
+
+    # Embedded credentials
+    safe, reason = is_safe_url("http://user:pass@example.com")
+    assert not safe, "Expected URL with credentials to be rejected"
+
+    # Public valid URLs
+    safe, reason = is_safe_url("https://www.google.com")
+    assert safe, f"Expected public URL to be safe, got: {reason}"
+
+
+# ---------------------------------------------------------------------------
+# Test 14 — Workspace file path traversal containment
+# ---------------------------------------------------------------------------
+
+def test_workspace_file_boundary_prevents_traversal():
+    """_get_safe_target() in files route must prevent traversal outside workspace."""
+    from backend.api.routes.files import _get_safe_target
+    from fastapi import HTTPException
+
+    # Valid relative path inside workspace
+    target = _get_safe_target("README.md")
+    assert target.exists()
+
+    # Path traversal attempts
+    for bad_path in [
+        "../../../../etc/passwd",
+        "..\\..\\..\\Windows\\System32\\calc.exe",
+        "../outside.txt",
+    ]:
+        with pytest.raises(HTTPException) as exc_info:
+            _get_safe_target(bad_path)
+        assert exc_info.value.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Test 15 — FastApi lifespan lifecycle in backend/main.py
+# ---------------------------------------------------------------------------
+
+def test_backend_fastapi_lifespan_configured():
+    """FastAPI app in backend/main.py must have a lifespan context manager configured."""
+    from backend.main import app
+    assert app.router.lifespan_context is not None
+
+
+# ---------------------------------------------------------------------------
+# Test 16 — TaskQueue error isolation and bounded queue
+# ---------------------------------------------------------------------------
+
+def test_task_queue_error_isolation():
+    """Task queue must isolate exceptions in tasks without crashing the worker."""
+    import time
+    from core.task_queue import add_task
+
+    error_caught = []
+
+    def failing_task():
+        raise ValueError("Intentional task failure for test")
+
+    def on_error_cb(exc):
+        error_caught.append(str(exc))
+
+    add_task(failing_task, on_error=on_error_cb)
+    time.sleep(0.2)
+
+    assert len(error_caught) == 1
+    assert "Intentional task failure" in error_caught[0]
+
+
+# ---------------------------------------------------------------------------
+# Test 17 — Remote UI does not contain hardcoded credentials
+# ---------------------------------------------------------------------------
+
+def test_remote_ui_no_hardcoded_secrets():
+    """remote_ui/index.html must not contain hardcoded API keys or secrets."""
+    html_path = REPO_ROOT / "remote_ui" / "index.html"
+    if html_path.exists():
+        content = html_path.read_text(encoding="utf-8")
+        assert "sherly123" not in content
+        assert "sk-" not in content
+        assert "AIzaSy" not in content
+
+
+# ---------------------------------------------------------------------------
+# Test 18 — Repository-wide check for unintended os.system and shell=True
+# ---------------------------------------------------------------------------
+
+def test_repo_wide_no_unintended_shell_true_or_os_system():
+    """No production Python file should invoke os.system() or subprocess with shell=True."""
+    py_files = list(REPO_ROOT.rglob("*.py"))
+    violations = []
+
+    for f in py_files:
+        parts = f.parts
+        if any(skip in parts for skip in ("venv", "__pycache__", ".git", "node_modules", "tests")):
+            continue
+        try:
+            tree = ast.parse(f.read_text(encoding="utf-8", errors="ignore"))
+        except Exception:
+            continue
+
+        for node in ast.walk(tree):
+            # Check os.system
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Attribute) and node.func.attr == "system":
+                    if isinstance(node.func.value, ast.Name) and node.func.value.id == "os":
+                        violations.append(f"{f.relative_to(REPO_ROOT)}: os.system() call found at line {node.lineno}")
+                # Check shell=True in subprocess
+                for kw in node.keywords:
+                    if kw.arg == "shell" and isinstance(kw.value, ast.Constant) and kw.value.value is True:
+                        violations.append(f"{f.relative_to(REPO_ROOT)}: shell=True found at line {node.lineno}")
+
+    assert not violations, "Unintended shell/system calls found:\n" + "\n".join(violations)
