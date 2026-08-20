@@ -67,6 +67,7 @@ export const api = {
   getAudioDevices: () => fetchJson<AudioDevicesResponse>('/voice/devices'),
   startVoice: () => fetchJson<{ message: string }>('/voice/start', { method: 'POST' }),
   stopVoice: () => fetchJson<{ message: string }>('/voice/stop', { method: 'POST' }),
+  stopSpeaking: () => fetchJson<{ message: string }>('/voice/stop_speaking', { method: 'POST' }),
 
   // Files & Workspace
   getFileTree: () => fetchJson<FileNode>('/files/tree'),

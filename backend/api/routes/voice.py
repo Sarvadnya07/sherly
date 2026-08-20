@@ -1,6 +1,6 @@
 """
 VOICE ROUTES — backend/api/routes/voice.py
-Handles microphone querying, STT status, and voice recording triggers.
+Handles microphone querying, STT status, voice recording triggers, and TTS cancellation.
 """
 
 from __future__ import annotations
@@ -11,6 +11,7 @@ from fastapi import APIRouter
 from backend.api.schemas.contracts import VoiceStatusResponse, AudioDevicesResponse
 from backend.api.websocket.ws_manager import manager
 import speech_to_text
+import text_to_speech
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -51,3 +52,10 @@ async def start_listening():
 async def stop_listening():
     await manager.broadcast_event("status", {"status": "ready"})
     return {"message": "Listening stopped"}
+
+
+@router.post("/stop_speaking")
+async def stop_speaking():
+    text_to_speech.stop_tts()
+    await manager.broadcast_event("status", {"status": "ready"})
+    return {"message": "TTS playback stopped"}

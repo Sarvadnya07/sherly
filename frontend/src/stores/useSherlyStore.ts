@@ -1,7 +1,7 @@
 /**
  * ZUSTAND STATE STORE — frontend/src/stores/useSherlyStore.ts
  * Central state store managing view switching, chat history, model state,
- * workspace tabs, file editing, real-time status, and generation lifecycle.
+ * workspace tabs, file editing, voice state machine, and real-time status.
  */
 
 import { create } from 'zustand';
@@ -10,6 +10,19 @@ import { api } from '../services/api';
 import { wsService } from '../services/websocket';
 
 export type ViewType = 'assistant' | 'workspace' | 'models' | 'voice';
+
+export type VoiceState =
+  | 'idle'
+  | 'listening'
+  | 'transcribing'
+  | 'thinking'
+  | 'tool_running'
+  | 'waiting_for_approval'
+  | 'speaking'
+  | 'stopping'
+  | 'stopped'
+  | 'cancelled'
+  | 'error';
 
 interface SherlyState {
   activeView: ViewType;
@@ -42,11 +55,15 @@ interface SherlyState {
   // Actions & Approvals
   pendingApprovals: PendingApproval[];
 
-  // Voice
+  // Voice State Machine
+  voiceState: VoiceState;
+  voiceSessionId: string | null;
+  lastVoiceEventTs: number;
   audioDevices: string[];
   selectedDevice: string | null;
   isListening: boolean;
   sttText: string;
+  voiceErrorMessage: string | null;
 
   // Methods
   setActiveView: (view: ViewType) => void;
@@ -70,6 +87,10 @@ interface SherlyState {
   approveAction: (id: string) => Promise<void>;
   rejectAction: (id: string) => Promise<void>;
   fetchAudioDevices: () => Promise<void>;
+  startVoiceSession: () => Promise<void>;
+  stopVoiceSession: () => Promise<void>;
+  cancelVoiceSession: () => Promise<void>;
+  stopVoiceSpeaking: () => Promise<void>;
   initWebSocket: () => void;
 }
 
@@ -103,10 +124,14 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
 
   pendingApprovals: [],
 
+  voiceState: 'idle',
+  voiceSessionId: null,
+  lastVoiceEventTs: 0,
   audioDevices: [],
   selectedDevice: null,
   isListening: false,
   sttText: 'Listening to audio input...',
+  voiceErrorMessage: null,
 
   setActiveView: (view: ViewType) => {
     let title = 'Sherly — Developer Workspace';
@@ -191,6 +216,7 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
         statusText: 'Ready',
         activeToolActivity: null,
         chatHistory: history,
+        voiceState: 'idle',
       };
     });
   },
@@ -300,7 +326,6 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
 
   openFile: async (path: string) => {
     const state = get();
-    // Check if already open in tabs
     const existing = state.openTabs.find((t) => t.path === path);
     if (existing) {
       set({
@@ -460,12 +485,95 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     }
   },
 
+  startVoiceSession: async () => {
+    const sid = `vses-${Date.now()}`;
+    set({
+      voiceState: 'listening',
+      voiceSessionId: sid,
+      isListening: true,
+      sttText: 'Listening to your voice...',
+      voiceErrorMessage: null,
+    });
+    try {
+      await api.startVoice();
+    } catch (e: any) {
+      set({ voiceState: 'error', voiceErrorMessage: e.message || 'Failed to start microphone' });
+    }
+  },
+
+  stopVoiceSession: async () => {
+    const text = get().sttText.replace('Listening to your voice...', '').replace('Listening...', '').trim();
+    set({ voiceState: 'transcribing', isListening: false });
+    try {
+      await api.stopVoice();
+    } catch (e) {
+      console.warn('Error stopping voice:', e);
+    }
+
+    if (text && text.length >= 2 && text !== 'No speech detected.') {
+      set({ voiceState: 'thinking' });
+      // Converge voice onto canonical assistant chat pipeline
+      await get().sendChatMessage(text);
+      set({ voiceState: 'idle' });
+    } else {
+      set({
+        sttText: 'No speech detected.',
+        voiceState: 'idle',
+      });
+    }
+  },
+
+  cancelVoiceSession: async () => {
+    set({
+      voiceState: 'cancelled',
+      isListening: false,
+      sttText: 'Voice cancelled.',
+      voiceSessionId: null,
+    });
+    try {
+      await api.stopVoice();
+      await api.stopSpeaking();
+    } catch (e) {
+      console.warn('Error cancelling voice session:', e);
+    }
+    setTimeout(() => {
+      set({ voiceState: 'idle', sttText: 'Listening to audio input...' });
+    }, 1000);
+  },
+
+  stopVoiceSpeaking: async () => {
+    set({ voiceState: 'stopping' });
+    try {
+      await api.stopSpeaking();
+    } catch (e) {
+      console.warn('Error stopping speaking:', e);
+    }
+    set({ voiceState: 'stopped' });
+    setTimeout(() => set({ voiceState: 'idle' }), 500);
+  },
+
   initWebSocket: () => {
     wsService.connect();
     wsService.subscribe((event) => {
+      const now = event.timestamp || Date.now();
       if (event.event_type === 'status') {
         const st = event.payload.status;
-        set({ statusText: st, isThinking: st === 'thinking' });
+        set((state) => {
+          if (now < state.lastVoiceEventTs) return state; // Event ordering guard
+          let vs: VoiceState = state.voiceState;
+          if (st === 'listening') vs = 'listening';
+          else if (st === 'thinking') vs = 'thinking';
+          else if (st === 'speaking') vs = 'speaking';
+          else if (st === 'ready') vs = 'idle';
+
+          return {
+            statusText: st,
+            isThinking: st === 'thinking',
+            voiceState: vs,
+            lastVoiceEventTs: now,
+          };
+        });
+
         if (st === 'listening') {
           get().setActiveView('voice');
         }
@@ -475,7 +583,13 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
           modelMode: event.payload.mode,
         });
       } else if (event.event_type === 'stt_text') {
-        set({ sttText: event.payload.text || 'Listening...' });
+        set((state) => {
+          if (now < state.lastVoiceEventTs) return state;
+          return {
+            sttText: event.payload.text || 'Listening...',
+            lastVoiceEventTs: now,
+          };
+        });
       } else if (event.event_type === 'action_update') {
         get().fetchApprovals();
       }
