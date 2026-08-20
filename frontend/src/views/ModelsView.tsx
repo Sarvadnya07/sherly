@@ -40,23 +40,23 @@ export const ModelsView: React.FC = () => {
   const activeModelInfo = modelsList.find((m) => m.name === currentModel) || modelsList[0];
 
   return (
-    <div className="flex-1 flex h-full bg-surface overflow-hidden">
+    <div className="flex-1 flex h-full bg-canvas overflow-hidden">
       {/* Left Repository Section */}
       <div className="flex-1 p-6 flex flex-col gap-5 overflow-y-auto">
         {/* Header & Controls */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-gray-100">Model Repository</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Manage local Ollama models and cloud remote API endpoints.</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Model Repository</h2>
+            <p className="text-xs text-zinc-400 mt-0.5">Manage local Ollama models and cloud remote API endpoints.</p>
           </div>
 
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs font-medium text-purple-300 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs font-medium text-zinc-300 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={modelMode === 'auto'}
                 onChange={(e) => setMode(e.target.checked ? 'auto' : 'manual')}
-                className="rounded bg-white/10 border-white/20 text-brand focus:ring-0 cursor-pointer"
+                className="rounded bg-zinc-800 border-zinc-700 text-indigo-600 focus:ring-0 cursor-pointer"
               />
               <span>Auto Model Detection</span>
             </label>
@@ -74,20 +74,20 @@ export const ModelsView: React.FC = () => {
 
         {/* Local Ollama Models List */}
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold text-gray-500 tracking-wider">
+          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider uppercase">
             LOCAL OLLAMA MODELS ({modelsList.length})
           </span>
 
           {!isOllamaRunning ? (
             <Card variant="default" padding="lg" className="border-amber-500/30 text-center flex flex-col gap-1">
               <h4 className="text-xs font-bold text-amber-400">Ollama Server Offline</h4>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-zinc-400">
                 Start Ollama locally (http://127.0.0.1:11434) to load and execute local LLMs.
               </p>
             </Card>
           ) : modelsList.length === 0 ? (
-            <Card variant="default" padding="lg" className="text-center text-xs text-gray-400">
-              No models detected. Run <code className="text-purple-300 font-mono">ollama pull qwen2.5-coder:3b</code> in terminal.
+            <Card variant="default" padding="lg" className="text-center text-xs text-zinc-400">
+              No models detected. Run <code className="text-zinc-200 font-mono">ollama pull qwen2.5-coder:3b</code> in terminal.
             </Card>
           ) : (
             modelsList.map((m) => {
@@ -97,16 +97,16 @@ export const ModelsView: React.FC = () => {
               return (
                 <div
                   key={m.name}
-                  className={`bg-card border rounded-xl p-4 flex flex-col gap-3 transition shadow-subtle ${
+                  className={`bg-zinc-900/60 border rounded-xl p-4 flex flex-col gap-3 transition shadow-subtle ${
                     isActive
-                      ? 'border-brand-border bg-gradient-to-r from-brand-surface to-brand-surface/20'
-                      : 'border-white/[0.07] hover:border-white/[0.12]'
+                      ? 'border-indigo-500/40 bg-zinc-900'
+                      : 'border-white/[0.06] hover:border-white/[0.12]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-xs font-bold text-gray-100">{m.name}</h4>
-                      <p className="text-[10px] font-mono text-gray-400 mt-0.5">Local LLM • {sizeGb} GB Footprint</p>
+                      <h4 className="text-xs font-semibold text-zinc-100">{m.name}</h4>
+                      <p className="text-[10px] font-mono text-zinc-400 mt-0.5">Local LLM • {sizeGb} GB Footprint</p>
                     </div>
 
                     {isActive ? (
@@ -142,7 +142,7 @@ export const ModelsView: React.FC = () => {
 
         {/* Remote Cloud Providers Section */}
         <div className="flex flex-col gap-2.5 mt-2">
-          <span className="text-[10px] font-bold text-gray-500 tracking-wider">
+          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider uppercase">
             REMOTE CLOUD PROVIDERS
           </span>
 
@@ -153,15 +153,15 @@ export const ModelsView: React.FC = () => {
           ].map((provider) => (
             <div
               key={provider.id}
-              className="bg-card border border-white/[0.07] hover:border-white/[0.12] rounded-xl p-3.5 flex items-center justify-between transition shadow-subtle"
+              className="bg-zinc-900/60 border border-white/[0.06] hover:border-white/[0.12] rounded-xl p-3.5 flex items-center justify-between transition shadow-subtle"
             >
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-brand-surface border border-brand-border flex items-center justify-center text-purple-300">
+                <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-white/[0.06] flex items-center justify-center text-zinc-300">
                   <Key className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-gray-200">{provider.name}</h4>
-                  <p className="text-[10px] text-gray-500 font-mono">{provider.desc}</p>
+                  <h4 className="text-xs font-semibold text-zinc-200">{provider.name}</h4>
+                  <p className="text-[10px] text-zinc-500 font-mono">{provider.desc}</p>
                 </div>
               </div>
 
@@ -178,21 +178,21 @@ export const ModelsView: React.FC = () => {
       </div>
 
       {/* Right Inspector Panel */}
-      <div className="w-80 bg-canvas border-l border-white/[0.07] p-5 flex flex-col gap-4 overflow-y-auto shrink-0">
-        <span className="text-[10px] font-bold text-gray-500 tracking-wider">MODEL INSPECTOR</span>
+      <div className="w-80 bg-sidebar border-l border-white/[0.06] p-5 flex flex-col gap-4 overflow-y-auto shrink-0">
+        <span className="text-[10px] font-semibold text-zinc-500 tracking-wider uppercase">MODEL INSPECTOR</span>
 
         {activeModelInfo ? (
           <div className="flex flex-col gap-4">
             <div>
-              <h4 className="text-sm font-bold text-purple-300">{activeModelInfo.name}</h4>
-              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                Local {activeModelInfo.family} model loaded in Ollama engine. Optimized for desktop developer tasks.
+              <h4 className="text-sm font-semibold text-zinc-100">{activeModelInfo.name}</h4>
+              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                Local {activeModelInfo.family} model loaded in Ollama engine.
               </p>
             </div>
 
             {/* Capabilities Badge Grid */}
             <div className="flex flex-col gap-2">
-              <span className="text-[9px] font-bold text-gray-500 tracking-wider">CAPABILITIES & METADATA</span>
+              <span className="text-[10px] font-semibold text-zinc-500 tracking-wider uppercase">METADATA</span>
               <div className="flex flex-wrap gap-1.5 text-xs">
                 {activeModelInfo.coding && (
                   <Badge variant="brand" size="md">Coding Specialist</Badge>
@@ -207,21 +207,21 @@ export const ModelsView: React.FC = () => {
 
             {/* Resource Allocation */}
             <div className="flex flex-col gap-2.5">
-              <span className="text-[9px] font-bold text-gray-500 tracking-wider">RESOURCE ALLOCATION</span>
+              <span className="text-[10px] font-semibold text-zinc-500 tracking-wider uppercase">RESOURCE ALLOCATION</span>
 
               {activeModelInfo.size > 0 && (
                 <>
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-gray-400">Disk Footprint</span>
-                    <span className="text-gray-100 font-bold">
+                    <span className="text-zinc-400">Disk Footprint</span>
+                    <span className="text-zinc-100 font-bold">
                       {(activeModelInfo.size / (1024 * 1024 * 1024)).toFixed(2)} GB
                     </span>
                   </div>
 
                   {/* Memory Visual Bar */}
-                  <div className="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-brand rounded-full"
+                      className="h-full bg-indigo-500 rounded-full"
                       style={{ width: `${Math.min(100, Math.max(15, (activeModelInfo.size / (1024 * 1024 * 1024 * 8)) * 100))}%` }}
                     />
                   </div>
@@ -229,17 +229,17 @@ export const ModelsView: React.FC = () => {
               )}
 
               <div className="flex items-center justify-between text-xs font-mono pt-1">
-                <span className="text-gray-400">Provider</span>
-                <span className="text-gray-200 font-medium">{activeModelInfo.local ? 'Ollama' : 'Cloud Provider'}</span>
+                <span className="text-zinc-400">Provider</span>
+                <span className="text-zinc-200 font-medium">{activeModelInfo.local ? 'Ollama' : 'Cloud Provider'}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-400">Host</span>
-                <span className="text-gray-200 font-medium">{activeModelInfo.local ? '127.0.0.1:11434' : 'Remote API'}</span>
+                <span className="text-zinc-400">Host</span>
+                <span className="text-zinc-200 font-medium">{activeModelInfo.local ? '127.0.0.1:11434' : 'Remote API'}</span>
               </div>
             </div>
           </div>
         ) : (
-          <span className="text-xs text-gray-500 italic">No model selected</span>
+          <span className="text-xs text-zinc-500 italic">No model selected</span>
         )}
       </div>
 
@@ -251,12 +251,12 @@ export const ModelsView: React.FC = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="api-key-title"
-            className="bg-card border border-white/[0.12] rounded-xl p-5 w-96 flex flex-col gap-3.5 shadow-elevated"
+            className="bg-zinc-900 border border-white/[0.12] rounded-xl p-5 w-96 flex flex-col gap-3.5 shadow-elevated"
           >
-            <h3 id="api-key-title" className="text-sm font-bold text-gray-100 capitalize">
+            <h3 id="api-key-title" className="text-sm font-bold text-zinc-100 capitalize">
               Configure {apiKeyProvider} API Key
             </h3>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed">
               Enter your API secret key to enable remote completions. Keys are stored safely in your local configuration.
             </p>
             <input
@@ -264,7 +264,7 @@ export const ModelsView: React.FC = () => {
               value={apiKeyValue}
               onChange={(e) => setApiKeyValue(e.target.value)}
               placeholder="sk-..."
-              className="bg-input border border-white/[0.10] focus:border-brand rounded-lg p-2.5 text-xs font-mono text-gray-100 focus:outline-none"
+              className="bg-zinc-950 border border-white/[0.10] focus:border-indigo-500 rounded-lg p-2.5 text-xs font-mono text-zinc-100 focus:outline-none"
               autoFocus
             />
             <div className="flex justify-end gap-2 mt-1">

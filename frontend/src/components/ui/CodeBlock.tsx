@@ -28,22 +28,22 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <div className={`my-3 rounded-lg border border-white/[0.08] bg-[#09090f] overflow-hidden font-mono text-xs shadow-subtle ${className}`}>
+    <div className={`my-2.5 rounded-xl border border-white/[0.08] bg-zinc-950 overflow-hidden font-mono text-xs shadow-subtle ${className}`}>
       {/* Code Header Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] border-b border-white/[0.06] select-none">
+      <div className="flex items-center justify-between px-3.5 py-1.5 bg-zinc-900/60 border-b border-white/[0.06] select-none">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
             {language}
           </span>
           {filename && (
-            <span className="text-[11px] text-gray-400 font-sans">{filename}</span>
+            <span className="text-[11px] text-zinc-400 font-sans">{filename}</span>
           )}
         </div>
 
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-100 transition bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-0.5 rounded border border-white/[0.08] focus-visible:outline-2 focus-visible:outline-brand cursor-pointer"
+          className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-zinc-100 transition bg-zinc-800/60 hover:bg-zinc-800 px-2 py-0.5 rounded-md border border-white/[0.06] focus-visible:outline-2 focus-visible:outline-indigo-500 cursor-pointer"
           title="Copy code to clipboard"
           aria-label="Copy code"
         >
@@ -62,7 +62,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       </div>
 
       {/* Code Content Area with Native Selection */}
-      <div className="p-3.5 overflow-x-auto leading-relaxed text-gray-200 select-text">
+      <div className="p-3.5 overflow-x-auto leading-relaxed text-zinc-200 select-text">
         <pre className="font-mono text-xs whitespace-pre select-text">
           <code className="select-text">{code}</code>
         </pre>

@@ -17,14 +17,14 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium transition duration-150 select-none rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98] cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-medium transition duration-150 select-none rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98] cursor-pointer';
 
   const variants = {
-    primary: 'bg-brand hover:bg-brand-hover text-white shadow-subtle',
-    secondary: 'bg-brand-surface hover:bg-brand/20 text-purple-300 border border-brand-border',
-    ghost: 'bg-transparent hover:bg-white/[0.06] text-gray-300 hover:text-white',
-    danger: 'bg-status-danger/15 hover:bg-status-danger/25 text-rose-400 border border-status-danger/30',
-    outline: 'bg-transparent hover:bg-white/[0.04] text-gray-200 border border-white/[0.12]',
+    primary: 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-subtle',
+    secondary: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/[0.06]',
+    ghost: 'bg-transparent hover:bg-zinc-800/60 text-zinc-400 hover:text-zinc-200',
+    danger: 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20',
+    outline: 'bg-transparent hover:bg-zinc-800/40 text-zinc-300 border border-white/[0.10]',
   };
 
   const sizes = {
@@ -63,12 +63,12 @@ export const IconButton: React.FC<IconButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-md transition duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center rounded-lg transition duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] cursor-pointer';
 
   const variants = {
-    ghost: 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.08]',
-    secondary: 'bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 border border-white/[0.08]',
-    danger: 'text-gray-400 hover:text-rose-400 hover:bg-rose-500/20',
+    ghost: 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60',
+    secondary: 'bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 border border-white/[0.06]',
+    danger: 'text-zinc-400 hover:text-rose-400 hover:bg-rose-500/20',
   };
 
   const sizes = {

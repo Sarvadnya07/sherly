@@ -12,13 +12,13 @@ export const Card: React.FC<CardProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'rounded-lg transition duration-150';
+  const baseStyles = 'rounded-xl transition duration-150';
 
   const variants = {
-    default: 'bg-card border border-white/[0.06]',
-    surface: 'bg-surface border border-white/[0.04]',
-    glass: 'bg-canvas/80 backdrop-blur-md border border-white/[0.08]',
-    interactive: 'bg-card border border-white/[0.06] hover:border-brand-border hover:bg-card-hover cursor-pointer',
+    default: 'bg-zinc-900/70 border border-white/[0.06]',
+    surface: 'bg-zinc-950 border border-white/[0.04]',
+    glass: 'bg-zinc-900/80 backdrop-blur-md border border-white/[0.08]',
+    interactive: 'bg-zinc-900/70 border border-white/[0.06] hover:border-zinc-700 hover:bg-zinc-900 cursor-pointer',
   };
 
   const paddings = {

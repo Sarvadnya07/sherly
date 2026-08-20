@@ -20,7 +20,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { CodeBlock } from '../components/ui/CodeBlock';
-import { Badge } from '../components/ui/Badge';
 import { IconButton } from '../components/ui/Button';
 
 // ── Markdown Content Parser & Renderer ───────────────────────────────────────
@@ -54,7 +53,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
           return (
             <code
               key={cIdx}
-              className="bg-white/[0.08] text-purple-300 font-mono text-[11px] px-1.5 py-0.5 rounded border border-white/[0.08] select-text"
+              className="bg-zinc-800/80 text-zinc-200 font-mono text-[11px] px-1.5 py-0.5 rounded border border-white/[0.08] select-text"
             >
               {highlightText(cp.slice(1, -1))}
             </code>
@@ -65,7 +64,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
         return boldParts.map((bp, bIdx) => {
           if (bp.startsWith('**') && bp.endsWith('**') && bp.length > 4) {
             return (
-              <strong key={bIdx} className="font-semibold text-gray-100">
+              <strong key={bIdx} className="font-semibold text-zinc-100">
                 {highlightText(bp.slice(2, -2))}
               </strong>
             );
@@ -82,7 +81,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-400 hover:text-purple-300 underline underline-offset-2 inline-flex items-center gap-0.5 focus-visible:outline-2 focus-visible:outline-brand"
+                  className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 inline-flex items-center gap-0.5 focus-visible:outline-2 focus-visible:outline-indigo-500"
                 >
                   <span>{highlightText(label)}</span>
                   <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
@@ -102,7 +101,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
   if (content.includes('```')) {
     const parts = content.split(/(```[\s\S]*?```)/g);
     return (
-      <div className="flex flex-col gap-2 select-text">
+      <div className="flex flex-col gap-2.5 select-text">
         {parts.map((part, idx) => {
           if (part.startsWith('```') && part.endsWith('```')) {
             const firstLineBreak = part.indexOf('\n');
@@ -126,7 +125,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
   const flushList = () => {
     if (inList && listItems.length > 0) {
       elements.push(
-        <ul key={`list-${elements.length}`} className="list-disc pl-5 my-1 space-y-1 text-gray-200">
+        <ul key={`list-${elements.length}`} className="list-disc pl-5 my-1.5 space-y-1 text-zinc-300">
           {listItems}
         </ul>
       );
@@ -141,36 +140,36 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
-        <h4 key={idx} className="text-xs font-bold text-purple-300 mt-2 mb-1">
+        <h4 key={idx} className="text-xs font-semibold text-zinc-100 mt-2 mb-1">
           {renderInline(trimmed.slice(4))}
         </h4>
       );
     } else if (trimmed.startsWith('## ')) {
       flushList();
       elements.push(
-        <h3 key={idx} className="text-sm font-bold text-gray-100 mt-2.5 mb-1">
+        <h3 key={idx} className="text-sm font-semibold text-zinc-100 mt-2.5 mb-1">
           {renderInline(trimmed.slice(3))}
         </h3>
       );
     } else if (trimmed.startsWith('# ')) {
       flushList();
       elements.push(
-        <h2 key={idx} className="text-base font-bold text-gray-100 mt-3 mb-1.5">
+        <h2 key={idx} className="text-base font-bold text-zinc-100 mt-3 mb-1.5">
           {renderInline(trimmed.slice(2))}
         </h2>
       );
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       inList = true;
       listItems.push(
-        <li key={idx} className="text-xs leading-relaxed text-gray-200">
+        <li key={idx} className="text-[13px] leading-relaxed text-zinc-300">
           {renderInline(trimmed.slice(2))}
         </li>
       );
     } else if (/^\d+\.\s/.test(trimmed)) {
       flushList();
       elements.push(
-        <div key={idx} className="text-xs leading-relaxed text-gray-200 pl-4 relative my-0.5">
-          <span className="absolute left-0 text-gray-500 font-mono text-[11px]">
+        <div key={idx} className="text-[13px] leading-relaxed text-zinc-300 pl-4 relative my-0.5">
+          <span className="absolute left-0 text-zinc-500 font-mono text-[11px]">
             {trimmed.match(/^\d+\./)?.[0]}
           </span>
           {renderInline(trimmed.replace(/^\d+\.\s*/, ''))}
@@ -181,7 +180,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
       elements.push(
         <blockquote
           key={idx}
-          className="border-l-2 border-brand bg-brand-surface/30 px-3 py-1.5 rounded-r my-1.5 text-xs text-gray-300 italic"
+          className="border-l-2 border-indigo-500 bg-zinc-900/50 px-3 py-1.5 rounded-r my-1.5 text-xs text-zinc-400 italic"
         >
           {renderInline(trimmed.slice(2))}
         </blockquote>
@@ -191,7 +190,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     } else {
       flushList();
       elements.push(
-        <p key={idx} className="text-xs leading-relaxed text-gray-200 my-1">
+        <p key={idx} className="text-[13px] leading-relaxed text-zinc-200 my-1">
           {renderInline(line)}
         </p>
       );
@@ -359,21 +358,21 @@ export const AssistantView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-surface overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full bg-canvas overflow-hidden relative">
       {/* Floating In-Conversation Search Bar */}
       {searchOpen && (
-        <div className="absolute top-3 right-6 z-30 bg-card border border-white/[0.12] rounded-xl p-2 shadow-elevated flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
-          <Search className="w-3.5 h-3.5 text-purple-400 ml-1 shrink-0" />
+        <div className="absolute top-3 right-6 z-30 bg-zinc-900 border border-white/[0.12] rounded-xl p-2 shadow-elevated flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+          <Search className="w-3.5 h-3.5 text-indigo-400 ml-1 shrink-0" />
           <input
             ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search conversation (Ctrl+F)..."
-            className="bg-transparent text-xs text-gray-100 placeholder-gray-500 focus:outline-none w-56 font-sans"
+            className="bg-transparent text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none w-56 font-sans"
           />
 
-          <span className="text-[10px] text-gray-400 font-mono select-none">
+          <span className="text-[10px] text-zinc-400 font-mono select-none">
             {matchCount > 0 ? `${currentMatchIdx} of ${matchCount}` : 'No matches'}
           </span>
 
@@ -409,30 +408,30 @@ export const AssistantView: React.FC = () => {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-5 max-w-3xl w-full mx-auto select-text"
+        className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-6 max-w-3xl w-full mx-auto select-text"
       >
         {chatHistory.length === 0 && !isThinking && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 my-auto select-none py-12">
-            <div className="w-11 h-11 rounded-2xl bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 mb-3 shadow-subtle">
+          <div className="flex flex-col items-center justify-center h-full text-center text-zinc-400 my-auto select-none py-16">
+            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-indigo-400 mb-3 shadow-subtle">
               <Sparkles className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-200">Sherly Assistant</h3>
-            <p className="text-xs text-gray-400 max-w-sm mt-1.5 leading-relaxed">
-              Ask coding questions, refactor source files, execute workspace tasks, or inspect local models.
+            <h3 className="text-sm font-semibold text-zinc-200">How can I help you today?</h3>
+            <p className="text-xs text-zinc-500 max-w-xs mt-1 leading-relaxed">
+              Ask questions, inspect workspace files, run developer commands, or test code.
             </p>
           </div>
         )}
 
         {chatHistory.map((msg, index) => (
-          <React.Fragment key={index}>
-            {/* User Message Card */}
-            <div className="flex items-start gap-3 justify-end group">
+          <div key={index} className="flex flex-col gap-4">
+            {/* User Prompt (Right aligned sleek bubble) */}
+            <div className="flex items-start gap-2.5 justify-end group">
               {/* User Hover Action Toolbar */}
-              <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center gap-1 self-center mr-1 select-none">
+              <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center gap-1 self-center select-none">
                 <button
                   type="button"
                   onClick={() => handleCopy(msg.user_prompt, index, true)}
-                  className="p-1 rounded text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] transition cursor-pointer"
+                  className="p-1 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition cursor-pointer"
                   title="Copy prompt"
                   aria-label="Copy prompt text"
                 >
@@ -445,7 +444,7 @@ export const AssistantView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleEditUserPrompt(msg.user_prompt)}
-                  className="p-1 rounded text-gray-400 hover:text-gray-200 hover:bg-white/[0.06] transition cursor-pointer"
+                  className="p-1 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition cursor-pointer"
                   title="Edit prompt"
                   aria-label="Edit prompt in composer"
                 >
@@ -453,119 +452,108 @@ export const AssistantView: React.FC = () => {
                 </button>
               </div>
 
-              <div className="bg-[#151622] border border-white/[0.08] rounded-xl px-3.5 py-3 max-w-2xl flex flex-col gap-1.5 shadow-subtle select-text">
-                <p className="text-xs font-normal text-gray-100 leading-relaxed whitespace-pre-wrap select-text">
+              <div className="bg-zinc-800/80 border border-white/[0.06] rounded-2xl px-4 py-2.5 max-w-xl flex flex-col gap-1.5 shadow-subtle select-text">
+                <p className="text-[13px] font-normal text-zinc-100 leading-relaxed whitespace-pre-wrap select-text">
                   {msg.user_prompt}
                 </p>
                 {msg.attached_file && (
-                  <div className="inline-flex items-center gap-1.5 bg-brand-surface border border-brand-border rounded px-2 py-0.5 text-[11px] font-mono text-purple-300 w-fit select-none">
-                    <FileText className="w-3 h-3 text-purple-400" />
+                  <div className="inline-flex items-center gap-1.5 bg-zinc-900 border border-white/[0.06] rounded-md px-2 py-0.5 text-[11px] font-mono text-zinc-300 w-fit select-none">
+                    <FileText className="w-3 h-3 text-indigo-400" />
                     <span>{msg.attached_file}</span>
                   </div>
                 )}
               </div>
-
-              <div className="w-6 h-6 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center text-gray-200 text-[10px] font-bold shrink-0 mt-0.5 select-none">
-                U
-              </div>
             </div>
 
-            {/* Assistant Response Card */}
+            {/* Assistant Response (Clean natural flow) */}
             <div className="flex items-start gap-3 group">
-              <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
                 S
               </div>
 
-              <div className="bg-card border border-white/[0.07] rounded-xl p-4 max-w-2xl text-xs text-gray-200 leading-relaxed flex flex-col gap-2.5 flex-1 shadow-subtle select-text">
-                {/* Header with Title, Badge, and Action Toolbar */}
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 select-none">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-purple-300">Sherly Assistant</span>
-                    <Badge variant="brand" size="sm">Copilot</Badge>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    {/* Regenerate Action */}
-                    <button
-                      type="button"
-                      onClick={() => regenerateMessage(index)}
-                      className="flex items-center gap-1 text-[10px] font-medium text-gray-400 hover:text-gray-200 transition bg-white/[0.04] hover:bg-white/[0.08] px-2 py-0.5 rounded border border-white/[0.06] focus-visible:outline-2 focus-visible:outline-brand cursor-pointer"
-                      title="Regenerate response"
-                      aria-label="Regenerate response"
-                    >
-                      <RotateCw className="w-3 h-3" />
-                      <span>Retry</span>
-                    </button>
-
-                    {/* Copy Response Action */}
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(msg.assistant_response, index, false)}
-                      className="flex items-center gap-1 text-[10px] font-medium text-gray-400 hover:text-gray-200 transition bg-white/[0.04] hover:bg-white/[0.08] px-2 py-0.5 rounded border border-white/[0.06] focus-visible:outline-2 focus-visible:outline-brand cursor-pointer"
-                      title="Copy response to clipboard"
-                      aria-label="Copy assistant response"
-                    >
-                      {copiedIndex === index ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400" />
-                          <span className="text-emerald-400 font-medium">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-0">
+                {/* Assistant Content */}
+                <div className="text-[13px] text-zinc-200 leading-relaxed select-text">
+                  <MarkdownRenderer content={msg.assistant_response} searchQuery={searchQuery} />
                 </div>
 
-                {/* Structured Markdown Render Area */}
-                <MarkdownRenderer content={msg.assistant_response} searchQuery={searchQuery} />
+                {/* Subtle Hover Action Toolbar */}
+                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pt-1 select-none">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(msg.assistant_response, index, false)}
+                    className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 hover:text-zinc-200 transition px-1.5 py-0.5 rounded hover:bg-zinc-800/60 cursor-pointer"
+                    title="Copy response"
+                    aria-label="Copy response"
+                  >
+                    {copiedIndex === index ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => regenerateMessage(index)}
+                    className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 hover:text-zinc-200 transition px-1.5 py-0.5 rounded hover:bg-zinc-800/60 cursor-pointer"
+                    title="Regenerate response"
+                    aria-label="Regenerate response"
+                  >
+                    <RotateCw className="w-3 h-3" />
+                    <span>Retry</span>
+                  </button>
+                </div>
               </div>
             </div>
-          </React.Fragment>
+          </div>
         ))}
 
         {/* Task Status Node (Thinking State) */}
         {isThinking && (
           <div className="flex items-center gap-3 animate-in fade-in duration-150 select-none py-1">
-            <div className="w-6 h-6 rounded-full bg-brand-surface border border-brand-border flex items-center justify-center text-purple-400 text-xs shrink-0">
-              <Loader2 className="w-3 h-3 animate-spin" />
+            <div className="w-6 h-6 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-indigo-400 text-xs shrink-0">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
             </div>
-            <span className="text-xs text-gray-400 font-medium">
-              Thinking and generating response...
+            <span className="text-xs text-zinc-400 font-medium">
+              Thinking...
             </span>
           </div>
         )}
       </div>
 
-      {/* Floating "Scroll to Bottom" Pill Button */}
+      {/* Floating "Scroll to Bottom" Button */}
       {showScrollBottom && (
         <button
           type="button"
           onClick={() => scrollToBottom(true)}
-          className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card/95 backdrop-blur border border-white/[0.12] hover:border-brand text-gray-300 hover:text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-elevated transition active:scale-95 z-20 select-none cursor-pointer"
+          className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur border border-white/[0.12] hover:border-zinc-600 text-zinc-300 hover:text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-elevated transition active:scale-95 z-20 select-none cursor-pointer"
           title="Scroll to latest messages"
           aria-label="Scroll to latest messages"
         >
-          <ArrowDown className="w-3.5 h-3.5 text-purple-400" />
+          <ArrowDown className="w-3.5 h-3.5 text-indigo-400" />
           <span>Scroll to latest</span>
         </button>
       )}
 
-      {/* Docked Composer Bar */}
-      <div className="p-3.5 bg-surface border-t border-white/[0.07] select-none shrink-0">
+      {/* Docked Floating Composer Bar */}
+      <div className="p-4 bg-canvas/80 backdrop-blur-md select-none shrink-0">
         <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 max-w-3xl mx-auto">
           {/* File Attachment Pill */}
           {attachedFile && (
-            <div className="flex items-center gap-2 text-xs text-purple-300 font-mono font-medium px-1 select-none">
-              <FileText className="w-3.5 h-3.5 text-purple-400" />
+            <div className="flex items-center gap-2 text-xs text-zinc-300 font-mono font-medium px-1 select-none">
+              <FileText className="w-3.5 h-3.5 text-indigo-400" />
               <span>Attached: {attachedFile}</span>
               <button
                 type="button"
                 onClick={() => setAttachedFile(null)}
-                className="text-gray-500 hover:text-rose-400 ml-1 text-xs cursor-pointer"
+                className="text-zinc-500 hover:text-rose-400 ml-1 text-xs cursor-pointer"
                 title="Remove attachment"
                 aria-label="Remove attachment"
               >
@@ -574,7 +562,7 @@ export const AssistantView: React.FC = () => {
             </div>
           )}
 
-          <div className="bg-input border border-white/[0.10] focus-within:border-brand rounded-xl p-2 flex items-end gap-2 transition shadow-subtle">
+          <div className="bg-zinc-900 border border-white/[0.08] focus-within:border-zinc-600 rounded-2xl p-2 flex items-end gap-1.5 transition shadow-elevated">
             <IconButton
               icon={<Paperclip className="w-4 h-4" />}
               aria-label="Attach File"
@@ -588,8 +576,8 @@ export const AssistantView: React.FC = () => {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Sherly anything (Enter to send, Shift+Enter for newline, Ctrl+F to search)..."
-              className="flex-1 bg-transparent text-xs text-gray-100 placeholder-gray-500 focus:outline-none px-2 resize-none max-h-36 leading-relaxed py-1 select-text"
+              placeholder="Ask Sherly anything (Enter to send, Shift+Enter for newline)..."
+              className="flex-1 bg-transparent text-[13px] text-zinc-100 placeholder-zinc-500 focus:outline-none px-2 resize-none max-h-36 leading-relaxed py-1.5 select-text"
             />
 
             <IconButton
@@ -614,7 +602,7 @@ export const AssistantView: React.FC = () => {
               <button
                 type="button"
                 onClick={cancelGeneration}
-                className="w-7 h-7 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer"
+                className="w-7 h-7 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-indigo-500 active:scale-95 cursor-pointer mb-0.5"
                 title="Stop generation (Esc)"
                 aria-label="Stop generation"
               >
@@ -624,11 +612,11 @@ export const AssistantView: React.FC = () => {
               <button
                 type="submit"
                 disabled={!prompt.trim()}
-                className="w-7 h-7 bg-brand hover:bg-brand-hover disabled:opacity-30 text-white rounded-lg flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer"
+                className="w-7 h-7 bg-zinc-100 hover:bg-white disabled:opacity-20 text-zinc-900 rounded-full flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-indigo-500 active:scale-95 cursor-pointer mb-0.5"
                 title="Send Prompt (Enter)"
                 aria-label="Send Prompt"
               >
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp className="w-4 h-4 text-zinc-900" />
               </button>
             )}
           </div>

@@ -2,15 +2,16 @@ import React, { useEffect } from 'react';
 import { useSherlyStore, ViewType } from '../stores/useSherlyStore';
 import {
   MessageSquare,
-  Folder,
+  FolderGit2,
   Settings,
   Mic,
   Play,
   ChevronDown,
-  FileCode,
+  FileCode2,
   FileText,
   FileJson,
   Code2,
+  FolderOpen,
 } from 'lucide-react';
 import { FileNode } from '../types/api';
 import { api } from '../services/api';
@@ -31,7 +32,7 @@ export const Sidebar: React.FC = () => {
 
   const workspaceNav: { id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'assistant', label: 'Assistant', icon: MessageSquare },
-    { id: 'workspace', label: 'Code Workspace', icon: Folder },
+    { id: 'workspace', label: 'Code Workspace', icon: FolderGit2 },
   ];
 
   const systemNav: { id: ViewType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -54,11 +55,12 @@ export const Sidebar: React.FC = () => {
       return (
         <div key={node.path} className="select-none">
           <div
-            className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-gray-400 hover:text-gray-200 hover:bg-white/[0.04] rounded cursor-pointer transition"
+            className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 rounded-md cursor-pointer transition"
             style={{ paddingLeft: `${level * 10 + 6}px` }}
           >
-            <ChevronDown className="w-3 h-3 text-gray-500 shrink-0" />
-            <span className="text-purple-300 font-semibold truncate">{node.name}</span>
+            <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
+            <FolderOpen className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <span className="text-zinc-300 truncate">{node.name}</span>
           </div>
           {node.children && (
             <div className="flex flex-col">
@@ -83,22 +85,22 @@ export const Sidebar: React.FC = () => {
           setActiveView('workspace');
           openFile(node.path);
         }}
-        className={`w-full flex items-center gap-2 px-2 py-1 text-[11px] rounded cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-brand ${
+        className={`w-full flex items-center gap-2 px-2 py-1 text-[11px] rounded-md cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-indigo-500 ${
           isActive
-            ? 'bg-brand-surface text-purple-300 font-semibold border-l-2 border-brand'
-            : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+            ? 'bg-zinc-800 text-zinc-100 font-medium'
+            : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200'
         }`}
-        style={{ paddingLeft: `${level * 10 + 14}px` }}
+        style={{ paddingLeft: `${level * 10 + 16}px` }}
         title={node.path}
       >
         {isPython ? (
-          <FileCode className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <FileCode2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
         ) : isTs ? (
           <Code2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
         ) : isJson ? (
           <FileJson className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
         ) : (
-          <FileText className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <FileText className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
         )}
         <span className="truncate">{node.name}</span>
       </button>
@@ -106,20 +108,20 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-60 bg-sidebar border-r border-white/[0.07] flex flex-col justify-between p-3 select-none shrink-0 h-full overflow-hidden">
+    <aside className="w-56 bg-sidebar border-r border-white/[0.06] flex flex-col justify-between p-2.5 select-none shrink-0 h-full overflow-hidden">
       <div className="flex flex-col gap-3 overflow-hidden flex-1">
         {/* Workspace Info Card */}
-        <div className="bg-card border border-white/[0.07] rounded-lg p-2.5 flex flex-col gap-1 shadow-subtle">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <h2 className="text-[10px] font-bold text-gray-400 tracking-wider">PROJECT WORKSPACE</h2>
+        <div className="bg-zinc-900/60 border border-white/[0.06] rounded-lg px-2.5 py-2 flex items-center justify-between shadow-subtle">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_5px_rgba(52,211,153,0.6)]" />
+            <span className="text-xs font-medium text-zinc-200 truncate">Sherly Workspace</span>
           </div>
-          <p className="text-[11px] font-mono text-gray-300 pl-3.5 truncate">Sherly Workspace</p>
+          <span className="text-[10px] font-mono text-zinc-500 shrink-0">v2.0</span>
         </div>
 
         {/* Workspace Navigation */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] font-bold text-gray-500 tracking-wider px-2 py-1">WORKSPACE</span>
+          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider px-2 py-0.5 uppercase">WORKSPACE</span>
           {workspaceNav.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -128,13 +130,13 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand cursor-pointer ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs transition text-left focus-visible:outline-2 focus-visible:outline-indigo-500 cursor-pointer ${
                   isActive
-                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-subtle'
-                    : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+                    ? 'bg-zinc-800 text-zinc-100 font-medium shadow-subtle'
+                    : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
                 <span>{item.label}</span>
               </button>
             );
@@ -143,7 +145,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Runtime & System Navigation */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] font-bold text-gray-500 tracking-wider px-2 py-1">RUNTIME & SYSTEM</span>
+          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider px-2 py-0.5 uppercase">SYSTEM</span>
           {systemNav.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -152,13 +154,13 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand cursor-pointer ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs transition text-left focus-visible:outline-2 focus-visible:outline-indigo-500 cursor-pointer ${
                   isActive
-                    ? 'bg-brand-surface text-purple-300 border-l-2 border-brand font-semibold shadow-subtle'
-                    : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
+                    ? 'bg-zinc-800 text-zinc-100 font-medium shadow-subtle'
+                    : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
                 <span>{item.label}</span>
               </button>
             );
@@ -167,12 +169,12 @@ export const Sidebar: React.FC = () => {
 
         {/* Project Files Tree */}
         <div className="flex flex-col gap-1 mt-1 flex-1 overflow-hidden">
-          <span className="text-[9px] font-bold text-gray-500 tracking-wider px-2">PROJECT FILES</span>
+          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider px-2 uppercase">EXPLORER</span>
           <div className="overflow-y-auto flex-1 flex flex-col gap-0.5 pr-1">
             {fileTree && fileTree.children ? (
               fileTree.children.map((child) => renderFileNode(child))
             ) : (
-              <span className="text-xs text-gray-500 italic px-2">Loading workspace...</span>
+              <span className="text-xs text-zinc-500 italic px-2">Loading workspace...</span>
             )}
           </div>
         </div>
@@ -182,9 +184,9 @@ export const Sidebar: React.FC = () => {
       <button
         type="button"
         onClick={handleRunProject}
-        className="w-full h-9 bg-brand hover:bg-brand-hover text-white font-semibold text-xs rounded-md flex items-center justify-center gap-2 shadow-subtle transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-brand mt-2 shrink-0 cursor-pointer"
+        className="w-full h-8 bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] text-zinc-200 hover:text-white font-medium text-xs rounded-lg flex items-center justify-center gap-2 shadow-subtle transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-indigo-500 mt-2 shrink-0 cursor-pointer"
       >
-        <Play className="w-3.5 h-3.5 fill-white" />
+        <Play className="w-3 h-3 fill-emerald-400 text-emerald-400" />
         <span>Run main.py</span>
       </button>
     </aside>
