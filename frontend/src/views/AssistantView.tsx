@@ -18,6 +18,7 @@ import {
   X,
   ArrowDown,
   ExternalLink,
+  Wrench,
 } from 'lucide-react';
 import { CodeBlock } from '../components/ui/CodeBlock';
 import { IconButton } from '../components/ui/Button';
@@ -36,7 +37,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
-        <mark key={i} className="bg-amber-400/30 text-amber-200 px-0.5 rounded">
+        <mark key={i} className="bg-status-warning/30 text-status-warning px-0.5 rounded">
           {part}
         </mark>
       ) : (
@@ -53,7 +54,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
           return (
             <code
               key={cIdx}
-              className="bg-zinc-800/80 text-zinc-200 font-mono text-[11px] px-1.5 py-0.5 rounded border border-white/[0.08] select-text"
+              className="bg-card text-txt-primary font-mono text-xs px-1.5 py-0.5 rounded border border-border-subtle select-text"
             >
               {highlightText(cp.slice(1, -1))}
             </code>
@@ -64,7 +65,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
         return boldParts.map((bp, bIdx) => {
           if (bp.startsWith('**') && bp.endsWith('**') && bp.length > 4) {
             return (
-              <strong key={bIdx} className="font-semibold text-zinc-100">
+              <strong key={bIdx} className="font-semibold text-txt-primary">
                 {highlightText(bp.slice(2, -2))}
               </strong>
             );
@@ -81,10 +82,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 inline-flex items-center gap-0.5 focus-visible:outline-2 focus-visible:outline-indigo-500"
+                  className="text-brand-hover underline underline-offset-2 inline-flex items-center gap-0.5 focus-visible:outline-2 focus-visible:outline-brand"
                 >
                   <span>{highlightText(label)}</span>
-                  <ExternalLink className="w-2.5 h-2.5 inline shrink-0" />
+                  <ExternalLink className="w-3 h-3 inline shrink-0" />
                 </a>
               );
             }
@@ -125,7 +126,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
   const flushList = () => {
     if (inList && listItems.length > 0) {
       elements.push(
-        <ul key={`list-${elements.length}`} className="list-disc pl-5 my-1.5 space-y-1 text-zinc-300">
+        <ul key={`list-${elements.length}`} className="list-disc pl-5 my-1.5 space-y-1 text-txt-secondary">
           {listItems}
         </ul>
       );
@@ -140,36 +141,36 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     if (trimmed.startsWith('### ')) {
       flushList();
       elements.push(
-        <h4 key={idx} className="text-xs font-semibold text-zinc-100 mt-2 mb-1">
+        <h4 key={idx} className="text-xs font-semibold text-txt-primary mt-2 mb-1">
           {renderInline(trimmed.slice(4))}
         </h4>
       );
     } else if (trimmed.startsWith('## ')) {
       flushList();
       elements.push(
-        <h3 key={idx} className="text-sm font-semibold text-zinc-100 mt-2.5 mb-1">
+        <h3 key={idx} className="text-sm font-semibold text-txt-primary mt-2.5 mb-1">
           {renderInline(trimmed.slice(3))}
         </h3>
       );
     } else if (trimmed.startsWith('# ')) {
       flushList();
       elements.push(
-        <h2 key={idx} className="text-base font-bold text-zinc-100 mt-3 mb-1.5">
+        <h2 key={idx} className="text-base font-bold text-txt-primary mt-3 mb-1.5">
           {renderInline(trimmed.slice(2))}
         </h2>
       );
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       inList = true;
       listItems.push(
-        <li key={idx} className="text-[13px] leading-relaxed text-zinc-300">
+        <li key={idx} className="text-xs leading-relaxed text-txt-secondary">
           {renderInline(trimmed.slice(2))}
         </li>
       );
     } else if (/^\d+\.\s/.test(trimmed)) {
       flushList();
       elements.push(
-        <div key={idx} className="text-[13px] leading-relaxed text-zinc-300 pl-4 relative my-0.5">
-          <span className="absolute left-0 text-zinc-500 font-mono text-[11px]">
+        <div key={idx} className="text-xs leading-relaxed text-txt-secondary pl-4 relative my-0.5">
+          <span className="absolute left-0 text-txt-muted font-mono text-[11px]">
             {trimmed.match(/^\d+\./)?.[0]}
           </span>
           {renderInline(trimmed.replace(/^\d+\.\s*/, ''))}
@@ -180,7 +181,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
       elements.push(
         <blockquote
           key={idx}
-          className="border-l-2 border-indigo-500 bg-zinc-900/50 px-3 py-1.5 rounded-r my-1.5 text-xs text-zinc-400 italic"
+          className="border-l-2 border-brand bg-card px-3 py-1.5 rounded-r my-1.5 text-xs text-txt-secondary italic"
         >
           {renderInline(trimmed.slice(2))}
         </blockquote>
@@ -190,7 +191,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, searchQuer
     } else {
       flushList();
       elements.push(
-        <p key={idx} className="text-[13px] leading-relaxed text-zinc-200 my-1">
+        <p key={idx} className="text-xs leading-relaxed text-txt-primary my-1">
           {renderInline(line)}
         </p>
       );
@@ -208,6 +209,7 @@ export const AssistantView: React.FC = () => {
   const {
     chatHistory,
     isThinking,
+    statusText,
     sendChatMessage,
     cancelGeneration,
     regenerateMessage,
@@ -257,21 +259,26 @@ export const AssistantView: React.FC = () => {
     }
   }, [chatHistory, isThinking, showScrollBottom, scrollToBottom]);
 
-  // Auto-expand textarea height
+  // Auto-expand textarea height (44px min to 140px max)
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(140, Math.max(38, textareaRef.current.scrollHeight))}px`;
+      textareaRef.current.style.height = `${Math.min(140, Math.max(44, textareaRef.current.scrollHeight))}px`;
     }
   }, [prompt]);
 
-  // Global Keyboard Shortcuts (Ctrl+F, Esc)
+  // Global & Context-Aware Keyboard Shortcuts (Ctrl+F, Esc)
   useEffect(() => {
     const handleGlobalKeys = (e: KeyboardEvent) => {
+      // Scoped Ctrl+F: Open search only if not typing inside an active selection
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        setSearchOpen(true);
-        setTimeout(() => searchInputRef.current?.focus(), 50);
+        const activeEl = document.activeElement;
+        const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+        if (!isInputFocused) {
+          e.preventDefault();
+          setSearchOpen(true);
+          setTimeout(() => searchInputRef.current?.focus(), 50);
+        }
       } else if (e.key === 'Escape') {
         if (searchOpen) {
           setSearchOpen(false);
@@ -361,18 +368,18 @@ export const AssistantView: React.FC = () => {
     <div className="flex-1 flex flex-col h-full bg-canvas overflow-hidden relative">
       {/* Floating In-Conversation Search Bar */}
       {searchOpen && (
-        <div className="absolute top-3 right-6 z-30 bg-zinc-900 border border-white/[0.12] rounded-xl p-2 shadow-elevated flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
-          <Search className="w-3.5 h-3.5 text-indigo-400 ml-1 shrink-0" />
+        <div className="absolute top-3 right-6 z-30 bg-card border border-border-medium rounded-lg p-2 shadow-elevated flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150 select-none">
+          <Search className="w-3.5 h-3.5 text-brand ml-1 shrink-0" />
           <input
             ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search conversation (Ctrl+F)..."
-            className="bg-transparent text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none w-56 font-sans"
+            placeholder="Search conversation..."
+            className="bg-transparent text-xs text-txt-primary placeholder-txt-muted focus:outline-none w-56 font-sans select-text"
           />
 
-          <span className="text-[10px] text-zinc-400 font-mono select-none">
+          <span className="text-[10px] text-txt-muted font-mono select-none">
             {matchCount > 0 ? `${currentMatchIdx} of ${matchCount}` : 'No matches'}
           </span>
 
@@ -404,20 +411,20 @@ export const AssistantView: React.FC = () => {
         </div>
       )}
 
-      {/* Conversation Timeline Stream */}
+      {/* Conversation Timeline Stream (Clamped Reading Width: 760px-840px, Native Selection Enabled) */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 flex flex-col gap-6 max-w-3xl w-full mx-auto select-text"
       >
         {chatHistory.length === 0 && !isThinking && (
-          <div className="flex flex-col items-center justify-center h-full text-center text-zinc-400 my-auto select-none py-16">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-indigo-400 mb-3 shadow-subtle">
+          <div className="flex flex-col items-center justify-center h-full text-center text-txt-muted my-auto select-none py-16">
+            <div className="w-10 h-10 rounded-lg bg-card border border-border-subtle flex items-center justify-center text-brand mb-3 shadow-subtle">
               <Sparkles className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-semibold text-zinc-200">How can I help you today?</h3>
-            <p className="text-xs text-zinc-500 max-w-xs mt-1 leading-relaxed">
-              Ask questions, inspect workspace files, run developer commands, or test code.
+            <h3 className="text-sm font-semibold text-txt-primary">How can I help you today?</h3>
+            <p className="text-xs text-txt-muted max-w-xs mt-1 leading-relaxed">
+              Ask questions, inspect workspace files, run developer commands, or execute code tools.
             </p>
           </div>
         )}
@@ -431,49 +438,49 @@ export const AssistantView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCopy(msg.user_prompt, index, true)}
-                  className="p-1 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition cursor-pointer"
+                  className="p-1 rounded text-txt-muted hover:text-txt-primary hover:bg-card transition cursor-pointer"
                   title="Copy prompt"
                   aria-label="Copy prompt text"
                 >
                   {userCopiedIndex === index ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-status-success" />
                   ) : (
-                    <Copy className="w-3 h-3" />
+                    <Copy className="w-3.5 h-3.5" />
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleEditUserPrompt(msg.user_prompt)}
-                  className="p-1 rounded text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition cursor-pointer"
+                  className="p-1 rounded text-txt-muted hover:text-txt-primary hover:bg-card transition cursor-pointer"
                   title="Edit prompt"
                   aria-label="Edit prompt in composer"
                 >
-                  <Edit3 className="w-3 h-3" />
+                  <Edit3 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="bg-zinc-800/80 border border-white/[0.06] rounded-2xl px-4 py-2.5 max-w-xl flex flex-col gap-1.5 shadow-subtle select-text">
-                <p className="text-[13px] font-normal text-zinc-100 leading-relaxed whitespace-pre-wrap select-text">
+              <div className="bg-card border border-border-subtle rounded-2xl px-4 py-2.5 max-w-xl flex flex-col gap-1.5 shadow-subtle select-text">
+                <p className="text-xs font-normal text-txt-primary leading-relaxed whitespace-pre-wrap select-text">
                   {msg.user_prompt}
                 </p>
                 {msg.attached_file && (
-                  <div className="inline-flex items-center gap-1.5 bg-zinc-900 border border-white/[0.06] rounded-md px-2 py-0.5 text-[11px] font-mono text-zinc-300 w-fit select-none">
-                    <FileText className="w-3 h-3 text-indigo-400" />
+                  <div className="inline-flex items-center gap-1.5 bg-canvas border border-border-subtle rounded px-2 py-0.5 text-[11px] font-mono text-txt-secondary w-fit select-none">
+                    <FileText className="w-3 h-3 text-brand" />
                     <span>{msg.attached_file}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Assistant Response (Clean natural flow) */}
+            {/* Assistant Response (Clean natural flow without enclosing card) */}
             <div className="flex items-start gap-3 group">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
+              <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 mt-0.5 shadow-subtle select-none">
                 S
               </div>
 
               <div className="flex flex-col gap-2 flex-1 min-w-0">
                 {/* Assistant Content */}
-                <div className="text-[13px] text-zinc-200 leading-relaxed select-text">
+                <div className="text-xs text-txt-primary leading-relaxed select-text">
                   <MarkdownRenderer content={msg.assistant_response} searchQuery={searchQuery} />
                 </div>
 
@@ -482,18 +489,18 @@ export const AssistantView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleCopy(msg.assistant_response, index, false)}
-                    className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 hover:text-zinc-200 transition px-1.5 py-0.5 rounded hover:bg-zinc-800/60 cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] font-medium text-txt-muted hover:text-txt-primary transition px-1.5 py-0.5 rounded hover:bg-card cursor-pointer"
                     title="Copy response"
                     aria-label="Copy response"
                   >
                     {copiedIndex === index ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied</span>
+                        <Check className="w-3.5 h-3.5 text-status-success" />
+                        <span className="text-status-success">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                         <span>Copy</span>
                       </>
                     )}
@@ -502,11 +509,11 @@ export const AssistantView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => regenerateMessage(index)}
-                    className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 hover:text-zinc-200 transition px-1.5 py-0.5 rounded hover:bg-zinc-800/60 cursor-pointer"
+                    className="flex items-center gap-1 text-[11px] font-medium text-txt-muted hover:text-txt-primary transition px-1.5 py-0.5 rounded hover:bg-card cursor-pointer"
                     title="Regenerate response"
                     aria-label="Regenerate response"
                   >
-                    <RotateCw className="w-3 h-3" />
+                    <RotateCw className="w-3.5 h-3.5" />
                     <span>Retry</span>
                   </button>
                 </div>
@@ -515,15 +522,27 @@ export const AssistantView: React.FC = () => {
           </div>
         ))}
 
-        {/* Task Status Node (Thinking State) */}
+        {/* Task / Tool Execution Activity Status */}
         {isThinking && (
           <div className="flex items-center gap-3 animate-in fade-in duration-150 select-none py-1">
-            <div className="w-6 h-6 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-indigo-400 text-xs shrink-0">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <div className="w-6 h-6 rounded-md bg-card border border-border-subtle flex items-center justify-center text-brand text-xs shrink-0">
+              {statusText.startsWith('tool:') ? (
+                <Wrench className="w-3.5 h-3.5 text-status-info animate-pulse" />
+              ) : (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              )}
             </div>
-            <span className="text-xs text-zinc-400 font-medium">
-              Thinking...
-            </span>
+            <div className="flex items-center gap-2 text-xs text-txt-secondary font-medium">
+              <span>{statusText.startsWith('tool:') ? `Executing tool: ${statusText.replace('tool:', '')}` : 'Thinking...'}</span>
+              <button
+                type="button"
+                onClick={cancelGeneration}
+                className="text-[11px] text-status-danger hover:underline cursor-pointer ml-1"
+                aria-label="Cancel generation"
+              >
+                (Cancel)
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -533,27 +552,27 @@ export const AssistantView: React.FC = () => {
         <button
           type="button"
           onClick={() => scrollToBottom(true)}
-          className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-zinc-900/90 backdrop-blur border border-white/[0.12] hover:border-zinc-600 text-zinc-300 hover:text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-elevated transition active:scale-95 z-20 select-none cursor-pointer"
+          className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur border border-border-medium hover:border-txt-muted text-txt-secondary hover:text-txt-primary px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-elevated transition active:scale-95 z-20 select-none cursor-pointer"
           title="Scroll to latest messages"
           aria-label="Scroll to latest messages"
         >
-          <ArrowDown className="w-3.5 h-3.5 text-indigo-400" />
+          <ArrowDown className="w-3.5 h-3.5 text-brand" />
           <span>Scroll to latest</span>
         </button>
       )}
 
-      {/* Docked Floating Composer Bar */}
-      <div className="p-4 bg-canvas/80 backdrop-blur-md select-none shrink-0">
+      {/* Docked Floating Composer Bar (44px min to 140px max height) */}
+      <div className="p-4 bg-canvas/80 backdrop-blur-md select-none shrink-0 border-t border-border-subtle">
         <form onSubmit={handleSubmit} className="flex flex-col gap-1.5 max-w-3xl mx-auto">
           {/* File Attachment Pill */}
           {attachedFile && (
-            <div className="flex items-center gap-2 text-xs text-zinc-300 font-mono font-medium px-1 select-none">
-              <FileText className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="flex items-center gap-2 text-xs text-txt-secondary font-mono font-medium px-1 select-none">
+              <FileText className="w-3.5 h-3.5 text-brand" />
               <span>Attached: {attachedFile}</span>
               <button
                 type="button"
                 onClick={() => setAttachedFile(null)}
-                className="text-zinc-500 hover:text-rose-400 ml-1 text-xs cursor-pointer"
+                className="text-txt-muted hover:text-status-danger ml-1 text-xs cursor-pointer"
                 title="Remove attachment"
                 aria-label="Remove attachment"
               >
@@ -562,7 +581,7 @@ export const AssistantView: React.FC = () => {
             </div>
           )}
 
-          <div className="bg-zinc-900 border border-white/[0.08] focus-within:border-zinc-600 rounded-2xl p-2 flex items-end gap-1.5 transition shadow-elevated">
+          <div className="bg-card border border-border-subtle focus-within:border-border-medium rounded-xl p-2 flex items-end gap-1.5 transition shadow-elevated">
             <IconButton
               icon={<Paperclip className="w-4 h-4" />}
               aria-label="Attach File"
@@ -577,12 +596,12 @@ export const AssistantView: React.FC = () => {
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask Sherly anything (Enter to send, Shift+Enter for newline)..."
-              className="flex-1 bg-transparent text-[13px] text-zinc-100 placeholder-zinc-500 focus:outline-none px-2 resize-none max-h-36 leading-relaxed py-1.5 select-text"
+              className="flex-1 bg-transparent text-xs text-txt-primary placeholder-txt-muted focus:outline-none px-2 resize-none max-h-36 leading-relaxed py-2 select-text"
             />
 
             <IconButton
               icon={<Search className="w-4 h-4" />}
-              aria-label="Search conversation (Ctrl+F)"
+              aria-label="Search conversation"
               onClick={() => {
                 setSearchOpen((prev) => !prev);
                 setTimeout(() => searchInputRef.current?.focus(), 50);
@@ -602,7 +621,7 @@ export const AssistantView: React.FC = () => {
               <button
                 type="button"
                 onClick={cancelGeneration}
-                className="w-7 h-7 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-indigo-500 active:scale-95 cursor-pointer mb-0.5"
+                className="w-7 h-7 bg-status-danger hover:bg-status-danger/80 text-white rounded-full flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer mb-0.5"
                 title="Stop generation (Esc)"
                 aria-label="Stop generation"
               >
@@ -612,11 +631,11 @@ export const AssistantView: React.FC = () => {
               <button
                 type="submit"
                 disabled={!prompt.trim()}
-                className="w-7 h-7 bg-zinc-100 hover:bg-white disabled:opacity-20 text-zinc-900 rounded-full flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-indigo-500 active:scale-95 cursor-pointer mb-0.5"
+                className="w-7 h-7 bg-txt-primary hover:bg-white disabled:opacity-20 text-canvas rounded-full flex items-center justify-center font-bold transition shrink-0 shadow-subtle focus-visible:outline-2 focus-visible:outline-brand active:scale-95 cursor-pointer mb-0.5"
                 title="Send Prompt (Enter)"
                 aria-label="Send Prompt"
               >
-                <ArrowUp className="w-4 h-4 text-zinc-900" />
+                <ArrowUp className="w-4 h-4 text-canvas" />
               </button>
             )}
           </div>

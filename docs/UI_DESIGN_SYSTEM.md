@@ -1,61 +1,68 @@
-# Sherly UI Design System Specification
+# Sherly Canonical UI Design System Specification
 
-**Canonical UI Target**: React 18 + TypeScript + Vite + Tailwind CSS + Tauri 2  
-**Transitional Compatibility**: PySide6 Desktop UI  
+**Target Platform**: React 18 + TypeScript + Vite + Tailwind CSS + Tauri 2  
+**Version**: 2.0 (Phase 7 Canonicalization)  
 **Status**: Production-Grade / Active  
 
 ---
 
 ## 1. Design Principles & Vision
 
-Sherly's user experience is designed as an elite, developer-first desktop AI assistant and workspace copilot.
-
-1. **One Sherly UX**: React + Tauri is the canonical future desktop client. The backend Python core remains authoritative for models, tools, files, tasks, and safety guards.
-2. **Obsidian Dark Surface Elevation**: Multi-tiered dark canvas system engineered for long engineering sessions with zero visual fatigue.
-3. **Calm, High-Contrast Typography**: Clear hierarchy with WCAG 2.2 AA (and AAA text) compliance.
-4. **Resilient Desktop Layout**: Flexible split panes, max-width clamped assistant reading containers (840px), auto-expanding composers, and clean monospace terminals.
-5. **Deterministic Status & Approval**: Clear, non-destructive safety confirmation flows for high-risk operations.
+1. **Quiet, Premium, Developer-First Experience**: Styled with an obsidian canvas and zinc surface elevation for prolonged developer sessions with zero visual fatigue.
+2. **Deterministic & Authoritative**: The UI exclusively renders genuine backend metadata. No fabricated metrics (e.g. fake RAM, VRAM, context size, speeds, or fake Git health indicators).
+3. **Full Native Selection & Interaction**: The conversation surface maintains complete native clipboard text selection (drag select, double-click word select, Ctrl+A, Ctrl+C, right-click copy, and one-click code copy).
+4. **Accessible by Default (WCAG 2.2 AA)**: Explicit focus rings (`2px solid var(--border-focus)` with `2px` offset), high-contrast text tokens, semantic button and icon attributes, and `prefers-reduced-motion` compliance.
+5. **Tool & Capability Transparency**: Active tool and capability executions display clear real-time activity chips (e.g. `Executing tool: terminal.execute`, `Reading main.py`) with supported cancellation hooks.
 
 ---
 
-## 2. Color Palette & Canonical Tokens
+## 2. Color Palette & Canonical Semantic Tokens
 
-### Canvas & Surface Layers
-| Token | Hex Value | Purpose |
-| :--- | :--- | :--- |
-| `--bg-canvas` | `#08080c` | Deepest root application window canvas |
-| `--bg-sidebar` | `#0c0c12` | Left vertical navigation rail and project explorer |
-| `--bg-surface` | `#101018` | Primary view containers and workspace panels |
-| `--bg-card` | `#151520` | Elevated timeline message cards and repository widgets |
-| `--bg-card-hover`| `#1a1a28` | Hovered interactive card state |
-| `--bg-input` | `#12121c` | Composer and terminal input fields |
+All semantic design tokens are declared as CSS variables in `frontend/src/index.css` and mapped to Tailwind utilities in `frontend/tailwind.config.cjs`:
 
-### Brand & Accents
-| Token | Value | Purpose |
+### Canvas & Surfaces
+| CSS Token | Hex Value | Purpose |
 | :--- | :--- | :--- |
-| `--brand-primary` | `#7c3aed` (Violet 600) | Primary button fills, active tabs, highlights |
-| `--brand-hover` | `#8b5cf6` (Violet 500) | Hovered interactive brand states |
-| `--brand-surface` | `rgba(124, 58, 237, 0.12)` | Tinted active tab and badge surfaces |
-| `--brand-glow` | `rgba(124, 58, 237, 0.20)` | Subtle shadow elevations |
-| `--border-subtle` | `rgba(255, 255, 255, 0.06)` | Structural dividers and cards |
-| `--border-medium` | `rgba(255, 255, 255, 0.12)` | Hover borders and dialog edges |
-| `--border-focus` | `#9065fc` | Accessible focus-visible outline |
+| `--bg-canvas` | `#090a0f` | Deepest root application canvas and background |
+| `--bg-sidebar` | `#0e0f16` | Left vertical navigation rail and explorer |
+| `--bg-surface` | `#12131c` | Workspace and main container backgrounds |
+| `--bg-card` | `#171824` | Elevated cards, user prompt bubbles, and model widgets |
+| `--bg-card-hover` | `#1d1e2e` | Interactive card and list item hover state |
+| `--bg-input` | `#11121b` | Input fields, search bars, and dialog textareas |
 
-### Semantic Status
-| Token | Hex Value | Semantic Role |
+### Borders & Focus
+| CSS Token | Value | Purpose |
 | :--- | :--- | :--- |
-| `--status-success` | `#10b981` (Emerald 500) | Active models in memory, successful actions, git status |
-| `--status-warning` | `#f59e0b` (Amber 500) | Medium-risk operation alerts, offline warnings |
-| `--status-danger` | `#f43f5e` (Rose 500) | Destructive action confirmation, error notifications |
-| `--status-info` | `#38bdf8` (Sky 400) | Information badges, language syntax marks |
+| `--border-subtle` | `rgba(255, 255, 255, 0.07)` | Structural dividers, cards, message borders |
+| `--border-medium` | `rgba(255, 255, 255, 0.12)` | Active card hover edges, modal dialog borders |
+| `--border-focus` | `#8b5cf6` (Violet 500) | 2px accessible focus-visible outline |
+
+### Text & Hierarchy
+| CSS Token | Hex Value | Semantic Role |
+| :--- | :--- | :--- |
+| `--text-primary` | `#f5f5f7` | Primary headings, prompts, active code text |
+| `--text-secondary` | `#a1a1aa` | Assistant explanations, descriptions, metadata |
+| `--text-muted` | `#71717a` | Section labels, timestamps, icons, line numbers |
+| `--text-disabled` | `#52525b` | Disabled buttons and inactive controls |
+
+### Brand & Status
+| CSS Token | Hex / RGBA Value | Semantic Role |
+| :--- | :--- | :--- |
+| `--accent-primary` | `#7c3aed` (Violet 600) | Brand actions, active accents, focus highlights |
+| `--accent-primary-hover`| `#8b5cf6` (Violet 500) | Hovered primary buttons and interactive accents |
+| `--accent-surface` | `rgba(124, 58, 237, 0.12)` | Brand pill and subtle active surfaces |
+| `--status-success` | `#10b981` (Emerald 500) | Running models, successful actions, active status dots |
+| `--status-warning` | `#f59e0b` (Amber 500) | Offline warnings, medium-risk alerts |
+| `--status-danger` | `#f43f5e` (Rose 500) | Destructive action confirmation, dangerous warnings |
+| `--status-info` | `#38bdf8` (Sky 400) | Information badges, tool activity chips |
 
 ---
 
 ## 3. Typography Hierarchy
 
 ### Font Families
-- **UI & Controls**: `Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif`
-- **Code & Monospace**: `'JetBrains Mono', 'Cascadia Code', Consolas, 'Courier New', monospace`
+- **UI & Interface**: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`
+- **Code & Monospace**: `'JetBrains Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace`
 
 ### Typography Scales
 | Role | Size | Line Height | Weight | Letter Spacing |
@@ -71,82 +78,43 @@ Sherly's user experience is designed as an elite, developer-first desktop AI ass
 
 ---
 
-## 4. Spacing Scale (4px Base Grid)
+## 4. Spacing Scale (4px Rhythm)
 
 ```
-Scale: 4px | 8px | 12px | 16px | 20px | 24px | 32px
+4px (1) | 8px (2) | 12px (3) | 16px (4) | 20px (5) | 24px (6) | 32px (8)
 ```
-- `gap-1` / `p-1`: 4px — tight button internals and icon gaps
-- `gap-2` / `p-2`: 8px — list item spacing and composer padding
-- `gap-3` / `p-3`: 12px — sidebar and card layout spacing
-- `gap-4` / `p-4`: 16px — standard container and view padding
-- `gap-6` / `p-6`: 24px — assistant timeline stream spacing
+
+- `gap-1` / `p-1` (4px): Button internal spacing, icon margins.
+- `gap-2` / `p-2` (8px): List items, composer internal controls.
+- `gap-3` / `p-3` (12px): Sidebar sections, card internal padding.
+- `gap-4` / `p-4` (16px): View containers, header bar margins.
+- `gap-6` / `p-6` (24px): Assistant timeline message gaps.
 
 ---
 
-## 5. View Architecture & Information Hierarchy
+## 5. Component Geometry & Standards
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ HeaderBar (44px) [Logo Mark] [Breadcrumbs]    [Model Status Pill] [⚙] [— □ ✕]│
-├───────────────┬────────────────────────────────────────────────────────┤
-│ Sidebar (240px)│ Main Content Area                                      │
-│               │                                                        │
-│ [Workspace]   │ 1. AssistantView: Timeline Stream + Docked Composer   │
-│ • Assistant   │ 2. WorkspaceView: File Tabs + Code Canvas + Terminal   │
-│ • Workspace   │ 3. ModelsView:    Local LLMs + Remote APIs + Inspector │
-│               │ 4. VoiceOverlay:  Mic Capsule + Equalizer + Stream     │
-│ [Runtime]     │                                                        │
-│ • Models      │                                                        │
-│ • Voice HUD   │                                                        │
-│               │                                                        │
-│ [Files Tree]  │                                                        │
-│ [▶ Run main]  │                                                        │
-└───────────────┴────────────────────────────────────────────────────────┘
-```
-
-### Primary Views:
-1. **Assistant View (`AssistantView.tsx`)**:
-   - Max-width 840px reading container.
-   - User cards (with `U` avatar) and Assistant cards (with `S` avatar and `Copilot` badge).
-   - Markdown code blocks rendered via `<CodeBlock />` with language headers and one-click copy confirmation.
-   - Docked composer with auto-expanding textarea (44px to 140px), file attachment pill, voice trigger, and submit action.
-2. **Developer Workspace View (`WorkspaceView.tsx`)**:
-   - Tab bar with open files and dirty indicators.
-   - Code canvas with line numbers gutter.
-   - Diff mode with green added lines, red removed lines, and Accept (`Ctrl+Enter`) / Reject (`Esc`) controls.
-   - Integrated terminal runner (`➔ $`) with output streaming and clear action.
-   - Git status bar footer.
-3. **Model Management View (`ModelsView.tsx`)**:
-   - Live Ollama models scan with active status pulse (`● Active in Memory`).
-   - Remote Cloud Provider cards (OpenAI, Google Gemini, Groq) with connection status badges and API key modal.
-   - Model Inspector panel with hardware memory allocation meters and capability chips.
-4. **Voice HUD (`VoiceOverlayView.tsx`)**:
-   - Minimalist vector microphone capsule with concentric pulse rings.
-   - Live speech-to-text transcription with animated typing indicator.
-   - Live audio equalizer bars and hardware device selector dropdown.
+| Component | Target Geometry | Radius | Features |
+| :--- | :--- | :--- | :--- |
+| **HeaderBar** | `44px` height (`h-11`) | `0` | Brand logo, breadcrumb, model status pill, window controls. |
+| **Sidebar** | `240px` width (`w-60`) | `0` | Workspace info card, 2px active accent nav, explorer tree, run button. |
+| **Button (sm/md/lg)** | `28px` / `32px` / `40px` | `6px` (`rounded-md`) | Accessible focus outline, loading spinner, semantic variants. |
+| **IconButton** | `24px` / `28px` / `32px` | `6px` (`rounded-md`) | Mandatory `aria-label` and `title`, subtle hover. |
+| **Badge** | `20px` / `24px` height | `4px` (`rounded`) | Semantic status variants, optional pulse dot. |
+| **Card** | Flexible | `8px` (`rounded-lg`) | Border-subtle, tokenized card background. |
+| **Composer** | `44px` min – `140px` max | `12px` (`rounded-xl`) | Auto-expanding textarea, file pill, send/stop button. |
+| **CodeBlock** | Flexible | `8px` (`rounded-lg`) | Syntax header, copy with confirmation, native selection. |
+| **ApprovalDialog** | `420px` width | `8px` (`rounded-lg`) | Explicit focus on mount, Enter to Approve, Esc to Reject. |
 
 ---
 
-## 6. Reusable Component System
+## 6. Keyboard Shortcuts & Accessibility
 
-| Component | Location | Features |
-| :--- | :--- | :--- |
-| `Button` | `frontend/src/components/ui/Button.tsx` | Primary, secondary, ghost, danger, outline variants; loading spinner; accessible focus. |
-| `IconButton` | `frontend/src/components/ui/Button.tsx` | Compact icon actions with required `aria-label` and tooltips. |
-| `Badge` | `frontend/src/components/ui/Badge.tsx` | Status tags with optional live pulse dots. |
-| `Card` | `frontend/src/components/ui/Card.tsx` | Elevated dark obsidian card containers. |
-| `CodeBlock` | `frontend/src/components/ui/CodeBlock.tsx` | Monospace code viewer with language badge, copy action, and horizontal scrolling. |
-| `ApprovalDialog` | `frontend/src/components/ui/ApprovalDialog.tsx` | Safety confirmation modal for critical operations (Action, Target, Reason, Risk Level, Reversibility). |
-
----
-
-## 7. Keyboard Shortcuts & Accessibility
-
-- **Voice Trigger**: `Ctrl + Shift + L`
-- **Global Palette / Quick Action**: `Ctrl + Shift + P`
-- **Send Assistant Message**: `Enter` (or `Ctrl + Enter` / `Cmd + Enter`)
+- **Conversation Search**: `Ctrl + F` (context-aware, opens in-conversation search when active)
+- **Send Prompt**: `Enter` (when not holding `Shift`)
 - **Newline in Composer**: `Shift + Enter`
-- **Accept Diff / Confirm**: `Ctrl + Enter`
-- **Reject Diff / Close Modal**: `Esc`
-- **Focus Rings**: 2px solid `#9065fc` outline with 2px offset on all interactive elements.
+- **Stop Generation**: `Esc` (while assistant is generating or thinking)
+- **Approve Action**: `Enter` (when approval dialog is focused)
+- **Reject Action / Close Modal**: `Esc`
+- **Voice HUD**: `Ctrl + Shift + L`
+- **Focus Rings**: `2px solid var(--border-focus)` with `2px` offset on all interactive elements.

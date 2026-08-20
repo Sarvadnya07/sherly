@@ -14,15 +14,15 @@ export const Badge: React.FC<BadgeProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center gap-1 font-mono font-medium rounded-md select-none';
+  const baseStyles = 'inline-flex items-center gap-1 font-mono font-medium rounded select-none';
 
   const variants = {
-    brand: 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20',
-    success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-    danger: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-    info: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
-    neutral: 'bg-zinc-800/80 text-zinc-300 border border-white/[0.06]',
+    brand: 'bg-brand/10 text-txt-primary border border-brand/30',
+    success: 'bg-status-success/10 text-status-success border border-status-success/20',
+    warning: 'bg-status-warning/10 text-status-warning border border-status-warning/20',
+    danger: 'bg-status-danger/10 text-status-danger border border-status-danger/20',
+    info: 'bg-status-info/10 text-status-info border border-status-info/20',
+    neutral: 'bg-card text-txt-secondary border border-border-subtle',
   };
 
   const sizes = {
@@ -31,18 +31,18 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const dotColors = {
-    brand: 'bg-indigo-400',
-    success: 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.7)]',
-    warning: 'bg-amber-400',
-    danger: 'bg-rose-400',
-    info: 'bg-sky-400',
-    neutral: 'bg-zinc-400',
+    brand: 'bg-brand',
+    success: 'bg-status-success shadow-[0_0_5px_rgba(16,185,129,0.7)]',
+    warning: 'bg-status-warning',
+    danger: 'bg-status-danger',
+    info: 'bg-status-info',
+    neutral: 'bg-txt-muted',
   };
 
   return (
     <span className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
       {pulse && (
-        <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]} ${pulse ? 'animate-pulse' : ''}`} />
+        <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]} animate-pulse shrink-0`} />
       )}
       <span>{children}</span>
     </span>

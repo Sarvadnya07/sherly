@@ -8,30 +8,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        canvas: '#09090b',
-        sidebar: '#0d0d11',
-        surface: '#09090b',
+        canvas: 'var(--bg-canvas)',
+        sidebar: 'var(--bg-sidebar)',
+        surface: 'var(--bg-surface)',
         card: {
-          DEFAULT: '#141418',
-          hover: '#1a1a22',
+          DEFAULT: 'var(--bg-card)',
+          hover: 'var(--bg-card-hover)',
         },
-        input: '#121216',
+        input: 'var(--bg-input)',
         brand: {
-          DEFAULT: '#6366f1',
-          hover: '#4f46e5',
-          surface: 'rgba(99, 102, 241, 0.08)',
-          border: 'rgba(99, 102, 241, 0.25)',
+          DEFAULT: 'var(--accent-primary)',
+          hover: 'var(--accent-primary-hover)',
+          surface: 'var(--accent-surface)',
+        },
+        border: {
+          subtle: 'var(--border-subtle)',
+          medium: 'var(--border-medium)',
+          focus: 'var(--border-focus)',
+        },
+        txt: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          disabled: 'var(--text-disabled)',
         },
         status: {
-          success: '#10b981',
-          warning: '#f59e0b',
-          danger: '#ef4444',
-          info: '#38bdf8',
+          success: 'var(--status-success)',
+          warning: 'var(--status-warning)',
+          danger: 'var(--status-danger)',
+          info: 'var(--status-info)',
         },
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
         mono: ['JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', 'monospace'],
+      },
+      borderRadius: {
+        sm: '4px',
+        md: '6px',
+        lg: '8px',
+        xl: '12px',
+        '2xl': '16px',
       },
       boxShadow: {
         'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.4)',

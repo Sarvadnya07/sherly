@@ -55,12 +55,12 @@ export const Sidebar: React.FC = () => {
       return (
         <div key={node.path} className="select-none">
           <div
-            className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 rounded-md cursor-pointer transition"
-            style={{ paddingLeft: `${level * 10 + 6}px` }}
+            className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-txt-secondary hover:text-txt-primary hover:bg-white/[0.04] rounded-md cursor-pointer transition"
+            style={{ paddingLeft: `${level * 12 + 6}px` }}
           >
-            <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
-            <FolderOpen className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-            <span className="text-zinc-300 truncate">{node.name}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-txt-muted shrink-0" />
+            <FolderOpen className="w-3.5 h-3.5 text-txt-muted shrink-0" />
+            <span className="truncate">{node.name}</span>
           </div>
           {node.children && (
             <div className="flex flex-col">
@@ -85,13 +85,14 @@ export const Sidebar: React.FC = () => {
           setActiveView('workspace');
           openFile(node.path);
         }}
-        className={`w-full flex items-center gap-2 px-2 py-1 text-[11px] rounded-md cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-indigo-500 ${
+        className={`w-full flex items-center gap-2 px-2 py-1 text-xs rounded-md cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-brand ${
           isActive
-            ? 'bg-zinc-800 text-zinc-100 font-medium'
-            : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200'
+            ? 'bg-card text-txt-primary font-medium border border-border-subtle'
+            : 'text-txt-secondary hover:bg-white/[0.04] hover:text-txt-primary'
         }`}
-        style={{ paddingLeft: `${level * 10 + 16}px` }}
+        style={{ paddingLeft: `${level * 12 + 18}px` }}
         title={node.path}
+        aria-label={`Open file ${node.name}`}
       >
         {isPython ? (
           <FileCode2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
@@ -100,7 +101,7 @@ export const Sidebar: React.FC = () => {
         ) : isJson ? (
           <FileJson className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
         ) : (
-          <FileText className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+          <FileText className="w-3.5 h-3.5 text-txt-muted shrink-0" />
         )}
         <span className="truncate">{node.name}</span>
       </button>
@@ -108,20 +109,22 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-56 bg-sidebar border-r border-white/[0.06] flex flex-col justify-between p-2.5 select-none shrink-0 h-full overflow-hidden">
-      <div className="flex flex-col gap-3 overflow-hidden flex-1">
+    <aside className="w-60 bg-sidebar border-r border-border-subtle flex flex-col justify-between p-3 select-none shrink-0 h-full overflow-hidden">
+      <div className="flex flex-col gap-3.5 overflow-hidden flex-1">
         {/* Workspace Info Card */}
-        <div className="bg-zinc-900/60 border border-white/[0.06] rounded-lg px-2.5 py-2 flex items-center justify-between shadow-subtle">
+        <div className="bg-card border border-border-subtle rounded-lg px-3 py-2 flex items-center justify-between shadow-subtle">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_5px_rgba(52,211,153,0.6)]" />
-            <span className="text-xs font-medium text-zinc-200 truncate">Sherly Workspace</span>
+            <span className="w-2 h-2 rounded-full bg-status-success shrink-0 shadow-[0_0_5px_rgba(16,185,129,0.6)]" />
+            <span className="text-xs font-semibold text-txt-primary truncate">Sherly Workspace</span>
           </div>
-          <span className="text-[10px] font-mono text-zinc-500 shrink-0">v2.0</span>
+          <span className="text-[10px] font-mono text-txt-muted shrink-0">v2.0</span>
         </div>
 
         {/* Workspace Navigation */}
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider px-2 py-0.5 uppercase">WORKSPACE</span>
+        <nav aria-label="Workspace navigation" className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-semibold text-txt-muted tracking-wider px-2 py-0.5 uppercase">
+            WORKSPACE
+          </span>
           {workspaceNav.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -130,22 +133,25 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs transition text-left focus-visible:outline-2 focus-visible:outline-indigo-500 cursor-pointer ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand cursor-pointer ${
                   isActive
-                    ? 'bg-zinc-800 text-zinc-100 font-medium shadow-subtle'
-                    : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200'
+                    ? 'bg-card text-txt-primary font-medium border-l-2 border-brand shadow-subtle'
+                    : 'text-txt-secondary hover:bg-white/[0.04] hover:text-txt-primary'
                 }`}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+                <Icon className="w-4 h-4 shrink-0 text-txt-muted" />
                 <span>{item.label}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
 
         {/* Runtime & System Navigation */}
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider px-2 py-0.5 uppercase">SYSTEM</span>
+        <nav aria-label="System navigation" className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-semibold text-txt-muted tracking-wider px-2 py-0.5 uppercase">
+            SYSTEM
+          </span>
           {systemNav.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -154,27 +160,30 @@ export const Sidebar: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveView(item.id)}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs transition text-left focus-visible:outline-2 focus-visible:outline-indigo-500 cursor-pointer ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs transition text-left focus-visible:outline-2 focus-visible:outline-brand cursor-pointer ${
                   isActive
-                    ? 'bg-zinc-800 text-zinc-100 font-medium shadow-subtle'
-                    : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200'
+                    ? 'bg-card text-txt-primary font-medium border-l-2 border-brand shadow-subtle'
+                    : 'text-txt-secondary hover:bg-white/[0.04] hover:text-txt-primary'
                 }`}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+                <Icon className="w-4 h-4 shrink-0 text-txt-muted" />
                 <span>{item.label}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
 
         {/* Project Files Tree */}
         <div className="flex flex-col gap-1 mt-1 flex-1 overflow-hidden">
-          <span className="text-[10px] font-semibold text-zinc-500 tracking-wider px-2 uppercase">EXPLORER</span>
+          <span className="text-[10px] font-semibold text-txt-muted tracking-wider px-2 uppercase">
+            EXPLORER
+          </span>
           <div className="overflow-y-auto flex-1 flex flex-col gap-0.5 pr-1">
             {fileTree && fileTree.children ? (
               fileTree.children.map((child) => renderFileNode(child))
             ) : (
-              <span className="text-xs text-zinc-500 italic px-2">Loading workspace...</span>
+              <span className="text-xs text-txt-muted italic px-2">Loading workspace files...</span>
             )}
           </div>
         </div>
@@ -184,9 +193,10 @@ export const Sidebar: React.FC = () => {
       <button
         type="button"
         onClick={handleRunProject}
-        className="w-full h-8 bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] text-zinc-200 hover:text-white font-medium text-xs rounded-lg flex items-center justify-center gap-2 shadow-subtle transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-indigo-500 mt-2 shrink-0 cursor-pointer"
+        className="w-full h-8 bg-card hover:bg-card-hover border border-border-subtle text-txt-primary font-medium text-xs rounded-md flex items-center justify-center gap-2 shadow-subtle transition active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-brand mt-2 shrink-0 cursor-pointer"
+        aria-label="Run project main.py"
       >
-        <Play className="w-3 h-3 fill-emerald-400 text-emerald-400" />
+        <Play className="w-3.5 h-3.5 fill-status-success text-status-success" />
         <span>Run main.py</span>
       </button>
     </aside>
