@@ -156,7 +156,7 @@ class Sidebar(QFrame):
 
         # ── Run Action Button ─────────────────────────────────────────────────
         self.run_btn = QPushButton("▶  Run main.py")
-        self.run_btn.setFont(get_ui_font(9, QFont.Weight.SemiBold))
+        self.run_btn.setFont(get_ui_font(9, QFont.Weight.DemiBold))
         self.run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.run_btn.setFixedHeight(32)
         self.run_btn.setStyleSheet("""
