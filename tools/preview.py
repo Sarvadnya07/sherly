@@ -63,6 +63,22 @@ def apply_preview(action_id: str) -> str:
     if not changes:
         return "Invalid preview ID"
 
+    # Pre-write Conflict Check: Verify base state matches
+    for change in changes:
+        path = change["file"]
+        old_code = change["old"]
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8", errors="replace") as f:
+                    current_content = f.read()
+                if old_code and current_content != old_code:
+                    return (
+                        f"Conflict detected in {path}: file has been modified externally "
+                        "since preview was generated. Refusing silent overwrite."
+                    )
+            except Exception as e:
+                return f"Error reading base file {path}: {e}"
+
     batch_undo_data = []
 
     for change in changes:
