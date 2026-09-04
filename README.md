@@ -12,7 +12,7 @@
 <img src="https://img.shields.io/badge/Release-v2.0.0-blue.svg?style=flat-square" alt="v2.0.0" />
 <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="MIT License" />
 <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square" alt="Python 3.10+" />
-<img src="https://img.shields.io/badge/Tests-117%20passing-success.svg?style=flat-square" alt="117 tests passing" />
+<img src="https://img.shields.io/badge/Tests-120%20passing-success.svg?style=flat-square" alt="120 tests passing" />
 <img src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite%20%2B%20Tailwind-61dafb.svg?style=flat-square" alt="React + Vite + Tailwind" />
 <img src="https://img.shields.io/badge/Backend-FastAPI%20%2B%20WebSockets-009688.svg?style=flat-square" alt="FastAPI + WebSockets" />
 <img src="https://img.shields.io/badge/Sandbox-shlex%20%2B%20SafetyGuard-blueviolet.svg?style=flat-square" alt="SafetyGuard Sandbox" />

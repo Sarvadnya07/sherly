@@ -77,7 +77,9 @@ def apply_preview(action_id: str) -> str:
                         "since preview was generated. Refusing silent overwrite."
                     )
             except Exception as e:
-                return f"Error reading base file {path}: {e}"
+                from runtime_utils import log
+                log(f"[Preview] Error reading base file {path}: {e}", level="error")
+                return f"Error reading base file {os.path.basename(path)}: unable to verify file state."
 
     batch_undo_data = []
 
@@ -88,8 +90,13 @@ def apply_preview(action_id: str) -> str:
 
         backup_file(path)
 
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(new_code)
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(new_code)
+        except Exception as e:
+            from runtime_utils import log
+            log(f"[Preview] Error writing file {path}: {e}", level="error")
+            return f"Failed to apply patch to {os.path.basename(path)}."
 
         batch_undo_data.append(("restore_file", path, old_code))
 

@@ -63,7 +63,9 @@ def run_command(command: str) -> str:
         is_posix = platform.system() != "Windows"
         argv = shlex.split(command, posix=is_posix)
     except ValueError as exc:
-        return f"Command parse error: {exc}"
+        from runtime_utils import log
+        log(f"[TerminalTools] Command parse error: {exc}", level="warning")
+        return "Command parse error: invalid syntax."
 
     try:
         if argv and argv[0].lower() == "pwd":
@@ -85,7 +87,9 @@ def run_command(command: str) -> str:
     except FileNotFoundError:
         return f"Command not found: '{argv[0]}'"
     except Exception as exc:
-        return f"Command error: {exc}"
+        from runtime_utils import log
+        log(f"[TerminalTools] Execution error: {exc}", level="error")
+        return "Command error: execution failed."
 
 
 # ---------------------------------------------------------------------------

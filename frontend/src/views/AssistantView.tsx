@@ -557,12 +557,16 @@ export const AssistantView: React.FC = () => {
 
         {/* Task / Canonical Tool Execution Activity Status */}
         {isThinking && (
-          <div className="flex items-center gap-3 animate-in fade-in duration-150 select-none py-1">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-3 animate-in fade-in duration-150 select-none py-1"
+          >
             <div className="w-6 h-6 rounded-md bg-card border border-border-subtle flex items-center justify-center text-brand text-xs shrink-0">
               {statusText.startsWith('tool:') ? (
-                <Wrench className="w-3.5 h-3.5 text-status-info animate-pulse" />
+                <Wrench className="w-3.5 h-3.5 text-status-info animate-pulse" aria-hidden="true" />
               ) : (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
               )}
             </div>
             <div className="flex items-center gap-2 text-xs text-txt-secondary font-medium">

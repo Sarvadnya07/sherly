@@ -34,27 +34,47 @@ def get_pending_approvals():
 
 @router.post("/approvals/{action_id}/approve")
 async def approve_action(action_id: str):
-    res = action_manager.approve_action(action_id, safe_exec)
+    try:
+        res = action_manager.approve_action(action_id, safe_exec)
+    except Exception as exc:
+        from runtime_utils import log
+        log(f"[ActionsRoute] Approve action error: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to approve action.")
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "approved"})
     return {"message": res}
 
 
 @router.post("/approvals/{action_id}/reject")
 async def reject_action(action_id: str):
-    res = action_manager.cancel_action(action_id)
+    try:
+        res = action_manager.cancel_action(action_id)
+    except Exception as exc:
+        from runtime_utils import log
+        log(f"[ActionsRoute] Cancel action error: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to cancel action.")
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "rejected"})
     return {"message": res}
 
 
 @router.get("/history")
 def get_action_history():
-    history = action_manager.get_history()
-    return {"history": history}
+    try:
+        history = action_manager.get_history()
+        return {"history": history}
+    except Exception as exc:
+        from runtime_utils import log
+        log(f"[ActionsRoute] Get history error: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to retrieve action history.")
 
 
 @router.post("/undo")
 def undo_last_action():
-    res = action_manager.undo_last()
+    try:
+        res = action_manager.undo_last()
+    except Exception as exc:
+        from runtime_utils import log
+        log(f"[ActionsRoute] Undo error: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to undo action.")
     return {"message": res}
 
 
@@ -79,7 +99,12 @@ def get_preview(action_id: str):
 
 @router.post("/previews/{action_id}/apply")
 async def apply_code_preview(action_id: str):
-    res = apply_preview(action_id)
+    try:
+        res = apply_preview(action_id)
+    except Exception as exc:
+        from runtime_utils import log
+        log(f"[ActionsRoute] Apply preview error: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to apply preview.")
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "preview_applied"})
     return {"message": res}
 

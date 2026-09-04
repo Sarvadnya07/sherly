@@ -268,7 +268,8 @@ def _undo_write_file(undo_data: tuple) -> str:
         log(f"[Undo] restored file: {path}")
         return f"↩️ Restored file: {path}"
     except Exception as exc:
-        return f"Undo failed for file write: {exc}"
+        log(f"[Undo] failed for file write {path}: {exc}", level="error")
+        return f"Undo failed for file write on {os.path.basename(path)}."
 
 
 def _undo_batch_write_file(undo_data: list[tuple]) -> str:
@@ -282,7 +283,7 @@ def _undo_batch_write_file(undo_data: list[tuple]) -> str:
             restored.append(os.path.basename(path))
             log(f"[Undo] batch restored file: {path}")
         except Exception as exc:
-            log(f"[Undo] failed batch restore for {path}: {exc}")
+            log(f"[Undo] failed batch restore for {path}: {exc}", level="error")
     return f"↩️ Restored multi-file patch ({', '.join(restored)})"
 
 
@@ -296,7 +297,8 @@ def _undo_delete_file(undo_data: tuple) -> str:
         log(f"[Undo] restored deleted file: {path}")
         return f"↩️ Restored deleted file: {path}"
     except Exception as exc:
-        return f"Undo failed for file deletion: {exc}"
+        log(f"[Undo] failed for file deletion {path}: {exc}", level="error")
+        return f"Undo failed for file deletion on {os.path.basename(path)}."
 
 
 def _undo_conversation(undo_data: tuple) -> str:
@@ -306,7 +308,8 @@ def _undo_conversation(undo_data: tuple) -> str:
         clear_context()
         return "↩️ Conversation context cleared."
     except Exception as exc:
-        return f"Undo failed for conversation: {exc}"
+        log(f"[Undo] failed for conversation: {exc}", level="error")
+        return "Undo failed for conversation context."
 
 
 # ---------------------------------------------------------------------------
@@ -330,7 +333,8 @@ def write_file_safe(path: str, content: str) -> str:
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
     except Exception as exc:
-        return f"Write failed: {exc}"
+        log(f"[ActionManager] write failed for {path}: {exc}", level="error")
+        return f"Write failed for {os.path.basename(path)}."
 
     log_action(
         action=f"write {path}",
@@ -354,7 +358,8 @@ def delete_file_safe(path: str) -> str:
         shutil.copy2(path, backup)
         os.remove(path)
     except Exception as exc:
-        return f"Delete failed: {exc}"
+        log(f"[ActionManager] delete failed for {path}: {exc}", level="error")
+        return f"Delete failed for {os.path.basename(path)}."
 
     log_action(
         action=f"delete {path}",

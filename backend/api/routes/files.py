@@ -70,7 +70,9 @@ def read_file(path: str):
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        from runtime_utils import log
+        log(f"[FilesRoute] Failed to read file {path}: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to read file.")
 
 
 @router.post("/write")
@@ -81,7 +83,9 @@ def write_file(req: FileWriteRequest):
         target.write_text(req.content, encoding="utf-8")
         return {"message": f"Successfully wrote {req.path}"}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        from runtime_utils import log
+        log(f"[FilesRoute] Failed to write file {req.path}: {exc}", level="error")
+        raise HTTPException(status_code=500, detail="Failed to write file.")
 
 
 @router.post("/terminal/run", response_model=TerminalRunResponse)

@@ -82,8 +82,8 @@ export const VoiceOverlayView: React.FC = () => {
           </div>
         </div>
 
-        {/* Canonical Status Indicator Pill */}
-        <div className="flex items-center gap-2">
+        {/* Canonical Status Indicator Pill with Live Announcement */}
+        <div className="flex items-center gap-2" role="status" aria-live="polite">
           <span
             className={`w-2 h-2 rounded-full ${
               voiceState === 'speaking'
@@ -92,6 +92,7 @@ export const VoiceOverlayView: React.FC = () => {
                 ? 'bg-status-danger'
                 : 'bg-brand animate-pulse'
             }`}
+            aria-hidden="true"
           />
           <span className="text-xs font-semibold text-txt-secondary tracking-wider uppercase">
             {voiceState === 'speaking'
@@ -106,18 +107,24 @@ export const VoiceOverlayView: React.FC = () => {
           </span>
         </div>
 
-        {/* Live Transcription Display */}
-        <div className="text-sm font-medium text-txt-primary max-w-md text-center leading-relaxed min-h-[48px] flex items-center justify-center px-4">
+        {/* Live Transcription Display with aria-live */}
+        <div
+          role="region"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-label="Speech transcription"
+          className="text-sm font-medium text-txt-primary max-w-md text-center leading-relaxed min-h-[48px] flex items-center justify-center px-4"
+        >
           {voiceErrorMessage ? (
-            <div className="flex items-center gap-2 text-status-danger text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="flex items-center gap-2 text-status-danger text-xs" role="alert">
+              <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>{voiceErrorMessage}</span>
             </div>
           ) : (
             <p className="italic text-txt-secondary">
               "{sttText}
               {voiceState === 'listening' && (
-                <span className="animate-blink font-mono font-bold text-brand">_</span>
+                <span className="animate-blink font-mono font-bold text-brand" aria-hidden="true">_</span>
               )}
               "
             </p>

@@ -541,3 +541,48 @@ def test_sqlite_wal_multi_threaded_concurrency():
     assert not errors, f"Concurrent SQLite errors encountered: {errors}"
     ctx = memory.get_context(limit=5)
     assert len(ctx) > 0
+
+
+# ---------------------------------------------------------------------------
+# Test 21 — remote_ui/index.html DOM XSS Protection
+# ---------------------------------------------------------------------------
+
+def test_remote_ui_no_unsafe_innerhtml():
+    """remote_ui/index.html must not use innerHTML with dynamic/user-controlled filename properties."""
+    html_path = REPO_ROOT / "remote_ui" / "index.html"
+    if html_path.exists():
+        content = html_path.read_text(encoding="utf-8")
+        assert "innerHTML = `<span" not in content, "Found unsafe innerHTML assignment in remote_ui/index.html"
+        assert ".name`" not in content, "Found interpolated filename in template string"
+
+
+# ---------------------------------------------------------------------------
+# Test 22 — GitHub Workflows Contain Explicit Permissions
+# ---------------------------------------------------------------------------
+
+def test_github_workflows_have_permissions():
+    """All GitHub Actions workflow YAML files must declare top-level permissions."""
+    workflow_dir = REPO_ROOT / ".github" / "workflows"
+    if workflow_dir.exists():
+        for yml_file in workflow_dir.glob("*.yml"):
+            content = yml_file.read_text(encoding="utf-8")
+            assert "permissions:" in content, f"Workflow {yml_file.name} is missing permissions block"
+
+
+# ---------------------------------------------------------------------------
+# Test 23 — Exception Information Exposure Prevention
+# ---------------------------------------------------------------------------
+
+def test_safe_execute_does_not_leak_exceptions():
+    """safe_execute() and safe_run() must not return raw exception details to callers."""
+    from runtime_utils import safe_execute, safe_run
+
+    def faulty_call():
+        raise RuntimeError("super_secret_db_password_in_exception")
+
+    res = safe_execute(faulty_call, fallback="Execution failed.")
+    assert "super_secret_db_password" not in res
+    assert res == "Execution failed."
+
+    res2 = safe_run(faulty_call)
+    assert "super_secret_db_password" not in res2

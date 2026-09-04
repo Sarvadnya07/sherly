@@ -123,14 +123,13 @@ def timeout_call(
 def safe_execute(func: Callable, fallback: Any = "Something went wrong. Please try again.") -> Any:
     """
     Call *func()* (zero-arg lambda) catching all exceptions.
-    Fix #23: default fallback is a visible user-facing message.
+    Logs the exception internally and returns the sanitized user-facing fallback.
     """
     try:
         return func()
     except Exception as exc:
-        err = f"Error: {exc}"
-        log(err, level="error")
-        return fallback if fallback != "Error" else err   # Fix #23
+        log(f"[safe_execute] Error: {exc}", level="error")
+        return fallback
 
 
 def safe_run(func: Callable, *args) -> Any:
@@ -138,7 +137,8 @@ def safe_run(func: Callable, *args) -> Any:
     try:
         return func(*args)
     except Exception as exc:
-        return f"Error: {exc}"
+        log(f"[safe_run] Error: {exc}", level="error")
+        return "An internal error occurred."
 
 
 # ---------------------------------------------------------------------------

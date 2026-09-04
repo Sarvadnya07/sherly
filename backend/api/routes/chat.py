@@ -36,8 +36,10 @@ async def send_chat(req: ChatRequest):
     try:
         response_text = await run_in_threadpool(route_command, full_prompt)
     except Exception as exc:
+        from runtime_utils import log
+        log(f"[ChatRoute] Error executing command: {exc}", level="error")
         await manager.broadcast_event("status", {"status": "ready"})
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail="Failed to execute command.") from exc
     finally:
         # Broadcast ready unconditionally (guard against double-broadcast on error path)
         await manager.broadcast_event("status", {"status": "ready"})

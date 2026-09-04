@@ -53,17 +53,17 @@ export const Sidebar: React.FC = () => {
   const renderFileNode = (node: FileNode, level = 0) => {
     if (node.is_dir) {
       return (
-        <div key={node.path} className="select-none">
+        <div key={node.path} role="treeitem" aria-expanded="true" className="select-none">
           <div
             className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-txt-secondary hover:text-txt-primary hover:bg-white/[0.04] rounded-md cursor-pointer transition"
             style={{ paddingLeft: `${level * 12 + 6}px` }}
           >
-            <ChevronDown className="w-3.5 h-3.5 text-txt-muted shrink-0" />
-            <FolderOpen className="w-3.5 h-3.5 text-txt-muted shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-txt-muted shrink-0" aria-hidden="true" />
+            <FolderOpen className="w-3.5 h-3.5 text-txt-muted shrink-0" aria-hidden="true" />
             <span className="truncate">{node.name}</span>
           </div>
           {node.children && (
-            <div className="flex flex-col">
+            <div role="group" className="flex flex-col">
               {node.children.map((child) => renderFileNode(child, level + 1))}
             </div>
           )}
@@ -78,33 +78,34 @@ export const Sidebar: React.FC = () => {
     const isJson = ext === '.json' || ext === '.toml' || ext === '.yaml' || ext === '.env';
 
     return (
-      <button
-        key={node.path}
-        type="button"
-        onClick={() => {
-          setActiveView('workspace');
-          openFile(node.path);
-        }}
-        className={`w-full flex items-center gap-2 px-2 py-1 text-xs rounded-md cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-brand ${
-          isActive
-            ? 'bg-card text-txt-primary font-medium border border-border-subtle'
-            : 'text-txt-secondary hover:bg-white/[0.04] hover:text-txt-primary'
-        }`}
-        style={{ paddingLeft: `${level * 12 + 18}px` }}
-        title={node.path}
-        aria-label={`Open file ${node.name}`}
-      >
-        {isPython ? (
-          <FileCode2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-        ) : isTs ? (
-          <Code2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-        ) : isJson ? (
-          <FileJson className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-        ) : (
-          <FileText className="w-3.5 h-3.5 text-txt-muted shrink-0" />
-        )}
-        <span className="truncate">{node.name}</span>
-      </button>
+      <div key={node.path} role="treeitem" aria-selected={isActive}>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveView('workspace');
+            openFile(node.path);
+          }}
+          className={`w-full flex items-center gap-2 px-2 py-1 text-xs rounded-md cursor-pointer transition font-mono text-left focus-visible:outline-2 focus-visible:outline-brand ${
+            isActive
+              ? 'bg-card text-txt-primary font-medium border border-border-subtle'
+              : 'text-txt-secondary hover:bg-white/[0.04] hover:text-txt-primary'
+          }`}
+          style={{ paddingLeft: `${level * 12 + 18}px` }}
+          title={node.path}
+          aria-label={`Open file ${node.name}`}
+        >
+          {isPython ? (
+            <FileCode2 className="w-3.5 h-3.5 text-sky-400 shrink-0" aria-hidden="true" />
+          ) : isTs ? (
+            <Code2 className="w-3.5 h-3.5 text-amber-400 shrink-0" aria-hidden="true" />
+          ) : isJson ? (
+            <FileJson className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
+          ) : (
+            <FileText className="w-3.5 h-3.5 text-txt-muted shrink-0" aria-hidden="true" />
+          )}
+          <span className="truncate">{node.name}</span>
+        </button>
+      </div>
     );
   };
 
@@ -176,10 +177,14 @@ export const Sidebar: React.FC = () => {
 
         {/* Project Files Tree */}
         <div className="flex flex-col gap-1 mt-1 flex-1 overflow-hidden">
-          <span className="text-[10px] font-semibold text-txt-muted tracking-wider px-2 uppercase">
+          <span className="text-[10px] font-semibold text-txt-muted tracking-wider px-2 uppercase" id="explorer-heading">
             EXPLORER
           </span>
-          <div className="overflow-y-auto flex-1 flex flex-col gap-0.5 pr-1">
+          <div
+            role="tree"
+            aria-labelledby="explorer-heading"
+            className="overflow-y-auto flex-1 flex flex-col gap-0.5 pr-1"
+          >
             {fileTree && fileTree.children ? (
               fileTree.children.map((child) => renderFileNode(child))
             ) : (

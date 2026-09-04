@@ -461,10 +461,18 @@
     function updateFileName() {
         const fileInput = document.getElementById("file");
         const display = document.getElementById("file-display");
+        display.textContent = "";
+        const icon = document.createElement("span");
+        icon.style.marginRight = "8px";
         if (fileInput.files.length > 0) {
-            display.innerHTML = `<span style="margin-right:8px; color: var(--accent-color)">📁</span> ${fileInput.files[0].name}`;
+            icon.style.color = "var(--accent-color)";
+            icon.textContent = "📁";
+            display.appendChild(icon);
+            display.appendChild(document.createTextNode(" " + fileInput.files[0].name));
         } else {
-            display.innerHTML = `<span style="margin-right:8px">📄</span> Choose a file to upload...`;
+            icon.textContent = "📄";
+            display.appendChild(icon);
+            display.appendChild(document.createTextNode(" Choose a file to upload..."));
         }
     }
 
