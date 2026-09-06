@@ -35,8 +35,13 @@ def get_audio_devices():
                 name = dev.get("name", "")
                 if name and name not in device_names:
                     device_names.append(name)
-    except Exception:
-        pass
+    except Exception as exc:
+        try:
+            from runtime_utils import log
+
+            log(f"[VoiceRoute] device enumeration failed: {exc}", level="warning")
+        except Exception:
+            pass
     if not device_names:
         device_names = ["System Default Microphone"]
     return AudioDevicesResponse(devices=device_names)

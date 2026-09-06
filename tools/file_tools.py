@@ -35,7 +35,13 @@ def read_file(path: str) -> str | None:
     """
     try:
         normalized = _normalize_path(path)
-    except Exception:
+    except Exception as exc:
+        try:
+            from runtime_utils import log
+
+            log(f"[FileTools] path normalization failed for {path}: {exc}", level="warning")
+        except Exception:
+            pass
         return None
 
     if not os.path.isfile(normalized):

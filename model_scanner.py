@@ -128,7 +128,8 @@ def is_ollama_running() -> bool:
     try:
         r = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=3.0)
         return r.status_code == 200
-    except Exception:
+    except Exception as exc:
+        logger.debug("Ollama ping failed: %s", exc)
         return False
 
 

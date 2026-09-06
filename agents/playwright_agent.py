@@ -99,8 +99,13 @@ def extract_json(raw: str) -> dict:
         raw = re.sub(r',\s*\]', ']', raw)
         try:
             return json.loads(raw)
-        except Exception:
-            pass
+        except Exception as exc:
+            try:
+                from runtime_utils import log
+
+                log(f"[PlaywrightAgent] extract_json failed: {exc}", level="warning")
+            except Exception:
+                pass
     return {}
 
 def run(prompt: str, ask_model) -> str:
@@ -124,8 +129,13 @@ def run(prompt: str, ask_model) -> str:
             try:
                 page.goto(starting_url, timeout=15000)
                 page.wait_for_load_state("networkidle", timeout=10000)
-            except Exception:
-                pass # ignore timeouts and proceed
+            except Exception as exc:
+                try:
+                    from runtime_utils import log
+
+                    log(f"[PlaywrightAgent] page navigation warning: {exc}", level="warning")
+                except Exception:
+                    pass
 
             max_steps = 10
             result = "Max steps reached without finishing."
@@ -141,7 +151,12 @@ def run(prompt: str, ask_model) -> str:
                     try:
                         elements = page.evaluate(_INJECT_JS)
                     except Exception as e:
-                        print(f"Error evaluating JS: {e}")
+                        try:
+                            from runtime_utils import log
+
+                            log(f"[PlaywrightAgent] Error evaluating JS: {e}", level="warning")
+                        except Exception:
+                            print(f"Error evaluating JS: {e}")
 
                     # Format elements for LLM
                     elem_text = ""
@@ -197,7 +212,12 @@ def run(prompt: str, ask_model) -> str:
                         else:
                             action_json = {"action": "SCROLL_DOWN"}
                     except Exception as e:
-                        print(f"[Browser Agent] Failed action {act}: {e}")
+                        try:
+                            from runtime_utils import log
+
+                            log(f"[PlaywrightAgent] Failed action {act}: {e}", level="warning")
+                        except Exception:
+                            print(f"[Browser Agent] Failed action {act}: {e}")
 
                     page.wait_for_timeout(2000)
 
@@ -210,5 +230,10 @@ def run(prompt: str, ask_model) -> str:
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        print(f"Playwright Critical Error:\n{trace}")
+        try:
+            from runtime_utils import log
+
+            log(f"Playwright Critical Error:\n{trace}", level="error")
+        except Exception:
+            print(f"Playwright Critical Error:\n{trace}")
         return f"Browser automation failed: {e!s}"

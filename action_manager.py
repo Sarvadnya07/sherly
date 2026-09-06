@@ -327,8 +327,12 @@ def write_file_safe(path: str, content: str) -> str:
         try:
             with open(path, "r", encoding="utf-8", errors="replace") as f:
                 old_content = f.read()
-        except Exception:
-            pass
+        except Exception as exc:
+            try:
+                log(f"[ActionManager] failed reading {path}: {exc}", level="warning")
+            except Exception:
+                # best-effort fallback
+                print(f"[ActionManager] read fallback failed: {exc}")
 
     try:
         with open(path, "w", encoding="utf-8") as f:

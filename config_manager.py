@@ -97,8 +97,13 @@ def _load_unlocked() -> dict:
     if current_ver < CURRENT_CONFIG_SCHEMA_VERSION:
         try:
             shutil.copy2(CONFIG_FILE, CONFIG_BACKUP)
-        except Exception:
-            pass
+        except Exception as exc:
+            try:
+                from runtime_utils import log
+
+                log(f"[ConfigManager] backup copy failed: {exc}", level="warning")
+            except Exception:
+                pass
 
     migrated = _migrate_config(raw)
     config = _default_config()
@@ -132,12 +137,22 @@ def _write_unlocked(config: dict) -> None:
             json.dump(config, f, indent=4)
         os.replace(tmp, CONFIG_FILE)
     except Exception as exc:
-        print(f"[Config] save error: {exc}")
+        try:
+            from runtime_utils import log
+
+            log(f"[Config] save error: {exc}", level="error")
+        except Exception:
+            print(f"[Config] save error: {exc}")
         try:
             if tmp and os.path.exists(tmp):
                 os.unlink(tmp)
-        except Exception:
-            pass
+        except Exception as cleanup_exc:
+            try:
+                from runtime_utils import log
+
+                log(f"[Config] cleanup error: {cleanup_exc}", level="warning")
+            except Exception:
+                pass
 
 
 # ---------------------------------------------------------------------------

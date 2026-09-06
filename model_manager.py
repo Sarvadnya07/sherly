@@ -119,7 +119,7 @@ def _get_background_info() -> str:
         if not memory:
             return ""
         return "User background:\n" + json.dumps(memory, indent=2, ensure_ascii=False)
-    except Exception:
+    except (TypeError, OSError):
         return ""
 
 
@@ -127,7 +127,7 @@ def _get_history_messages(limit: int = 5) -> list[dict]:
     """Retrieve structured message history array (SH-AI-004)."""
     try:
         context = get_context(limit=limit)
-    except Exception:
+    except (RuntimeError, OSError, ValueError):
         return []
     if not context:
         return []
@@ -152,7 +152,7 @@ def _extract_web_fallback(query: str) -> str:
             return ""
         top = results[0]
         return f"{top.get('title', '')}. {top.get('body', '')}".strip()
-    except Exception:
+    except (ValueError, LookupError):
         return ""
 
 
@@ -269,7 +269,7 @@ def unload_model() -> None:
             timeout=3,
         )
         log(f"Unloaded model: {ACTIVE_MODEL}")
-    except Exception as exc:
+    except httpx.HTTPError as exc:
         log(f"Unload warning ({ACTIVE_MODEL}): {exc}")
     finally:
         ACTIVE_MODEL = None

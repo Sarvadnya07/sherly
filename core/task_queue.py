@@ -37,9 +37,16 @@ def _worker() -> None:
         except Exception as exc:
             try:
                 from runtime_utils import log
+
                 log(f"[TaskQueue] error in {getattr(func, '__name__', func)}: {exc}", level="error")
-            except Exception:
-                pass
+            except Exception as log_exc:
+                try:
+                    from runtime_utils import log
+
+                    log(f"[TaskQueue] error logging failure: {log_exc}", level="warning")
+                except Exception:
+                    # best-effort fallback if logging is not available
+                    print(f"[TaskQueue] logging failure: {log_exc}")
             if on_error:
                 on_error(exc)
         finally:

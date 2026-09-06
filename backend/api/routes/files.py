@@ -35,8 +35,13 @@ def get_file_tree():
                     if entry.name in exclude or entry.name.startswith("."):
                         continue
                     children.append(scan_dir(entry, max_depth - 1))
-            except Exception:
-                pass
+            except Exception as exc:
+                try:
+                    from runtime_utils import log
+
+                    log(f"[FilesRoute] directory scan error for {path}: {exc}", level="warning")
+                except Exception:
+                    pass
         return FileNode(
             name=path.name,
             path=str(path.relative_to(root_path)),

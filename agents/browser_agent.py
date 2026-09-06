@@ -189,8 +189,14 @@ def _parse_intent(text: str, ask_model) -> dict:
     
     try:
         return json.loads(raw)
-    except Exception:
+    except Exception as exc:
         # God-tier intelligent fallback if JSON completely shreds
+        try:
+            from runtime_utils import log
+
+            log(f"[BrowserAgent] parse_intent fallback triggered: {exc}", level="warning")
+        except Exception:
+            pass
         platform = "youtube" if "youtube" in text.lower() or " yt " in f" {text.lower()} " else "google"
         q = text.lower().replace("search", "").replace("on youtube", "").replace("on yt", "").replace("play video", "").strip()
         is_auto = any(w in text.lower() for w in ["click", "play", "watch", "scroll"])
@@ -224,8 +230,13 @@ def run(prompt: str, ask_model) -> str:
                 url = results[0]["href"]
                 webbrowser.open(url)
                 return f"Searched '{query}' and opened '{results[0].get('title', domain or 'top result')}'."
-        except Exception:
-            pass
+        except Exception as exc:
+            try:
+                from runtime_utils import log
+
+                log(f"[BrowserAgent] open_first_link search failed: {exc}", level="warning")
+            except Exception:
+                pass
         # Fallback to just opening the domain directly if the query was just the domain name
         if domain:
             fallback_url = f"https://www.{domain}" if not domain.startswith("http") else domain

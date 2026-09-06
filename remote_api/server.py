@@ -96,8 +96,13 @@ async def upload(
     finally:
         try:
             await file.close()
-        except Exception:
-            pass
+        except Exception as exc:
+            try:
+                from runtime_utils import log
+
+                log(f"[RemoteAPI] file close error: {exc}", level="warning")
+            except Exception:
+                pass
 
 
 app.mount("/", StaticFiles(directory="remote_ui", html=True), name="ui")

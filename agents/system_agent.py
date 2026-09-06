@@ -42,7 +42,13 @@ def _parse_actions(text: str, ask_model):
 
     try:
         return json.loads(raw)
-    except Exception:
+    except Exception as exc:
+        try:
+            from runtime_utils import log
+
+            log(f"[SystemAgent] parse actions failed: {exc}", level="warning")
+        except Exception:
+            pass
         return []
 
 def run(prompt: str, ask_model=None) -> str:
@@ -91,6 +97,12 @@ def run(prompt: str, ask_model=None) -> str:
                 res = safe_exec(cmd)
                 executed.append(f"Ran '{cmd}': {res[:50]}")
         except Exception as e:
+            try:
+                from runtime_utils import log
+
+                log(f"[SystemAgent] action failed {act}: {e}", level="warning")
+            except Exception:
+                pass
             executed.append(f"Failed {act}: {e}")
 
     return "\n".join(executed) if executed else "No valid actions performed."
