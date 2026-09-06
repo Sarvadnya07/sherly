@@ -9,8 +9,8 @@ Fixes: #6  duplicate command execution (stateful last-command guard)
 from __future__ import annotations
 
 import re
-import time
 import threading
+import time
 
 # ---------------------------------------------------------------------------
 # Constants

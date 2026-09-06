@@ -5,8 +5,10 @@ Re-exports the canonical ToolRegistry, ToolSpec, ToolResult, and provides backwa
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional
-from tools.capabilities import ToolSpec, ToolResult, ToolRisk, ToolRegistry, registry
+from collections.abc import Callable
+from typing import Any
+
+from tools.capabilities import ToolRisk, ToolSpec, registry
 
 
 def register_tool(name: str, function: Callable) -> None:
@@ -22,7 +24,7 @@ def register_tool(name: str, function: Callable) -> None:
     registry.register(spec)
 
 
-def run_tool(text: str, payload: Any = None) -> Optional[str]:
+def run_tool(text: str, payload: Any = None) -> str | None:
     """Backward-compatible substring tool dispatch."""
     normalized = text.lower()
     for tool in registry.list_tools():

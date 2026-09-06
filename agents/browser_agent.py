@@ -2,11 +2,12 @@
 browser_agent — intelligent web routing.
 Dynamically searches specific domains, opens direct targets, and retrieves data natively.
 """
+import json
 import urllib.parse
 import webbrowser
-import json
 
 from web_search import search_web
+
 
 def _google_url(query: str) -> str:
     return f"https://www.google.com/search?q={urllib.parse.quote_plus(query)}"
@@ -264,7 +265,7 @@ def run(prompt: str, ask_model) -> str:
                 use_context=False,
             )
             return f"Searched Google for '{query}'.\n{summary}"
-    except Exception as e:
+    except Exception:
         pass
 
     return f"Opened Google search for '{query}'."

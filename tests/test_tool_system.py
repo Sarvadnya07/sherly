@@ -6,10 +6,8 @@ and argument-aware security.
 
 from __future__ import annotations
 
-import pytest
-from tools.capabilities import ToolSpec, ToolRisk, ToolRegistry
-from tools.policy_engine import parse_tool_call, evaluate_tool_policy, execute_capability
-import tools.builtins  # ensure builtins are registered
+from tools.capabilities import ToolRegistry, ToolRisk, ToolSpec
+from tools.policy_engine import evaluate_tool_policy, execute_capability, parse_tool_call
 
 
 def test_tool_registry_registration():

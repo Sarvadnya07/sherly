@@ -7,24 +7,48 @@ Full real-time binding to model_scanner, model_resolver, config_manager, and mod
 from __future__ import annotations
 
 import logging
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QFont, QColor
+
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QCheckBox,
-    QWidget, QScrollArea, QDialog, QLineEdit, QMessageBox, QProgressBar
+    QCheckBox,
+    QDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
 )
 
-from sherly_ui.theme import (
-    C_BG_SURFACE, C_BG_CARD, C_BG_CANVAS, C_BG_INPUT,
-    C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED, C_TEXT_DIM,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_LIGHT, C_ACCENT_SURFACE, C_ACCENT_GLOW,
-    C_GREEN_SUCCESS, C_GREEN_BG, C_BORDER_SUBTLE, C_BORDER_MEDIUM, C_BORDER_ACCENT,
-    FONT_FAMILY_UI, FONT_FAMILY_CODE, get_ui_font, get_code_font
-)
 import config_manager
-import model_scanner
 import model_manager
+import model_scanner
 from sherly_core.model_resolver import resolve_model
+from sherly_ui.theme import (
+    C_ACCENT_HOVER,
+    C_ACCENT_LIGHT,
+    C_ACCENT_PRIMARY,
+    C_ACCENT_SURFACE,
+    C_BG_CANVAS,
+    C_BG_CARD,
+    C_BG_INPUT,
+    C_BG_SURFACE,
+    C_BORDER_ACCENT,
+    C_BORDER_MEDIUM,
+    C_BORDER_SUBTLE,
+    C_GREEN_BG,
+    C_GREEN_SUCCESS,
+    C_TEXT_DIM,
+    C_TEXT_MUTED,
+    C_TEXT_PRIMARY,
+    C_TEXT_SECONDARY,
+    get_code_font,
+    get_ui_font,
+)
 
 logger = logging.getLogger(__name__)
 

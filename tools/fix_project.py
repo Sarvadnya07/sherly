@@ -1,10 +1,10 @@
 import os
 import uuid
 
-from tools.error_fixer import analyze_error, generate_multi_fix
+from tools.error_fixer import generate_multi_fix
 from tools.executor import run_project
-from tools.project_detector import detect_project
 from tools.preview import generate_multi_diff, save_preview
+from tools.project_detector import detect_project
 
 LAST_FIX_CONTEXT = {
     "lang": None,

@@ -6,16 +6,20 @@ model status pill badge, settings action, and window control buttons.
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal, QPoint
-from PySide6.QtGui import QPainter, QColor, QBrush, QPainterPath, QFont
-from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QLabel, QPushButton, QWidget
-)
+from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QWidget
 
 from sherly_ui.theme import (
-    C_BG_CANVAS, C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED,
-    C_ACCENT_PRIMARY, C_BORDER_SUBTLE, C_GREEN_SUCCESS,
-    get_ui_font, get_code_font
+    C_ACCENT_PRIMARY,
+    C_BG_CANVAS,
+    C_BORDER_SUBTLE,
+    C_GREEN_SUCCESS,
+    C_TEXT_MUTED,
+    C_TEXT_PRIMARY,
+    C_TEXT_SECONDARY,
+    get_code_font,
+    get_ui_font,
 )
 
 

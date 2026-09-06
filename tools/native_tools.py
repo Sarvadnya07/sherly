@@ -1,18 +1,18 @@
 """
-BUILT-IN TOOLS REGISTRATION — tools/builtins.py
+BUILT-IN TOOLS REGISTRATION — tools/native_tools.py
 Registers the default capability surface into the canonical ToolRegistry.
 """
 
 from __future__ import annotations
 
 import os
-from pathlib import Path
 import webbrowser
-from typing import Optional
-from tools.capabilities import ToolSpec, ToolRisk, registry
-from tools.terminal_tools import safe_exec
+from pathlib import Path
+
+from tools.capabilities import ToolRisk, ToolSpec, registry
 from tools.file_tools import read_file
 from tools.screen_tools import analyze_screen
+from tools.terminal_tools import safe_exec
 from web_search import search_web
 
 
@@ -24,7 +24,7 @@ def _read_file_handler(path: str) -> str:
     return content
 
 
-def _scan_project_handler(path: Optional[str] = None) -> str:
+def _scan_project_handler(path: str | None = None) -> str:
     target_dir = Path(path or ".").resolve()
     if not target_dir.exists() or not target_dir.is_dir():
         return f"Directory not found: {target_dir}"

@@ -9,12 +9,11 @@ from __future__ import annotations
 import json
 import logging
 import re
-import sys
 import threading
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # 1. Structural & Pattern Secret Redaction
@@ -65,11 +64,11 @@ _context = threading.local()
 
 
 def set_correlation_context(
-    trace_id: Optional[str] = None,
-    request_id: Optional[str] = None,
-    task_id: Optional[str] = None,
-    action_id: Optional[str] = None,
-    voice_session_id: Optional[str] = None,
+    trace_id: str | None = None,
+    request_id: str | None = None,
+    task_id: str | None = None,
+    action_id: str | None = None,
+    voice_session_id: str | None = None,
 ) -> None:
     """Set correlation IDs for the active thread."""
     _context.trace_id = trace_id or getattr(_context, "trace_id", str(uuid.uuid4()))
@@ -79,7 +78,7 @@ def set_correlation_context(
     _context.voice_session_id = voice_session_id or getattr(_context, "voice_session_id", None)
 
 
-def get_correlation_context() -> Dict[str, Optional[str]]:
+def get_correlation_context() -> dict[str, str | None]:
     """Retrieve correlation IDs for the active thread."""
     return {
         "trace_id": getattr(_context, "trace_id", None),
@@ -138,10 +137,10 @@ class ExecutionTimeline:
         self.trace_id = trace_id
         self.request_id = request_id
         self.start_time = time.time()
-        self.events: List[Dict[str, Any]] = []
+        self.events: list[dict[str, Any]] = []
         self._lock = threading.Lock()
 
-    def record_event(self, event_name: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def record_event(self, event_name: str, metadata: dict[str, Any] | None = None) -> None:
         with self._lock:
             elapsed_ms = (time.time() - self.start_time) * 1000
             entry = {
@@ -153,7 +152,7 @@ class ExecutionTimeline:
                 entry["metadata"] = redact_secrets(metadata)
             self.events.append(entry)
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         with self._lock:
             total_duration_ms = (time.time() - self.start_time) * 1000
             return {
@@ -165,7 +164,7 @@ class ExecutionTimeline:
             }
 
 
-_timelines: Dict[str, ExecutionTimeline] = {}
+_timelines: dict[str, ExecutionTimeline] = {}
 _timeline_lock = threading.Lock()
 
 

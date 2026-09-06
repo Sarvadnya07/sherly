@@ -6,7 +6,6 @@ and policy enforcement.
 
 from __future__ import annotations
 
-import pytest
 from tools.agent_tool_loop import build_tool_system_prompt, run_tool_agent_loop
 
 

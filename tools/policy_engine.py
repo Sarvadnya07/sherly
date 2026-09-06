@@ -7,24 +7,24 @@ and structured tool dispatch.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import sys
-import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 _ROOT = str(Path(__file__).resolve().parent.parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from tools.capabilities import ToolSpec, ToolResult, ToolRisk, registry
-from safety_guard import classify_command, RiskLevel
-from action_manager import request_approval, classify_action
+from action_manager import request_approval
+from safety_guard import RiskLevel, classify_command
+from tools.capabilities import ToolResult, ToolRisk, ToolSpec, registry
 
 logger = logging.getLogger("sherly.policy")
 
 
-def parse_tool_call(text: str) -> Optional[dict[str, Any]]:
+def parse_tool_call(text: str) -> dict[str, Any] | None:
     """
     Parse a structured tool call from LLM output.
     Supports strict JSON blocks: ```json { "type": "tool_call", "tool": "...", "arguments": {...} } ```
@@ -54,7 +54,7 @@ def evaluate_tool_policy(tool_name: str, arguments: dict[str, Any]) -> ToolRisk:
     """
     Evaluate policy for a tool invocation based on tool metadata and actual arguments.
     """
-    tool: Optional[ToolSpec] = registry.get(tool_name)
+    tool: ToolSpec | None = registry.get(tool_name)
     if not tool:
         return ToolRisk.BLOCKED
 

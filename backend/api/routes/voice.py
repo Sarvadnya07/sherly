@@ -8,10 +8,10 @@ from __future__ import annotations
 import sounddevice as sd
 from fastapi import APIRouter
 
-from backend.api.schemas.contracts import VoiceStatusResponse, AudioDevicesResponse
-from backend.api.websocket.ws_manager import manager
 import speech_to_text
 import text_to_speech
+from backend.api.schemas.contracts import AudioDevicesResponse, VoiceStatusResponse
+from backend.api.websocket.ws_manager import manager
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 

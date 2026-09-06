@@ -7,5 +7,5 @@ def ask_llm(prompt: str) -> str:
         return "Please specify a prompt."
     try:
         return ask_model(prompt, store_history=False, use_context=False)
-    except Exception as exc:
+    except Exception:
         return "I'm having trouble connecting to the model right now."

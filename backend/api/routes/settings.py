@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from backend.api.schemas.contracts import SettingsResponse, SettingsUpdateRequest
 import config_manager
+from backend.api.schemas.contracts import SettingsResponse, SettingsUpdateRequest
 from plugin_manager import get_all_plugin_states, set_plugin_enabled
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])

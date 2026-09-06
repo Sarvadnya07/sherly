@@ -10,20 +10,19 @@ SHERLY ASSISTANT — MAIN WINDOW (FULLY DYNAMIC & FUNCTIONAL)
 from __future__ import annotations
 
 import sys
-from PySide6.QtCore import Qt, Signal, QObject
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget, QFrame
-)
 
-from sherly_ui.theme import STYLE_MAIN_WINDOW, C_BG_DARK, C_BORDER_SUBTLE
+from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QStackedWidget, QVBoxLayout, QWidget
+
+import config_manager
 from sherly_ui.header_bar import HeaderBar
 from sherly_ui.sidebar import Sidebar
+from sherly_ui.theme import C_BG_DARK, C_BORDER_SUBTLE, STYLE_MAIN_WINDOW
 from sherly_ui.views.assistant_view import AssistantView
-from sherly_ui.views.workspace_view import WorkspaceView
 from sherly_ui.views.models_view import ModelsView
 from sherly_ui.views.voice_overlay import VoiceOverlayView
-import config_manager
+from sherly_ui.views.workspace_view import WorkspaceView
 
 
 # ── Shared Signals Object ─────────────────────────────────────────────────────

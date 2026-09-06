@@ -19,30 +19,35 @@ from datetime import datetime, timezone
 import pyperclip
 
 from action_manager import (
-    approve_action, cancel_action, classify_action,
-    get_history, list_pending, log_action, request_approval, undo_last,
+    approve_action,
+    cancel_action,
+    classify_action,
+    get_history,
+    list_pending,
+    log_action,
+    request_approval,
+    undo_last,
 )
 from agent_manager import run_agent
 from config_manager import set_current_model
+from conversation_memory import add_to_memory, build_prompt
 from input_validator import is_valid_input, record_command
+from memory_brain import recall, remember
 from model_manager import ask_model
 from plugin_manager import get_enabled_plugin_names, run_plugin
-from runtime_utils import safe_execute, log
-from safety_guard import check_command, handle_confirmation_reply
+from runtime_utils import log, safe_execute
+from safety_guard import handle_confirmation_reply
 from text_to_speech import speak
 from tool_registry import clear_tools, register_tool, run_tool
 from tools.dictation import start_dictation
 from tools.error_tools import analyze_error
 from tools.file_tools import explain_file
+from tools.fix_project import fix_project
 from tools.project_tools import scan_project
 from tools.screen_tools import analyze_screen
-from tools.terminal_tools import safe_exec, run_command
 from tools.task_engine import execute_task
-from tools.fix_project import apply_last_fix, fix_project
+from tools.terminal_tools import run_command, safe_exec
 from web_search import search_web
-from memory_brain import recall, remember
-from conversation_memory import add_to_memory, build_prompt
-
 
 # ---------------------------------------------------------------------------
 # Runtime state
@@ -420,19 +425,19 @@ def route_command(text: str) -> str:
             return _finalize_response(raw, "Please provide an action ID. Example: approve abc12345")
 
         try:
-            from tools.preview import preview_store, apply_preview
+            from tools.preview import apply_preview, preview_store
             if action_id in preview_store:
                 result = safe_execute(lambda: apply_preview(action_id), "Failed to apply preview.")
 
                 # Auto-rerun loop logic
                 try:
-                    from tools.fix_project import LAST_FIX_CONTEXT, apply_last_fix
                     from tools.executor import run_project
+                    from tools.fix_project import LAST_FIX_CONTEXT, apply_last_fix
                     cmd = LAST_FIX_CONTEXT.get("command")
                     if cmd:
                         status, output = safe_execute(lambda: run_project(cmd), ("error", "Failed to run command"))
                         if status == "success":
-                            result += f"\n\n✅ Project re-run successful! System restored."
+                            result += "\n\n✅ Project re-run successful! System restored."
                             LAST_FIX_CONTEXT["error"] = None
                         else:
                             LAST_FIX_CONTEXT["error"] = output

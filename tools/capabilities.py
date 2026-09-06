@@ -5,11 +5,12 @@ Defines the canonical ToolSpec, ToolResult, ToolRisk, and structured execution p
 
 from __future__ import annotations
 
-import time
 import logging
+import time
 from enum import Enum
-from typing import Any, Callable, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger("sherly.capabilities")
 
@@ -40,7 +41,7 @@ class ToolResult(BaseModel):
     success: bool
     tool: str
     output: str
-    error: Optional[dict[str, Any]] = None
+    error: dict[str, Any] | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -55,7 +56,7 @@ class ToolRegistry:
         self._tools[key] = tool
         logger.info(f"Registered tool capability: {tool.name}")
 
-    def get(self, name: str) -> Optional[ToolSpec]:
+    def get(self, name: str) -> ToolSpec | None:
         return self._tools.get(name.strip().lower())
 
     def has(self, name: str) -> bool:

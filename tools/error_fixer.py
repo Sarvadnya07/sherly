@@ -1,5 +1,6 @@
 import json
 
+
 def analyze_error(error_or_ask_model, ask_model=None):
     if ask_model is None:
         import pyperclip
@@ -57,8 +58,7 @@ Return pure JSON only, in this exact format:
         response = response[7:]
     elif response.startswith("```"):
         response = response[3:]
-    if response.endswith("```"):
-        response = response[:-3]
+    response = response.removesuffix("```")
         
     try:
         return json.loads(response.strip())

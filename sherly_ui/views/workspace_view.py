@@ -9,26 +9,41 @@ Dynamic Developer Workspace:
 
 from __future__ import annotations
 
-import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
-from PySide6.QtCore import Qt, Signal, QProcess, QTimer
+
+from PySide6.QtCore import QProcess, Qt, Signal
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit,
-    QLineEdit, QWidget, QScrollArea, QSplitter
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QSplitter,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
-from sherly_ui.theme import (
-    C_BG_SURFACE, C_BG_CARD, C_BG_CANVAS, C_BG_INPUT,
-    C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED, C_TEXT_DIM,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_SURFACE,
-    C_GREEN_SUCCESS, C_GREEN_BG, C_RED_DANGER, C_RED_BG,
-    C_BORDER_SUBTLE, C_BORDER_MEDIUM, C_BORDER_ACCENT,
-    FONT_FAMILY_UI, FONT_FAMILY_CODE, get_ui_font, get_code_font
-)
 import config_manager
+from sherly_ui.theme import (
+    C_ACCENT_PRIMARY,
+    C_BG_CANVAS,
+    C_BG_SURFACE,
+    C_BORDER_MEDIUM,
+    C_BORDER_SUBTLE,
+    C_GREEN_BG,
+    C_GREEN_SUCCESS,
+    C_RED_BG,
+    C_RED_DANGER,
+    C_TEXT_MUTED,
+    C_TEXT_PRIMARY,
+    FONT_FAMILY_CODE,
+    get_code_font,
+    get_ui_font,
+)
 
 
 class DynamicDiffEditorWidget(QFrame):

@@ -16,7 +16,7 @@ _ROOT = str(Path(__file__).resolve().parent.parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from model_scanner import normalize_model, pick_best_model, _score_model
+from model_scanner import _score_model, normalize_model, pick_best_model
 
 # Import model_resolver directly (bypassing sherly_core/__init__.py which
 # eagerly imports TTS — unavailable in the test environment).

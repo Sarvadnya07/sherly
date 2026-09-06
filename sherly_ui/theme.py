@@ -5,7 +5,8 @@ Ultra-premium Obsidian & Zinc developer aesthetics (Linear / Cursor / Raycast st
 """
 
 from __future__ import annotations
-from PySide6.QtGui import QColor, QFont
+
+from PySide6.QtGui import QFont
 
 # ── 1. Color Palette (Obsidian & Zinc Dark Theme) ───────────────────────────
 # Canvas & Surfaces

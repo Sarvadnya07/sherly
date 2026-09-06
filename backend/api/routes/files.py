@@ -6,12 +6,16 @@ Handles file tree scanning, file reading/writing, and terminal execution.
 from __future__ import annotations
 
 from pathlib import Path
+
 from fastapi import APIRouter, HTTPException
 
 from backend.api.schemas.contracts import (
-    FileNode, FileReadResponse, FileWriteRequest, TerminalRunRequest, TerminalRunResponse
+    FileNode,
+    FileReadResponse,
+    FileWriteRequest,
+    TerminalRunRequest,
+    TerminalRunResponse,
 )
-
 from tools.terminal_tools import safe_exec
 
 router = APIRouter(prefix="/api/files", tags=["files"])

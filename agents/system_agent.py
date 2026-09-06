@@ -1,8 +1,10 @@
 import json
 import time
+
+import pyautogui
+
 from tools.automation_tools import open_app, type_text
 from tools.terminal_tools import safe_exec
-import pyautogui
 
 _SYSTEM_PROMPT = """\
 You are an AI system automation agent with God-level OS control.

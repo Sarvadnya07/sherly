@@ -6,18 +6,31 @@ and bottom "Run main.py" action button.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
+
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QWidget, QTreeWidget, QTreeWidgetItem
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
 
 from sherly_ui.theme import (
-    C_BG_SIDEBAR, C_BG_CARD, C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED, C_TEXT_DIM,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_LIGHT, C_BORDER_SUBTLE, C_BORDER_MEDIUM,
-    C_GREEN_SUCCESS, get_ui_font, get_code_font
+    C_BG_SIDEBAR,
+    C_BORDER_SUBTLE,
+    C_GREEN_SUCCESS,
+    C_TEXT_DIM,
+    C_TEXT_MUTED,
+    C_TEXT_PRIMARY,
+    C_TEXT_SECONDARY,
+    get_code_font,
+    get_ui_font,
 )
 
 
@@ -191,8 +204,8 @@ class Sidebar(QFrame):
     def _update_tab_styles(self) -> None:
         for tab_id, btn in self._buttons.items():
             if tab_id == self._active_tab:
-                btn.setStyleSheet(f"""
-                    QPushButton {{
+                btn.setStyleSheet("""
+                    QPushButton {
                         background: #27272a;
                         color: #ffffff;
                         font-weight: 600;
@@ -200,7 +213,7 @@ class Sidebar(QFrame):
                         border-radius: 6px;
                         text-align: left;
                         padding-left: 8px;
-                    }}
+                    }
                 """)
             else:
                 btn.setStyleSheet(f"""

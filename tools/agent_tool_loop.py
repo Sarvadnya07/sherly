@@ -7,18 +7,17 @@ Prompt -> Model -> Tool Call -> Policy & Execution -> Observation -> Final Model
 from __future__ import annotations
 
 import json
-import sys
 import logging
+import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional
 
 _ROOT = str(Path(__file__).resolve().parent.parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from tools.capabilities import ToolSpec, ToolResult, ToolRisk, registry
-from tools.policy_engine import parse_tool_call, evaluate_tool_policy, execute_capability
-import tools.builtins  # ensure native tools are loaded
+from tools.capabilities import ToolRisk, registry
+from tools.policy_engine import evaluate_tool_policy, execute_capability, parse_tool_call
 
 logger = logging.getLogger("sherly.agent_tool_loop")
 

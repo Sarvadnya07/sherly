@@ -7,13 +7,14 @@ and resolution fallback logic.
 from __future__ import annotations
 
 import pytest
+
 from sherly_core.providers import (
-    OllamaProvider,
-    OpenAIProvider,
+    CircuitBreaker,
     GeminiProvider,
     GroqProvider,
     ModelCapability,
-    CircuitBreaker,
+    OllamaProvider,
+    OpenAIProvider,
 )
 
 

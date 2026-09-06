@@ -6,13 +6,15 @@ Unified provider abstraction for Local Ollama, OpenAI, Google Gemini, and Groq.
 from __future__ import annotations
 
 import json
-import time
 import logging
+import time
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from enum import Enum
-from typing import Any, Iterator, Optional
-from pydantic import BaseModel, Field
+from typing import Any
+
 import httpx
+from pydantic import BaseModel, Field
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 logger = logging.getLogger("sherly.providers")

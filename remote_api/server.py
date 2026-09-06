@@ -3,14 +3,14 @@ import secrets
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from tools.file_tools import explain_file
+
 from model_manager import ask_model
 from runtime_utils import send_notification
+from tools.file_tools import explain_file
 
 app = FastAPI(title="Sherly Remote API")
 app.add_middleware(

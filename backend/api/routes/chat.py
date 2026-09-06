@@ -6,15 +6,15 @@ Handles chat messages, command routing, and conversation memory.
 from __future__ import annotations
 
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
 
+from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
 
-from backend.api.schemas.contracts import ChatRequest, ChatResponse, ChatHistoryResponse
+from backend.api.schemas.contracts import ChatHistoryResponse, ChatRequest, ChatResponse
 from backend.api.websocket.ws_manager import manager
 from command_router import route_command
-from memory import get_context
 from input_validator import is_valid_input, record_command
+from memory import get_context
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 

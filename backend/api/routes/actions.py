@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+import action_manager
 from backend.api.schemas.contracts import PendingApproval, PreviewChange
 from backend.api.websocket.ws_manager import manager
-import action_manager
-from tools.preview import preview_store, apply_preview
+from tools.preview import apply_preview, preview_store
 from tools.terminal_tools import safe_exec
 
 router = APIRouter(prefix="/api/actions", tags=["actions"])

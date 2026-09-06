@@ -7,7 +7,8 @@ Maintains 1:1 parity with frontend TypeScript interfaces.
 from __future__ import annotations
 
 import time
-from typing import Any, Optional, Literal
+from typing import Any, Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -15,8 +16,8 @@ from pydantic import BaseModel, Field
 class ApiErrorDetail(BaseModel):
     code: str
     message: str
-    request_id: Optional[str] = None
-    details: Optional[dict[str, Any]] = None
+    request_id: str | None = None
+    details: dict[str, Any] | None = None
 
 
 class ApiErrorResponse(BaseModel):
@@ -26,15 +27,15 @@ class ApiErrorResponse(BaseModel):
 # ── Chat & Memory ─────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=100000)
-    file_attachment: Optional[str] = None
+    file_attachment: str | None = None
 
 
 class ChatResponse(BaseModel):
     user_prompt: str
     assistant_response: str
     timestamp: str
-    attached_file: Optional[str] = None
-    request_id: Optional[str] = None
+    attached_file: str | None = None
+    request_id: str | None = None
 
 
 class ChatHistoryResponse(BaseModel):
@@ -53,8 +54,8 @@ class ModelInfo(BaseModel):
 
 class ModelsListResponse(BaseModel):
     mode: Literal["auto", "manual"]
-    current_model: Optional[str] = None
-    pinned_model: Optional[str] = None
+    current_model: str | None = None
+    pinned_model: str | None = None
     is_ollama_running: bool
     models: list[ModelInfo]
 
@@ -76,7 +77,7 @@ class ApiKeyRequest(BaseModel):
 class VoiceStatusResponse(BaseModel):
     is_listening: bool
     is_speaking: bool
-    current_device: Optional[str] = None
+    current_device: str | None = None
 
 
 class AudioDevicesResponse(BaseModel):
@@ -88,7 +89,7 @@ class FileNode(BaseModel):
     name: str
     path: str
     is_dir: bool
-    children: Optional[list[FileNode]] = None
+    children: list[FileNode] | None = None
 
 
 class FileReadResponse(BaseModel):
@@ -131,33 +132,33 @@ class PreviewChange(BaseModel):
     file_path: str
     old_code: str
     new_code: str
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 # ── Settings ──────────────────────────────────────────────────────────────────
 class SettingsResponse(BaseModel):
     auto_mode: bool
     model_mode: Literal["auto", "manual"]
-    current_model: Optional[str] = None
+    current_model: str | None = None
     api_keys_configured: dict[str, bool]
     plugins: dict[str, bool]
 
 
 class SettingsUpdateRequest(BaseModel):
-    auto_mode: Optional[bool] = None
-    model_mode: Optional[Literal["auto", "manual"]] = None
-    plugins: Optional[dict[str, bool]] = None
+    auto_mode: bool | None = None
+    model_mode: Literal["auto", "manual"] | None = None
+    plugins: dict[str, bool] | None = None
 
 
 # ── Real-Time WebSocket Event Envelopes ───────────────────────────────────────
 class StatusPayload(BaseModel):
     status: Literal["ready", "thinking", "listening", "speaking"]
-    prompt: Optional[str] = None
+    prompt: str | None = None
 
 
 class SttTextPayload(BaseModel):
     text: str
-    is_final: Optional[bool] = True
+    is_final: bool | None = True
 
 
 class ActionUpdatePayload(BaseModel):
@@ -166,7 +167,7 @@ class ActionUpdatePayload(BaseModel):
 
 
 class ModelChangedPayload(BaseModel):
-    current_model: Optional[str] = None
+    current_model: str | None = None
     mode: Literal["auto", "manual"]
 
 
@@ -174,4 +175,4 @@ class SherlyEvent(BaseModel):
     event_type: Literal["status", "stt_text", "action_update", "model_changed", "pong"]
     payload: dict[str, Any]
     timestamp: float = Field(default_factory=time.time)
-    request_id: Optional[str] = None
+    request_id: str | None = None

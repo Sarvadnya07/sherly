@@ -1,6 +1,7 @@
+import subprocess
+
 import mss
 from PIL import Image
-import subprocess
 
 
 def capture_screen() -> str:

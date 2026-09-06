@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import logging
 import threading
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from queue import Queue
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 

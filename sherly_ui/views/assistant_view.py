@@ -10,19 +10,27 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from PySide6.QtCore import Qt, Signal, QTimer
+
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QGuiApplication, QKeyEvent
 from PySide6.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit,
-    QScrollArea, QWidget, QFileDialog
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
 from sherly_ui.theme import (
-    C_BG_SURFACE, C_BG_CARD, C_BG_INPUT, C_BG_CANVAS,
-    C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED, C_TEXT_DIM,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_LIGHT,
-    C_BORDER_SUBTLE, C_BORDER_MEDIUM, C_BORDER_ACCENT,
-    C_GREEN_SUCCESS, get_ui_font, get_code_font
+    C_ACCENT_PRIMARY,
+    C_BG_CANVAS,
+    C_TEXT_PRIMARY,
+    get_code_font,
+    get_ui_font,
 )
 
 

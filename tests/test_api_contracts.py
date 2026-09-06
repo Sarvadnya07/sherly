@@ -8,18 +8,15 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from backend.main import app
+
 from backend.api.schemas.contracts import (
-    ChatRequest,
-    ChatResponse,
-    ModelSelectRequest,
-    ModelModeRequest,
     ApiKeyRequest,
-    PendingApproval,
-    TerminalRunRequest,
-    FileWriteRequest,
+    ChatRequest,
+    ModelModeRequest,
     SherlyEvent,
+    TerminalRunRequest,
 )
+from backend.main import app
 
 
 @pytest.fixture

@@ -1,7 +1,8 @@
 import os
+import struct
+
 import pvporcupine
 import pyaudio
-import struct
 
 
 class WakeWordDetector:

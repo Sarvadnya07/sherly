@@ -1,7 +1,6 @@
 import difflib
-import uuid
-import shutil
 import os
+import shutil
 
 from action_manager import log_action
 

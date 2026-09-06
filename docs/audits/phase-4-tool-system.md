@@ -13,7 +13,7 @@
    - Upgraded [`tool_registry.py`](file:///c:/Users/ASUS/Desktop/STUDY/PROJECTS/sherly/tool_registry.py) to wrap `ToolRegistry` while preserving 100% backward compatibility for plugins.
 
 2. **Native Builtin Capabilities**:
-   - Built [`tools/builtins.py`](file:///c:/Users/ASUS/Desktop/STUDY/PROJECTS/sherly/tools/builtins.py) registering `filesystem.read`, `filesystem.scan`, `terminal.execute`, `web.search`, `browser.open`, and `screen.capture`.
+   - Built [`tools/native_tools.py`](file:///c:/Users/ASUS/Desktop/STUDY/PROJECTS/sherly/tools/native_tools.py) registering `filesystem.read`, `filesystem.scan`, `terminal.execute`, `web.search`, `browser.open`, and `screen.capture`.
 
 3. **Argument-Aware Policy Engine**:
    - Built [`tools/policy_engine.py`](file:///c:/Users/ASUS/Desktop/STUDY/PROJECTS/sherly/tools/policy_engine.py) to parse structured JSON tool calls, evaluate argument risk (e.g. blocking sensitive paths like `.env`), and route through the `action_manager` approval gate.

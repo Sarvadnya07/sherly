@@ -2,4 +2,4 @@
 
 from text_to_speech import sherly_speak, speak
 
-__all__ = ["speak", "sherly_speak"]
+__all__ = ["sherly_speak", "speak"]

@@ -21,20 +21,20 @@ _ROOT = str(Path(__file__).resolve().parent.parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from backend.api.routes import chat, models, voice, files, actions, settings, health
+import sounddevice as sd
+
+import config_manager
+import model_scanner
+import text_to_speech
+from backend.api.routes import actions, chat, files, health, models, settings, voice
 from backend.api.websocket.ws_manager import manager
 from sherly_core.model_resolver import resolve_model
 from sherly_core.observability import (
     StructuredJsonFormatter,
-    set_correlation_context,
     clear_correlation_context,
     get_or_create_timeline,
+    set_correlation_context,
 )
-import config_manager
-import model_scanner
-import speech_to_text
-import text_to_speech
-import sounddevice as sd
 
 # Configure Structured JSON Logging
 _root_logger = logging.getLogger()
@@ -124,7 +124,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            await websocket.send_text(f'{{"event_type": "pong", "payload": {{}}}}')
+            await websocket.send_text('{"event_type": "pong", "payload": {}}')
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as exc:

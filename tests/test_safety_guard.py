@@ -15,12 +15,11 @@ import pytest
 
 from safety_guard import (
     RiskLevel,
+    _pending_confirmation,
     check_command,
     classify_command,
     handle_confirmation_reply,
-    _pending_confirmation,
 )
-
 
 # ---------------------------------------------------------------------------
 # classify_command — DANGEROUS patterns

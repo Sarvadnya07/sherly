@@ -7,11 +7,12 @@ Fixes: #3  model deadlock/hang (asyncio-style timeout via concurrent.futures)
 
 from __future__ import annotations
 
+import functools
 import json
 import threading
 import time
-import functools
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeout
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed

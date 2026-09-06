@@ -9,8 +9,9 @@ from __future__ import annotations
 import random
 import threading
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, Set, Tuple
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # 1. Scoped Circuit Breaker
@@ -64,7 +65,7 @@ class CircuitBreaker:
                 self.last_state_change = time.time()
 
 
-_breakers: Dict[str, CircuitBreaker] = {}
+_breakers: dict[str, CircuitBreaker] = {}
 _breakers_lock = threading.Lock()
 
 
@@ -81,7 +82,7 @@ def get_circuit_breaker(scope: str) -> CircuitBreaker:
 # ---------------------------------------------------------------------------
 
 # Operations that are strictly non-idempotent or state-mutating (DO NOT RETRY BLINDLY)
-_NON_RETRYABLE_OPERATIONS: Set[str] = {
+_NON_RETRYABLE_OPERATIONS: set[str] = {
     "filesystem.write",
     "filesystem.delete",
     "terminal.execute",
@@ -102,7 +103,7 @@ def retry_with_backoff(
     base_delay: float = 0.2,
     max_delay: float = 2.0,
     jitter: bool = True,
-    retryable_exceptions: Tuple[type, ...] = (Exception,),
+    retryable_exceptions: tuple[type, ...] = (Exception,),
 ) -> Any:
     """
     Executes func with exponential backoff + jitter for transient failures.

@@ -5,9 +5,11 @@ Fixes: #18 speech overlap (marks speaking state so STT won't listen)
 
 from __future__ import annotations
 
-import time
 import threading
+import time
+
 import pyttsx3
+
 try:
     import keyboard
 except ImportError:
@@ -46,7 +48,7 @@ def speak(text: str) -> None:
     try:
         from speech_to_text import mark_speaking
     except Exception:
-        mark_speaking = lambda _: None   # noqa: E731 — graceful fallback
+        mark_speaking = lambda _: None
 
     _stop_requested.clear()
     mark_speaking(True)

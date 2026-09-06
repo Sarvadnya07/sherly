@@ -7,9 +7,10 @@ speech transcription text, task progress, and pending approvals.
 from __future__ import annotations
 
 import json
-import time
 import logging
-from typing import Any, Optional
+import time
+from typing import Any
+
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class ConnectionManager:
         self,
         event_type: str,
         payload: dict[str, Any],
-        request_id: Optional[str] = None,
+        request_id: str | None = None,
     ) -> None:
         envelope = {
             "event_type": event_type,

@@ -6,7 +6,8 @@ Provides fast, non-blocking application health probes, provider status, and diag
 from __future__ import annotations
 
 import time
-from typing import Any, Dict
+from typing import Any
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -57,7 +58,7 @@ def get_provider_health():
 
 
 @router.get("/diagnostics")
-def get_diagnostics() -> Dict[str, Any]:
+def get_diagnostics() -> dict[str, Any]:
     """Diagnostic timelines for internal debugging."""
     summaries = [t.get_summary() for t in list(_timelines.values())[-10:]]
     return {

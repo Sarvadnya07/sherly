@@ -10,8 +10,9 @@ Thread-safe background work queue with:
 from __future__ import annotations
 
 import threading
-from queue import Queue, Empty
-from typing import Callable, Any
+from collections.abc import Callable
+from queue import Empty, Queue
+from typing import Any
 
 _queue: Queue = Queue()
 queue = _queue   # backward-compat alias

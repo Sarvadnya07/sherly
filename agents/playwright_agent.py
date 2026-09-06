@@ -3,7 +3,6 @@ God-Level Browser Automation Agent using Playwright.
 Provides autonomous DOM interaction, element tagging, and complex web navigation.
 """
 import json
-import time
 
 try:
     from playwright.sync_api import sync_playwright
@@ -212,4 +211,4 @@ def run(prompt: str, ask_model) -> str:
         import traceback
         trace = traceback.format_exc()
         print(f"Playwright Critical Error:\n{trace}")
-        return f"Browser automation failed: {str(e)}"
+        return f"Browser automation failed: {e!s}"

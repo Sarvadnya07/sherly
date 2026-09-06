@@ -8,13 +8,17 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+import config_manager
+import model_manager
+import model_scanner
 from backend.api.schemas.contracts import (
-    ModelsListResponse, ModelInfo, ModelSelectRequest, ModelModeRequest, ApiKeyRequest
+    ApiKeyRequest,
+    ModelInfo,
+    ModelModeRequest,
+    ModelSelectRequest,
+    ModelsListResponse,
 )
 from backend.api.websocket.ws_manager import manager
-import config_manager
-import model_scanner
-import model_manager
 from sherly_core.model_resolver import resolve_model
 
 router = APIRouter(prefix="/api/models", tags=["models"])

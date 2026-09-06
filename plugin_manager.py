@@ -3,7 +3,8 @@
 import importlib
 from pathlib import Path
 
-from config_manager import get_plugin_enabled, set_plugin_enabled as store_plugin_setting
+from config_manager import get_plugin_enabled
+from config_manager import set_plugin_enabled as store_plugin_setting
 
 plugins = {}
 _all_plugins = {}

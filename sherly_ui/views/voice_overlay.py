@@ -7,19 +7,18 @@ with live visualizer and real recording controls.
 from __future__ import annotations
 
 import random
+
+import sounddevice as sd
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QPainter, QColor, QRadialGradient, QPen, QBrush, QFont, QPainterPath
-from PySide6.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QWidget
-)
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPen, QRadialGradient
+from PySide6.QtWidgets import QComboBox, QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from sherly_ui.theme import (
-    C_BG_CANVAS, C_BG_CARD, C_TEXT_PRIMARY, C_TEXT_SECONDARY, C_TEXT_MUTED,
-    C_ACCENT_PRIMARY, C_ACCENT_HOVER, C_ACCENT_SURFACE, C_ACCENT_GLOW,
-    C_BORDER_SUBTLE, C_BORDER_MEDIUM, C_BORDER_ACCENT,
-    FONT_FAMILY_UI, FONT_FAMILY_CODE, get_ui_font, get_code_font
+    C_ACCENT_PRIMARY,
+    C_BG_CANVAS,
+    C_TEXT_PRIMARY,
+    get_ui_font,
 )
-import sounddevice as sd
 
 
 class PulsingMicWidget(QWidget):

@@ -10,14 +10,13 @@ Fixes: #5  thread race (state_lock on _is_processing/_is_listening)
 
 from __future__ import annotations
 
-import platform
 import signal
 import sys
 import threading
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QCoreApplication, QTimer, Signal, Slot, Qt
+from PySide6.QtCore import QCoreApplication, QObject, Qt, QTimer, Signal, Slot
 from PySide6.QtGui import QAction, QFont, QIcon
 from PySide6.QtNetwork import QTcpServer
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon

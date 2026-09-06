@@ -5,7 +5,6 @@ Modern DuckDuckGo search integration via ddgs.
 
 from __future__ import annotations
 
-import warnings
 from runtime_utils import log
 
 _SEARCH_TIMEOUT = 5   # seconds before timeout

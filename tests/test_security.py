@@ -19,10 +19,7 @@ Covers:
 from __future__ import annotations
 
 import ast
-import os
 import subprocess
-import sys
-import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
@@ -67,6 +64,7 @@ def test_missing_pvporcupine_key_raises_runtime_error(monkeypatch):
 
     # Import fresh inside the test to bypass module-level caching
     import importlib
+
     import sherly_core.wake_word as ww_mod
     importlib.reload(ww_mod)
 
@@ -87,6 +85,7 @@ def test_missing_remote_api_key_fails_closed(monkeypatch):
 
     # Reload the module so it picks up the missing env var
     import importlib
+
     import remote_api.server as srv_mod
     importlib.reload(srv_mod)
 
@@ -106,6 +105,7 @@ def test_wrong_remote_api_key_rejected(monkeypatch):
     monkeypatch.setenv("SHERLY_REMOTE_API_KEY", "correct_test_key_abc123")
 
     import importlib
+
     import remote_api.server as srv_mod
     importlib.reload(srv_mod)
 
@@ -125,6 +125,7 @@ def test_correct_remote_api_key_accepted(monkeypatch):
     monkeypatch.setenv("SHERLY_REMOTE_API_KEY", "correct_test_key_abc123")
 
     import importlib
+
     import remote_api.server as srv_mod
     importlib.reload(srv_mod)
 
@@ -258,6 +259,7 @@ def test_credentials_not_logged_during_auth(monkeypatch, capsys):
     monkeypatch.setenv("SHERLY_REMOTE_API_KEY", test_secret)
 
     import importlib
+
     import remote_api.server as srv_mod
     importlib.reload(srv_mod)
 
@@ -284,13 +286,13 @@ def test_pvporcupine_key_not_logged_in_wake_word_error(monkeypatch, capsys):
     monkeypatch.setenv("PVPORCUPINE_ACCESS_KEY", dummy_key)
 
     import importlib
+
     import sherly_core.wake_word as ww_mod
     importlib.reload(ww_mod)
 
-    with patch("pvporcupine.create", side_effect=RuntimeError("invalid key")):
-        with patch("pyaudio.PyAudio"):
-            with pytest.raises(Exception):
-                ww_mod.WakeWordDetector()
+    with patch("pvporcupine.create", side_effect=RuntimeError("invalid key")), patch("pyaudio.PyAudio"):
+        with pytest.raises(Exception):
+            ww_mod.WakeWordDetector()
 
     captured = capsys.readouterr()
     assert dummy_key not in captured.out, "Picovoice key leaked to stdout"
@@ -373,8 +375,9 @@ def test_ssrf_validator_blocks_dangerous_schemes_and_private_ips():
 
 def test_workspace_file_boundary_prevents_traversal():
     """_get_safe_target() in files route must prevent traversal outside workspace."""
-    from backend.api.routes.files import _get_safe_target
     from fastapi import HTTPException
+
+    from backend.api.routes.files import _get_safe_target
 
     # Valid relative path inside workspace
     target = _get_safe_target("README.md")
@@ -408,6 +411,7 @@ def test_backend_fastapi_lifespan_configured():
 def test_task_queue_error_isolation():
     """Task queue must isolate exceptions in tasks without crashing the worker."""
     import time
+
     from core.task_queue import add_task
 
     error_caught = []
@@ -505,6 +509,7 @@ def test_safe_fetch_url_ssrf_and_redirect_protections():
 def test_sqlite_wal_multi_threaded_concurrency():
     """SQLite database must handle concurrent multi-threaded readers and writers in WAL mode without locking."""
     import threading
+
     import memory
 
     # Ensure fresh connection with WAL pragmas
