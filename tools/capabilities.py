@@ -131,3 +131,8 @@ class ToolRegistry:
 
 # Global canonical registry instance
 registry = ToolRegistry()
+
+try:
+    from tools import native_tools  # noqa: F401
+except ImportError:
+    pass
