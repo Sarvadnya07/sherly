@@ -425,8 +425,8 @@ def route_command(text: str) -> str:
             return _finalize_response(raw, "Please provide an action ID. Example: approve abc12345")
 
         try:
-            from tools.preview import apply_preview, preview_store
-            if action_id in preview_store:
+            from tools.preview import apply_preview, has_preview
+            if has_preview(action_id):
                 result = safe_execute(lambda: apply_preview(action_id), "Failed to apply preview.")
 
                 # Auto-rerun loop logic

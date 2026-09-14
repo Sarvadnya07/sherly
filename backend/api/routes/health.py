@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 import config_manager
 import model_scanner
-from sherly_core.observability import _timelines
+from sherly_core.observability import recent_timeline_summaries
 
 router = APIRouter(prefix="/api/health", tags=["health"])
 
@@ -36,11 +36,12 @@ class ProviderStatusResponse(BaseModel):
 def get_application_health():
     """Fast, deterministic health check for process readiness."""
     cfg = config_manager.load_config()
+    selection = cfg.get("model_selection", {})
     return HealthResponse(
         status="healthy",
         uptime_seconds=round(time.time() - _START_TIME, 2),
-        model_mode=cfg.get("model_mode", "auto"),
-        current_model=cfg.get("model", None),
+        model_mode=selection.get("mode", "auto"),
+        current_model=selection.get("current_model", None),
     )
 
 
@@ -60,7 +61,6 @@ def get_provider_health():
 @router.get("/diagnostics")
 def get_diagnostics() -> dict[str, Any]:
     """Diagnostic timelines for internal debugging."""
-    summaries = [t.get_summary() for t in list(_timelines.values())[-10:]]
     return {
-        "recent_timelines": summaries,
+        "recent_timelines": recent_timeline_summaries(10),
     }

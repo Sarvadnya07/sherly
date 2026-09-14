@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException
 import action_manager
 from backend.api.schemas.contracts import PendingApproval, PreviewChange
 from backend.api.websocket.ws_manager import manager
-from tools.preview import apply_preview, preview_store
+from tools.preview import apply_preview, discard_preview, get_preview
 from tools.terminal_tools import safe_exec
 
 router = APIRouter(prefix="/api/actions", tags=["actions"])
@@ -18,9 +18,9 @@ router = APIRouter(prefix="/api/actions", tags=["actions"])
 
 @router.get("/approvals")
 def get_pending_approvals():
-    pending = action_manager._pending_actions
+    pending = action_manager.list_pending_entries()
     res = []
-    for aid, entry in pending.items():
+    for aid, entry in pending.items()::
         res.append(
             PendingApproval(
                 action_id=aid,
@@ -79,8 +79,8 @@ def undo_last_action():
 
 
 @router.get("/previews/{action_id}")
-def get_preview(action_id: str):
-    changes = preview_store.get(action_id)
+def get_preview_route(action_id: str):
+    changes = get_preview(action_id)
     if not changes:
         raise HTTPException(status_code=404, detail="Preview not found")
     res = []
@@ -111,7 +111,6 @@ async def apply_code_preview(action_id: str):
 
 @router.post("/previews/{action_id}/reject")
 async def reject_code_preview(action_id: str):
-    if action_id in preview_store:
-        del preview_store[action_id]
+    discard_preview(action_id)
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "preview_rejected"})
     return {"message": "Preview rejected"}

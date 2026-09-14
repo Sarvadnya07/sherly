@@ -8,7 +8,7 @@ repos:
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        files: ^(src|tests)/
+        files: ^(backend|core|sherly_|tools|agents|tests|remote_|plugins)/
 
   # ── Bandit: security scan ─────────────────────────────────────────────
   - repo: https://github.com/PyCQA/bandit
@@ -20,7 +20,7 @@ repos:
           - src/
           - --skip
           - B101,B404,B603  # Skip assert, subprocess (we use shlex/shell=False), shell calls
-        files: ^src/
+        files: ^(backend|core|sherly_|tools|agents|tests|remote_|plugins)/
 
   # ── General file hygiene ──────────────────────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks

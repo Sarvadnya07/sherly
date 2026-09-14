@@ -32,10 +32,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-mock
 
       - name: Verify Python compilation
         run: |
           python -m compileall -q .
+
+      - name: Run Ruff lint
+        run: |
+          pip install ruff
+          ruff check backend core sherly_core sherly_ai sherly_commands agents tools remote_api remote_agent tests
 
       - name: Run PyTest Test Suite
         run: |
