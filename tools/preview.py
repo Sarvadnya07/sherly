@@ -1,10 +1,12 @@
 import difflib
 import os
 import shutil
+import threading
 
 from action_manager import log_action
 
-preview_store = {}
+preview_store: dict[str, list] = {}
+_store_lock = threading.Lock()
 backup_dir = "backups/"
 
 def generate_diff(old: str, new: str) -> str:
@@ -44,9 +46,29 @@ def generate_multi_diff(changes: list, confidence: int = None, reason: str = "")
     return "\n\n────────────────\n\n".join(output)
 
 def save_preview(action_id: str, changes: list):
-    preview_store[action_id] = changes
-    if len(preview_store) > 5:
-        preview_store.pop(next(iter(preview_store)))
+    with _store_lock:
+        preview_store[action_id] = changes
+        if len(preview_store) > 5:
+            preview_store.pop(next(iter(preview_store)))
+
+
+def get_preview(action_id: str) -> list | None:
+    """Thread-safe read of a staged preview (None if absent/expired)."""
+    with _store_lock:
+        changes = preview_store.get(action_id)
+        return list(changes) if changes else None
+
+
+def discard_preview(action_id: str) -> bool:
+    """Thread-safe removal of a staged preview. True if it existed."""
+    with _store_lock:
+        return preview_store.pop(action_id, None) is not None
+
+
+def has_preview(action_id: str) -> bool:
+    """Thread-safe existence check for a staged preview."""
+    with _store_lock:
+        return action_id in preview_store
 
 def backup_file(path: str) -> str:
     if not os.path.exists(backup_dir):
@@ -58,7 +80,8 @@ def backup_file(path: str) -> str:
     return backup_path
 
 def apply_preview(action_id: str) -> str:
-    changes = preview_store.get(action_id)
+    with _store_lock:
+        changes = preview_store.get(action_id)
     if not changes:
         return "Invalid preview ID"
 
@@ -108,6 +131,6 @@ def apply_preview(action_id: str) -> str:
         undoable=True,
     )
 
-    del preview_store[action_id]
+    discard_preview(action_id)
 
     return f"Patch applied successfully to: {', '.join(files)}"

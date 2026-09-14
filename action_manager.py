@@ -169,6 +169,14 @@ def list_pending() -> str:
         return "\n".join(lines)
 
 
+def list_pending_entries() -> dict[str, dict]:
+    """Thread-safe snapshot of pending actions for API consumers.
+    Returns a copy so callers never iterate live internal state."""
+    with _pending_lock:
+        _prune_expired()
+        return {aid: dict(entry) for aid, entry in _pending_actions.items()}
+
+
 # ---------------------------------------------------------------------------
 # 3 ─ ACTION HISTORY + UNDO ENGINE
 # ---------------------------------------------------------------------------
