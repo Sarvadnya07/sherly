@@ -14,6 +14,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import platform
 import subprocess
 import sys
 import time
@@ -67,11 +69,27 @@ def build_package(verify_only: bool = False) -> int:
     print("\n[4/5] Generating Artifact Manifest & SHA-256 Checksums...")
     RELEASE_DIR.mkdir(parents=True, exist_ok=True)
 
+    github_sha = os.environ.get("GITHUB_SHA", "")
+    github_ref = os.environ.get("GITHUB_REF", "")
+    github_ref_name = os.environ.get("GITHUB_REF_NAME", "")
+    version = github_ref_name.removeprefix("v") if github_ref_name.startswith("v") else "2.0.0"
+    if not version or not all(part.isdigit() for part in version.split(".")[:2]):
+        version = "2.0.0"
+
     manifest = {
         "app_name": "Sherly AI",
-        "version": "2.0.0",
+        "version": version,
         "build_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "host_platform": sys.platform,
+        "source": {
+            "commit_sha": github_sha or "LOCAL_BUILD",
+            "ref": github_ref or "LOCAL_BUILD",
+        },
+        "build_environment": {
+            "platform": sys.platform,
+            "os": platform.system(),
+            "architecture": platform.machine(),
+            "python": platform.python_version(),
+        },
         "artifacts": {},
         "platform_certification": {
             "windows": "RUNTIME_VERIFIED" if sys.platform == "win32" else "BUILD_VERIFIED",
@@ -93,12 +111,15 @@ def build_package(verify_only: bool = False) -> int:
     manifest_file = RELEASE_DIR / "release_manifest.json"
     with open(manifest_file, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
+        f.write("\n")
 
     print(f"  [SAVED] {manifest_file} with {len(manifest['artifacts'])} verified artifacts.")
 
     # 5. Report Status
     print("\n[5/5] Release Packaging Summary:")
     print(f"  - Host Platform: {sys.platform}")
+    print(f"  - Architecture: {platform.machine()}")
+    print(f"  - Source Commit: {manifest['source']['commit_sha']}")
     print(f"  - Windows Status: {manifest['platform_certification']['windows']}")
     print(f"  - macOS Status: {manifest['platform_certification']['macos']}")
     print(f"  - Linux Status: {manifest['platform_certification']['linux']}")

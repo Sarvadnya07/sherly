@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
@@ -25,14 +25,31 @@ jobs:
           python-version: "3.13"
           cache: "pip"
 
+      - name: Install Linux native dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y portaudio19-dev
+
+      - name: Install macOS native dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install portaudio
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
+          python -m pip check
+
+      - name: Verify Python compilation
+        run: |
+          python -m compileall -q .
 
       - name: Run PyTest
         run: |
-          pytest tests/ -q
+          python -m pytest tests/ -q
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -54,5 +71,5 @@ jobs:
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-manifest-${{ matrix.os }}
+          name: release-manifest-${{ matrix.os }}-${{ runner.arch }}
           path: release/release_manifest.json
