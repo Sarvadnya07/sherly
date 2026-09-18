@@ -57,7 +57,8 @@ _MAX_READ_BYTES = 5 * 1024 * 1024  # 5 MB
 
 def _get_safe_target(rel_path: str) -> Path:
     workspace_root = Path.cwd().resolve()
-    target = (workspace_root / rel_path).resolve()
+    normalized_rel_path = rel_path.replace("\\", "/")
+    target = (workspace_root / normalized_rel_path).resolve()
     # Use is_relative_to() to prevent prefix-matching bypass (e.g. /workspace_root_secret)
     try:
         target.relative_to(workspace_root)
