@@ -39,7 +39,7 @@ async def approve_action(action_id: str):
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Approve action error: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to approve action.")
+        raise HTTPException(status_code=500, detail="Failed to approve action.") from exc
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "approved"})
     return {"message": res}
 
@@ -51,7 +51,7 @@ async def reject_action(action_id: str):
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Cancel action error: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to cancel action.")
+        raise HTTPException(status_code=500, detail="Failed to cancel action.") from exc
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "rejected"})
     return {"message": res}
 
@@ -64,7 +64,7 @@ def get_action_history():
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Get history error: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to retrieve action history.")
+        raise HTTPException(status_code=500, detail="Failed to retrieve action history.") from exc
 
 
 @router.post("/undo")
@@ -74,7 +74,7 @@ def undo_last_action():
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Undo error: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to undo action.")
+        raise HTTPException(status_code=500, detail="Failed to undo action.") from exc
     return {"message": res}
 
 
@@ -104,7 +104,7 @@ async def apply_code_preview(action_id: str):
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Apply preview error: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to apply preview.")
+        raise HTTPException(status_code=500, detail="Failed to apply preview.") from exc
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "preview_applied"})
     return {"message": res}
 

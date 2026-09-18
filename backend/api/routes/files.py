@@ -61,8 +61,8 @@ def _get_safe_target(rel_path: str) -> Path:
     # Use is_relative_to() to prevent prefix-matching bypass (e.g. /workspace_root_secret)
     try:
         target.relative_to(workspace_root)
-    except ValueError:
-        raise HTTPException(status_code=403, detail="Access denied: Path outside workspace boundary")
+    except ValueError as exc:
+        raise HTTPException(status_code=403, detail="Access denied: Path outside workspace boundary") from exc
     return target
 
 
@@ -81,7 +81,7 @@ def read_file(path: str):
     except Exception as exc:
         from runtime_utils import log
         log(f"[FilesRoute] Failed to read file {path}: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to read file.")
+        raise HTTPException(status_code=500, detail="Failed to read file.") from exc
 
 
 @router.post("/write")
@@ -94,7 +94,7 @@ def write_file(req: FileWriteRequest):
     except Exception as exc:
         from runtime_utils import log
         log(f"[FilesRoute] Failed to write file {req.path}: {exc}", level="error")
-        raise HTTPException(status_code=500, detail="Failed to write file.")
+        raise HTTPException(status_code=500, detail="Failed to write file.") from exc
 
 
 @router.post("/terminal/run", response_model=TerminalRunResponse)
