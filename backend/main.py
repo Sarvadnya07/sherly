@@ -123,7 +123,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            data = await websocket.receive_text()
+            _data = await websocket.receive_text()
             await websocket.send_text('{"event_type": "pong", "payload": {}}')
     except WebSocketDisconnect:
         manager.disconnect(websocket)

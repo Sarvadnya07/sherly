@@ -162,8 +162,10 @@ def run(prompt: str, ask_model) -> str:
                     elem_text = ""
                     for el in elements:
                         desc = f"Tag: {el['tag']}"
-                        if el['text']: desc += f", Text: '{el['text']}'"
-                        if el['type']: desc += f", Type: {el['type']}"
+                        if el["text"]:
+                            desc += f", Text: '{el['text']}'"
+                        if el["type"]:
+                            desc += f", Type: {el['type']}"
                         elem_text += f"[ID: {el['id']}] {desc}\n"
 
                     if not elem_text:
