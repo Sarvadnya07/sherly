@@ -1,10 +1,13 @@
 import json
 import time
 
-import pyautogui
-
 from tools.automation_tools import open_app, type_text
 from tools.terminal_tools import safe_exec
+
+
+def _pyautogui():
+    import pyautogui
+    return pyautogui
 
 _SYSTEM_PROMPT = """\
 You are an AI system automation agent with God-level OS control.
@@ -76,16 +79,16 @@ def run(prompt: str, ask_model=None) -> str:
                 executed.append(f"Typed '{text[:20]}...'")
             elif a_type == "press_key":
                 key = act.get("key", "")
-                pyautogui.press(key)
+                _pyautogui().press(key)
                 executed.append(f"Pressed {key}")
             elif a_type == "media_control":
                 cmd = act.get("command", "")
-                pyautogui.press(cmd)
+                _pyautogui().press(cmd)
                 executed.append(f"Media command: {cmd}")
             elif a_type == "hotkey":
                 keys = act.get("keys", [])
                 if keys:
-                    pyautogui.hotkey(*keys)
+                    _pyautogui().hotkey(*keys)
                     executed.append(f"Hotkey {'+'.join(keys)}")
             elif a_type == "wait":
                 sec = act.get("seconds", 1)

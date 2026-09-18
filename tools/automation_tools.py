@@ -1,10 +1,13 @@
 import time
 
-import pyautogui
+def _pyautogui():
+    import pyautogui
+    return pyautogui
 
 
 def open_app(name):
 
+    pyautogui = _pyautogui()
     pyautogui.press("win")
     time.sleep(0.5)
 
@@ -18,10 +21,12 @@ def open_app(name):
 
 
 def type_text(text):
+    pyautogui = _pyautogui()
     pyautogui.write(text)
     return "Typed text"
 
 
 def click(x, y):
+    pyautogui = _pyautogui()
     pyautogui.click(x, y)
     return "Clicked"
