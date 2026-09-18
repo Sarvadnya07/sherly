@@ -175,3 +175,15 @@ def get_or_create_timeline(trace_id: str, request_id: str) -> ExecutionTimeline:
             if len(_timelines) > 100:
                 _timelines.pop(next(iter(_timelines)))
         return _timelines[request_id]
+
+
+def recent_timeline_summaries(limit: int = 10) -> list[dict[str, Any]]:
+    """Return the most recent execution timeline summaries, newest first."""
+    safe_limit = max(0, int(limit))
+    if safe_limit == 0:
+        return []
+
+    with _timeline_lock:
+        recent = list(_timelines.values())[-safe_limit:]
+
+    return [timeline.get_summary() for timeline in reversed(recent)]
