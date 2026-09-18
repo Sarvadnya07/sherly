@@ -17,7 +17,7 @@ def generate_diff(old: str, new: str) -> str:
     )
     return "\n".join(diff)
 
-def format_preview(change: dict, confidence: int = None, reason: str = "") -> str:
+def format_preview(change: dict, confidence: int | None = None, reason: str = "") -> str:
     diff = generate_diff(change["old"], change["new"])
     
     # Extract only additions and subtractions for inline preview
@@ -39,7 +39,7 @@ def format_preview(change: dict, confidence: int = None, reason: str = "") -> st
         out += f"\nConfidence: {confidence}%"
     return out
 
-def generate_multi_diff(changes: list, confidence: int = None, reason: str = "") -> str:
+def generate_multi_diff(changes: list, confidence: int | None = None, reason: str = "") -> str:
     output = []
     for change in changes:
         output.append(format_preview(change, confidence, reason))
