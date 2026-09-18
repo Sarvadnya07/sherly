@@ -48,7 +48,7 @@ def read_file(path: str) -> str | None:
         return None
 
     try:
-        with open(normalized, "r", encoding="utf-8", errors="replace") as f:
+        with open(normalized, encoding="utf-8", errors="replace") as f:
             # Fix #11: read only what we need — avoid loading huge files
             content = f.read(_MAX_FILE_CHARS + 1)
         if len(content) > _MAX_FILE_CHARS:

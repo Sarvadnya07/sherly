@@ -91,7 +91,7 @@ def apply_preview(action_id: str) -> str:
         old_code = change["old"]
         if os.path.exists(path):
             try:
-                with open(path, "r", encoding="utf-8", errors="replace") as f:
+                with open(path, encoding="utf-8", errors="replace") as f:
                     current_content = f.read()
                 if old_code and current_content != old_code:
                     return (

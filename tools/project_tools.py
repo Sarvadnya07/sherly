@@ -17,7 +17,7 @@ def scan_project(path, ask_model):
     summary = ""
     for target in files[:5]:
         try:
-            with open(target, "r", encoding="utf-8") as handle:
+            with open(target, encoding="utf-8") as handle:
                 summary += f"\nFILE: {target}\n"
                 summary += handle.read()[:500]
         except Exception:

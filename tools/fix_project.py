@@ -16,7 +16,7 @@ LAST_FIX_CONTEXT = {
 
 def _read_text(path):
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return f.read()
     except Exception:
         return ""
