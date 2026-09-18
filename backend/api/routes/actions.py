@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/actions", tags=["actions"])
 def get_pending_approvals():
     pending = action_manager.list_pending_entries()
     res = []
-    for aid, entry in pending.items()::
+    for aid, entry in pending.items():
         res.append(
             PendingApproval(
                 action_id=aid,
