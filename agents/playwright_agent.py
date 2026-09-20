@@ -4,10 +4,32 @@ Provides autonomous DOM interaction, element tagging, and complex web navigation
 """
 import json
 
+from core.network_security import is_safe_url
+
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
     pass  # Let it crash only when run is called if not installed
+
+
+_DEFAULT_START_URL = "https://www.google.com"
+
+
+def resolve_safe_start_url(model_output: str | None) -> str:
+    """Validate a model-supplied starting URL through the canonical SSRF policy.
+
+    Falls back to the default search URL when the model output is empty,
+    malformed, or targets loopback/private/reserved addresses — so model output
+    can never direct the browser at internal network resources.
+    """
+    tokens = (model_output or "").strip().split()
+    candidate = tokens[0] if tokens else _DEFAULT_START_URL
+    if not candidate.startswith(("http://", "https://")):
+        return _DEFAULT_START_URL
+    ok, _reason = is_safe_url(candidate)
+    if not ok:
+        return _DEFAULT_START_URL
+    return candidate
 
 # The Javascript to run inside the browser page to label all interactive elements
 _INJECT_JS = """
@@ -109,12 +131,9 @@ def extract_json(raw: str) -> dict:
     return {}
 
 def run(prompt: str, ask_model) -> str:
-    # 1. Ask LLM for the starting URL
+    # 1. Ask LLM for the starting URL — validated through network policy
     url_raw = ask_model(_URL_PROMPT.format(goal=prompt), store_history=False, use_context=False)
-    url_tokens = (url_raw or "").strip().split()
-    starting_url = url_tokens[0] if url_tokens else "https://www.google.com"
-    if not starting_url.startswith("http"):
-        starting_url = "https://www.google.com"
+    starting_url = resolve_safe_start_url(url_raw)
 
     # Start the robust browser session
     try:

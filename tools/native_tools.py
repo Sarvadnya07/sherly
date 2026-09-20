@@ -140,15 +140,19 @@ def register_builtin_tools() -> None:
     )
 
     # 5. Screen analysis
+    # SEC-009: capture reads the user's entire screen and (via analyze_screen)
+    # sends it to a local vision model; content may include sensitive material.
+    # Classified CONFIRM so capture requires explicit user approval, matching
+    # the terminal.execute trust level. It is NOT auto-executed on any path.
     registry.register(
         ToolSpec(
             name="screen.capture",
-            description="Capture current active screen for visual debugging or analysis.",
+            description="Capture the current screen for visual analysis. Requires user confirmation (screen content may be sensitive).",
             parameters_schema={"type": "object", "properties": {}},
             handler=_screen_capture_handler,
-            risk=ToolRisk.SAFE,
+            risk=ToolRisk.CONFIRM,
             permissions=["screen.capture"],
-            requires_approval=False,
+            requires_approval=True,
             reversible=False,
         )
     )

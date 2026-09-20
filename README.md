@@ -12,7 +12,7 @@
 <img src="https://img.shields.io/badge/Release-v2.0.0-blue.svg?style=flat-square" alt="v2.0.0" />
 <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="MIT License" />
 <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square" alt="Python 3.10+" />
-<img src="https://img.shields.io/badge/Tests-120%20passing-success.svg?style=flat-square" alt="120 tests passing" />
+<img src="https://img.shields.io/badge/Tests-141%20passing-success.svg?style=flat-square" alt="141 tests passing" />
 <img src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite%20%2B%20Tailwind-61dafb.svg?style=flat-square" alt="React + Vite + Tailwind" />
 <img src="https://img.shields.io/badge/Backend-FastAPI%20%2B%20WebSockets-009688.svg?style=flat-square" alt="FastAPI + WebSockets" />
 <img src="https://img.shields.io/badge/Sandbox-shlex%20%2B%20SafetyGuard-blueviolet.svg?style=flat-square" alt="SafetyGuard Sandbox" />
@@ -402,7 +402,7 @@ For in-depth architectural guides, security policies, and developer runbooks, re
 
 ## 🧪 Testing & Verification
 
-Sherly includes an automated test suite containing **117 passing tests** with 0 warnings:
+Sherly includes an automated test suite containing **141 passing tests** (143 collected; 2 wake-word tests require the native `pvporcupine` library, which is installed automatically on supported platforms via `requirements.txt`):
 
 ```bash
 # Run all tests
@@ -412,9 +412,10 @@ pytest
 pytest tests/test_security.py -v
 
 # Check lints and formatting
-ruff check .
+ruff check backend core sherly_core agents tools remote_api remote_agent tests *.py
 
-# Verify type safety
+# Type checking (optional, developer-side — not a CI gate; the codebase is
+# partially annotated, so a full mypy run is not yet meaningful)
 mypy backend sherly_core tools agents
 ```
 

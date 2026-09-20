@@ -54,7 +54,47 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["agents", "backend", "core", "sherly_ai", "sherly_commands", "sherly_core", "sherly_ui", "tools"]
+# PKG-001: every root-level production module imported across package
+# boundaries must be declared here — without py-modules, `pip install .`
+# produces an application that cannot import its own backend.
+py-modules = [
+    "action_manager",
+    "agent_manager",
+    "command_router",
+    "config_manager",
+    "conversation_memory",
+    "input_validator",
+    "main",
+    "memory",
+    "memory_brain",
+    "model_manager",
+    "model_scanner",
+    "plugin_manager",
+    "runtime_utils",
+    "safety_guard",
+    "speech_to_text",
+    "text_to_speech",
+    "tool_registry",
+    "web_search",
+]
+# Subpackages are enumerated explicitly (implicit namespace discovery drops
+# packages that lack __init__.py, which silently omitted backend.api.*).
+packages = [
+    "agents",
+    "backend",
+    "backend.api",
+    "backend.api.routes",
+    "backend.api.schemas",
+    "backend.api.websocket",
+    "core",
+    "plugins",
+    "remote_api",
+    "remote_agent",
+    "sherly_core",
+    "sherly_ui",
+    "sherly_ui.views",
+    "tools",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
