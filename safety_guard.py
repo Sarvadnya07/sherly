@@ -10,14 +10,14 @@ Every command is classified before execution:
 Use `classify_command()` to get the class, then `check_command()` to get an
 executable decision string or None.
 
-Fixes:
-  - Thread-safety: `_pending_confirmation` dict now protected by a lock.
+ARCH-001/SEC-005: confirmation state is no longer a process-global slot.
+CONFIRM commands create a session-scoped approval ticket via the canonical
+approval_service; only the session that triggered the command can confirm it.
 """
 
 from __future__ import annotations
 
 import re
-import threading
 from enum import Enum
 
 # ---------------------------------------------------------------------------
@@ -59,13 +59,6 @@ _CONFIRM_PATTERNS: list[str] = [
     r"\bwrite to\b.*system",
 ]
 
-# ---------------------------------------------------------------------------
-# Confirmation state (single pending command) — thread-safe
-# ---------------------------------------------------------------------------
-
-_confirm_lock = threading.Lock()
-_pending_confirmation: dict[str, str] = {}   # {"cmd": <original cmd>}
-
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -83,7 +76,10 @@ def classify_command(text: str) -> RiskLevel:
     return RiskLevel.SAFE
 
 
-def check_command(text: str) -> str | None:
+def check_command(
+    text: str,
+    session_id: str = "local",
+) -> str | None:
     """
     Gate the command through the safety classifier.
 
@@ -92,6 +88,8 @@ def check_command(text: str) -> str | None:
     None            → command is SAFE; caller should proceed normally.
     str (message)   → blocked or needs confirmation; return this to the user.
     """
+    import approval_service
+
     level = classify_command(text)
 
     if level == RiskLevel.DANGEROUS:
@@ -101,36 +99,54 @@ def check_command(text: str) -> str | None:
         )
 
     if level == RiskLevel.CONFIRM:
-        with _confirm_lock:
-            _pending_confirmation["cmd"] = text
-            _pending_confirmation[text] = text
+        ticket = approval_service.create_ticket(
+            text, session_id=session_id, risk_level="confirm",
+        )
         return (
             f"⚠️  This action requires confirmation: '{text}'\n"
-            "Reply 'confirm' to proceed or 'cancel' to abort."
+            f"Reply 'confirm {ticket.ticket_id}' to proceed or "
+            f"'cancel {ticket.ticket_id}' to abort."
         )
 
     return None   # SAFE — let it through
 
 
-def handle_confirmation_reply(low: str) -> str | None:
+# Backwards-compatible default used by tests and legacy callers that never
+# specified a session. Reply handling now requires the ticket ID, so the old
+# single-slot "any yes confirms whatever is pending" behavior is gone by design.
+LEGACY_SESSION_ID = "local"
+
+
+def handle_confirmation_reply(low: str, session_id: str = LEGACY_SESSION_ID) -> str | None:
     """
-    Call this near the top of route_command() to handle pending
-    confirmation replies. Returns a response string or None.
+    Handle 'confirm <id>' / 'cancel <id>' replies for *session_id*.
+
+    The bare 'confirm'/'cancel' forms from the old single-slot design are no
+    longer accepted: a reply must name its ticket ID, so a stray "yes" from
+    one surface can never confirm a command raised by another (SEC-006 fix,
+    enforced via SEC-005 tickets). Returns a response string or None.
     """
-    with _confirm_lock:
-        if not _pending_confirmation:
-            return None
+    import approval_service
 
-        if low.strip() in {"confirm", "yes", "y", "proceed", "ok"}:
-            cmd = _pending_confirmation.pop("cmd", None)
-            if not cmd and _pending_confirmation:
-                cmd = next(reversed(list(_pending_confirmation.values())))
-            _pending_confirmation.clear()
-            if cmd:
-                return f"__CONFIRMED__:{cmd}"
+    stripped = (low or "").strip()
+    parts = stripped.split()
+    if len(parts) != 2 or parts[0] not in {"confirm", "cancel"}:
+        # Not a ticket reply — let it fall through to normal routing.
+        return None
 
-        if low.strip() in {"cancel", "no", "n", "abort", "stop"}:
-            _pending_confirmation.clear()
-            return "Action cancelled."
-
-    return None   # not a confirmation reply — ignore pending state
+    verb, ticket_id = parts
+    try:
+        if verb == "confirm":
+            # The executor here does NOT run the command — it just tags the
+            # approved action. The ticket is atomically consumed now (so it is
+            # single-use even if the router crashes later); the router then
+            # runs the frozen action through safe_exec exactly once.
+            result = approval_service.approve_ticket(
+                ticket_id, session_id, lambda action: f"__CONFIRMED__:{action}",
+            )
+            if "__CONFIRMED__:" in result:
+                return "__CONFIRMED__:" + result.split("__CONFIRMED__:", 1)[1].split("\n")[0]
+            return result
+        return approval_service.cancel_ticket(ticket_id, session_id)
+    except approval_service.ApprovalError as exc:
+        return exc.public_message

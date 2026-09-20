@@ -17,6 +17,7 @@ _ROOT = str(Path(__file__).resolve().parent.parent)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+import approval_service
 from action_manager import request_approval
 from safety_guard import RiskLevel, classify_command
 from tools.capabilities import ToolResult, ToolRisk, ToolSpec, registry
@@ -91,9 +92,11 @@ def execute_capability(
     tool_name: str,
     arguments: dict[str, Any],
     user_approved: bool = False,
+    session_id: str | None = None,
 ) -> ToolResult:
     """
     Execute a tool call through the canonical policy and safety pipeline.
+    Approval tickets created for CONFIRM tools are bound to *session_id*.
     """
     tool = registry.get(tool_name)
     if not tool:
@@ -115,9 +118,11 @@ def execute_capability(
         )
 
     if policy_risk in (ToolRisk.CONFIRM, ToolRisk.DANGEROUS) and not user_approved:
-        # Enqueue in action_manager for confirmation
+        # Enqueue in action_manager for confirmation (session-scoped ticket)
         cmd_repr = f"{tool_name}({json.dumps(arguments)})"
-        prompt = request_approval(cmd_repr)
+        prompt = request_approval(
+            cmd_repr, session_id=session_id or approval_service.DEFAULT_SESSION_ID,
+        )
         return ToolResult(
             success=False,
             tool=tool_name,

@@ -21,6 +21,7 @@ UNDO BOUNDARY:
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from approval_service import REMOTE_SESSION_ID
 from command_router import route_command
 from runtime_utils import send_notification, log
 
@@ -52,7 +53,7 @@ def execute(cmd: Command):
             )
         }
     try:
-        response = route_command(cmd.text)
+        response = route_command(cmd.text, session_id=REMOTE_SESSION_ID)
     except Exception as exc:
         log(f"[RemoteAgent] Execution failed: {exc}", level="error")
         response = "Agent failed to execute command."

@@ -15,7 +15,6 @@ import pytest
 
 from safety_guard import (
     RiskLevel,
-    _pending_confirmation,
     check_command,
     classify_command,
     handle_confirmation_reply,
@@ -123,39 +122,46 @@ def test_check_command_confirm_returns_confirmation_prompt() -> None:
 # handle_confirmation_reply() state machine
 # ---------------------------------------------------------------------------
 
-def _set_pending(cmd: str) -> None:
-    """Helper to set a pending confirmation."""
-    _pending_confirmation.clear()
-    _pending_confirmation["cmd"] = cmd
+def _set_pending(cmd: str) -> str:
+    """Helper: create a pending confirmation ticket; return its ID."""
+    import approval_service
+    approval_service.reset_for_tests()
+    check_command(cmd, session_id="test-session")
+    tickets = approval_service.list_pending("test-session")
+    assert len(tickets) == 1, "check_command should create exactly one ticket"
+    return tickets[0].ticket_id
 
 
 def test_confirm_reply_yes_returns_sentinel() -> None:
-    _set_pending("delete temp.log")
-    result = handle_confirmation_reply("confirm")
+    tid = _set_pending("delete temp.log")
+    result = handle_confirmation_reply(f"confirm {tid}", session_id="test-session")
     assert result is not None
     assert result.startswith("__CONFIRMED__:")
 
 
 def test_confirm_reply_cancel_clears_pending() -> None:
-    _set_pending("delete temp.log")
-    result = handle_confirmation_reply("cancel")
-    assert result == "Action cancelled."
-    assert "cmd" not in _pending_confirmation
+    tid = _set_pending("delete temp.log")
+    result = handle_confirmation_reply(f"cancel {tid}", session_id="test-session")
+    assert "Cancelled" in result
+    import approval_service
+    assert approval_service.list_pending("test-session") == []
 
 
 def test_confirm_reply_no_pending_returns_none() -> None:
-    _pending_confirmation.clear()
-    result = handle_confirmation_reply("confirm")
-    assert result is None
+    import approval_service
+    approval_service.reset_for_tests()
+    assert handle_confirmation_reply("confirm abc12345", session_id="test-session") is not None
+    # Unknown ID yields the generic error message, not a crash
+    assert handle_confirmation_reply("confirm zzz99999", session_id="test-session") is not None
 
 
 def test_confirm_reply_irrelevant_input_returns_none() -> None:
-    _set_pending("delete temp.log")
-    result = handle_confirmation_reply("what time is it")
+    tid = _set_pending("delete temp.log")
+    result = handle_confirmation_reply("what time is it", session_id="test-session")
     assert result is None
-    # Pending should still be there
-    assert "cmd" in _pending_confirmation
-    _pending_confirmation.clear()
+    # Ticket must still be pending
+    import approval_service
+    assert [t.ticket_id for t in approval_service.list_pending("test-session")] == [tid]
 
 
 def test_safe_exec_blocks_operator_chaining() -> None:

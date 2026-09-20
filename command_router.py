@@ -28,6 +28,7 @@ from action_manager import (
     request_approval,
     undo_last,
 )
+from approval_service import DEFAULT_SESSION_ID
 from agent_manager import run_agent
 from config_manager import set_current_model
 from conversation_memory import add_to_memory, build_prompt
@@ -398,7 +399,9 @@ def _set_mode(low: str) -> str | None:
 # Main router
 # ---------------------------------------------------------------------------
 
-def route_command(text: str) -> str:
+def route_command(text: str, session_id: str = DEFAULT_SESSION_ID) -> str:
+    """Route a command for *session_id*. Approval tickets created or consumed
+    here are bound to this session; another session can never act on them."""
     # ── Pillar 1: INPUT VALIDATION + Fix #8 injection guard ─────────────────
     valid, cleaned = is_valid_input(text)
     if not valid:
@@ -409,7 +412,7 @@ def route_command(text: str) -> str:
     low = raw.lower().replace(",", "").replace(".", "").replace("?", "").replace("sherly", "").strip()
 
     # ── Pillar 5: safety_guard CONFIRMATION REPLY ─────────────────────────
-    confirm_reply = handle_confirmation_reply(low)
+    confirm_reply = handle_confirmation_reply(low, session_id=session_id)
     if confirm_reply is not None:
         if confirm_reply.startswith("__CONFIRMED__:"):
             confirmed_cmd = confirm_reply[len("__CONFIRMED__:"):]
@@ -428,6 +431,8 @@ def route_command(text: str) -> str:
             from tools.preview import apply_preview, has_preview
             if has_preview(action_id):
                 result = safe_execute(lambda: apply_preview(action_id), "Failed to apply preview.")
+                if result == "Invalid preview ID":
+                    raise ValueError(result)  # fall through to approve_action below
 
                 # Auto-rerun loop logic
                 try:
@@ -451,22 +456,26 @@ def route_command(text: str) -> str:
         except Exception as exc:
             log(f"[Router] preview dispatch error: {exc}", level="warning")
 
-        result = safe_execute(
-            lambda: approve_action(action_id, safe_exec),
-            "Failed to execute approved action."
-        )
+        try:
+            result = approve_action(action_id, safe_exec, session_id=session_id)
+        except Exception as exc:
+            from approval_service import ApprovalError
+            if isinstance(exc, ApprovalError):
+                return _finalize_response(raw, exc.public_message)
+            log(f"[Router] approve failed: {exc}", level="warning")
+            result = "Failed to execute approved action."
         return _finalize_response(raw, result)
 
     # ── System 1: APPROVAL QUEUE — cancel <id> ───────────────────────────
     if low.startswith("cancel"):
         action_id = raw.split(None, 1)[1].strip() if len(raw.split()) > 1 else ""
         if action_id:
-            result = safe_execute(lambda: cancel_action(action_id), "Failed to cancel.")
+            result = safe_execute(lambda: cancel_action(action_id, session_id=session_id), "Failed to cancel.")
             return _finalize_response(raw, result)
 
     # ── System 1: list pending ────────────────────────────────────────────
     if "pending actions" in low or "pending" in low and "action" in low:
-        return _finalize_response(raw, list_pending())
+        return _finalize_response(raw, list_pending(session_id))
 
     # ── System 2: UNDO ────────────────────────────────────────────────────
     if low in {"undo", "undo last"} or low.startswith("undo last"):
@@ -547,7 +556,10 @@ def route_command(text: str) -> str:
             log_action(cmd, "dangerous_blocked", undoable=False)
             return _finalize_response(raw, "⛔ Blocked: That command is too dangerous to execute.")
         if action_level == "confirm":
-            prompt = safe_execute(lambda: request_approval(cmd), "Failed to queue approval.")
+            prompt = safe_execute(
+                lambda: request_approval(cmd, session_id=session_id),
+                "Failed to queue approval.",
+            )
             return _finalize_response(raw, prompt)
 
         # SAFE — run immediately through whitelist + safety guard
