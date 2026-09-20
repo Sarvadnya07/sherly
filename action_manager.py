@@ -4,11 +4,9 @@ ACTION MANAGER — action_manager.py
 Implements three tightly-coupled systems:
 
   System 1 – APPROVAL QUEUE  (human-in-the-loop)
-    classify_action()     → safe / confirm / dangerous
-    request_approval()    → adds to pending store, returns prompt
-    approve_action()      → executes approved pending command
-    cancel_action()       → removes pending command
-    list_pending()        → returns formatted pending list for UI
+    Approval state is delegated to the canonical, session-scoped
+    approval_service (ARCH-001/SEC-005). The module-level _pending_actions
+    global store was removed — do not reintroduce it.
 
   System 2 – ACTION HISTORY + UNDO
     log_action()          → push to bounded history stack
@@ -24,12 +22,13 @@ from __future__ import annotations
 import os
 import shutil
 import threading
-import uuid
-from collections import deque
 from collections.abc import Callable
+from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
+import approval_service
+from approval_service import DEFAULT_SESSION_ID
 from runtime_utils import log
 
 # ---------------------------------------------------------------------------
@@ -83,98 +82,73 @@ def classify_action(cmd: str) -> str:
 # 2 ─ PENDING ACTION STORE  (approval queue)
 # ---------------------------------------------------------------------------
 
-_pending_lock = threading.Lock()
-_pending_actions: dict[str, dict] = {}   # { action_id: {cmd, ts, level} }
+# ---------------------------------------------------------------------------
+# 2 ─ APPROVAL QUEUE  (delegates to canonical approval_service)
+# ---------------------------------------------------------------------------
 
-_PENDING_TTL_SECONDS = 120   # pending actions expire after 2 minutes
-
-
-def _prune_expired() -> None:
-    """Remove pending actions older than TTL."""
-    now = datetime.now(timezone.utc).timestamp()
-    expired = [
-        k for k, v in _pending_actions.items()
-        if now - v["ts"] > _PENDING_TTL_SECONDS
-    ]
-    for k in expired:
-        del _pending_actions[k]
-
-
-def request_approval(cmd: str) -> str:
+def request_approval(
+    cmd: str,
+    session_id: str = DEFAULT_SESSION_ID,
+    risk_level: str = "confirm",
+) -> str:
     """
-    Add *cmd* to the pending queue and return the confirmation prompt.
-    Returns a short action ID the user can reference to approve/cancel.
+    Create a session-scoped approval ticket for *cmd* and return the prompt.
+    Only the owning session can later approve/cancel the returned ID.
     """
-    with _pending_lock:
-        _prune_expired()
-        action_id = str(uuid.uuid4())[:8]   # short 8-char ID, easy to say/type
-        _pending_actions[action_id] = {
-            "cmd": cmd,
-            "ts":  datetime.now(timezone.utc).timestamp(),
-            "level": "confirm",
-        }
-    log(f"[ActionManager] pending approval [{action_id}]: {cmd}")
+    ticket = approval_service.create_ticket(cmd, session_id=session_id, risk_level=risk_level)
+    log(f"[ActionManager] pending approval [{ticket.ticket_id}] session={session_id}: {cmd}")
     return (
         f"🔔 Pending approval\n"
         f"Command: {cmd}\n"
-        f"ID: {action_id}\n\n"
-        f"Say 'approve {action_id}' to confirm or 'cancel {action_id}' to abort."
+        f"ID: {ticket.ticket_id}\n\n"
+        f"Say 'approve {ticket.ticket_id}' to confirm or 'cancel {ticket.ticket_id}' to abort."
     )
 
 
-def approve_action(action_id: str, executor: Callable[[str], str]) -> str:
+def approve_action(
+    action_id: str,
+    executor: Callable[[str], str],
+    session_id: str = DEFAULT_SESSION_ID,
+) -> str:
     """
-    Execute the pending command identified by *action_id*.
-    *executor* is called with the raw command string — use safe_exec().
+    Approve the ticket *action_id* as *session_id* and execute via *executor*
+    (must be safe_exec or equivalent canonical pipeline).
     """
-    with _pending_lock:
-        _prune_expired()
-        entry = _pending_actions.pop(action_id, None)
-
-    if entry is None:
-        return f"⚠️ No pending action found with ID '{action_id}'. It may have expired or been cancelled."
-
-    cmd = entry["cmd"]
-    log(f"[ActionManager] approved [{action_id}]: {cmd}")
-    result = executor(cmd)
-
-    # Log to action history so the user can undo
+    result = approval_service.approve_ticket(action_id, session_id, executor)
     log_action(
-        action=cmd,
+        action=result.split("\n")[0].replace("✅ Executed: ", ""),
         action_type="approved_command",
-        undo_data=None,    # terminal commands are not undoable
+        undo_data=None,
         undoable=False,
     )
-    return f"✅ Executed: {cmd}\n\n{result}"
+    return result
 
 
-def cancel_action(action_id: str) -> str:
-    with _pending_lock:
-        entry = _pending_actions.pop(action_id, None)
-    if entry is None:
-        return f"No pending action with ID '{action_id}'."
-    log(f"[ActionManager] cancelled [{action_id}]: {entry['cmd']}")
-    return f"❌ Cancelled action: {entry['cmd']}"
+def cancel_action(action_id: str, session_id: str = DEFAULT_SESSION_ID) -> str:
+    return approval_service.cancel_ticket(action_id, session_id)
 
 
-def list_pending() -> str:
-    """Return a human-readable list of pending actions."""
-    with _pending_lock:
-        _prune_expired()
-        if not _pending_actions:
-            return "No pending actions."
-        lines = ["⏳ Pending actions:"]
-        for aid, entry in _pending_actions.items():
-            lines.append(f"  [{aid}] {entry['cmd']}")
-        return "\n".join(lines)
+def list_pending(session_id: str = DEFAULT_SESSION_ID) -> str:
+    """Human-readable list of the calling session's pending actions."""
+    tickets = approval_service.list_pending(session_id)
+    if not tickets:
+        return "No pending actions."
+    lines = ["⏳ Pending actions:"]
+    for t in tickets:
+        lines.append(f"  [{t.ticket_id}] {t.action}")
+    return "\n".join(lines)
 
 
-def list_pending_entries() -> dict[str, dict]:
-    """Thread-safe snapshot of pending actions for API consumers.
-    Returns a copy so callers never iterate live internal state."""
-    with _pending_lock:
-        _prune_expired()
-        return {aid: dict(entry) for aid, entry in _pending_actions.items()}
+def list_pending_entries(session_id: str = DEFAULT_SESSION_ID) -> dict[str, dict]:
+    """Snapshot of the calling session's pending tickets for API consumers."""
+    return {
+        t.ticket_id: {
+            "cmd": t.action,
+            "ts": t.created_at,
+            "level": t.risk_level,
+        }
+        for t in approval_service.list_pending(session_id)
+    }
 
 
 # ---------------------------------------------------------------------------

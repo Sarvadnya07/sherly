@@ -34,8 +34,9 @@ def test_remote_undo_variant_is_rejected():
 def test_non_undo_command_is_not_intercepted(monkeypatch):
     calls = {}
 
-    def fake_route(text):
+    def fake_route(text, session_id=None):
         calls["text"] = text
+        calls["session_id"] = session_id
         return "ok"
 
     monkeypatch.setattr("remote_agent.agent.route_command", fake_route)
@@ -44,3 +45,6 @@ def test_non_undo_command_is_not_intercepted(monkeypatch):
     assert r.status_code == 200
     assert r.json()["response"] == "ok"
     assert calls["text"] == "list files"
+    # SEC-005: remote commands run under the distinct remote session identity
+    from approval_service import REMOTE_SESSION_ID
+    assert calls["session_id"] == REMOTE_SESSION_ID

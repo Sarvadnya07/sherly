@@ -5,9 +5,14 @@ Connects React UI to action_manager, approval queue, preview diff system, and un
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+import os
+import secrets
+
+from fastapi import APIRouter, HTTPException, Request
 
 import action_manager
+import approval_service
+from approval_service import ApprovalError
 from backend.api.schemas.contracts import PendingApproval, PreviewChange
 from backend.api.websocket.ws_manager import manager
 from tools.preview import apply_preview, discard_preview, get_preview
@@ -16,9 +21,30 @@ from tools.terminal_tools import safe_exec
 router = APIRouter(prefix="/api/actions", tags=["actions"])
 
 
+def _session_id(request: Request) -> str:
+    """Resolve the client identity for approval ownership.
+
+    Prefer an authenticated identity (X-API-Key == the remote gateway key) so
+    remote clients get their own scoped identity. Fall back to the client's
+    stable header session if provided; otherwise the shared local-desktop
+    session. Ownership is enforced server-side; clients cannot escalate by
+    spoofing headers because the remote key cannot be guessed.
+    """
+    remote_key = os.getenv("SHERLY_REMOTE_API_KEY")
+    if remote_key and request.headers.get("x-api-key") and secrets.compare_digest(
+        request.headers.get("x-api-key", ""), remote_key,
+    ):
+        return approval_service.REMOTE_SESSION_ID
+    client_session = request.headers.get("x-session-id")
+    if client_session and len(client_session) <= 128:
+        return client_session
+    return approval_service.DEFAULT_SESSION_ID
+
+
 @router.get("/approvals")
-def get_pending_approvals():
-    pending = action_manager.list_pending_entries()
+def get_pending_approvals(request: Request):
+    session_id = _session_id(request)
+    pending = action_manager.list_pending_entries(session_id=session_id)
     res = []
     for aid, entry in pending.items():
         res.append(
@@ -33,9 +59,12 @@ def get_pending_approvals():
 
 
 @router.post("/approvals/{action_id}/approve")
-async def approve_action(action_id: str):
+async def approve_action(action_id: str, request: Request):
+    session_id = _session_id(request)
     try:
-        res = action_manager.approve_action(action_id, safe_exec)
+        res = action_manager.approve_action(action_id, safe_exec, session_id=session_id)
+    except ApprovalError as exc:
+        raise HTTPException(status_code=409, detail=exc.public_message) from exc
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Approve action error: {exc}", level="error")
@@ -45,9 +74,12 @@ async def approve_action(action_id: str):
 
 
 @router.post("/approvals/{action_id}/reject")
-async def reject_action(action_id: str):
+async def reject_action(action_id: str, request: Request):
+    session_id = _session_id(request)
     try:
-        res = action_manager.cancel_action(action_id)
+        res = action_manager.cancel_action(action_id, session_id=session_id)
+    except ApprovalError as exc:
+        raise HTTPException(status_code=409, detail=exc.public_message) from exc
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Cancel action error: {exc}", level="error")
