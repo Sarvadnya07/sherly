@@ -111,9 +111,11 @@ def undo_last_action():
 
 
 @router.get("/previews/{action_id}")
-def get_preview_route(action_id: str):
-    changes = get_preview(action_id)
+def get_preview_route(action_id: str, request: Request):
+    session_id = _session_id(request)
+    changes = get_preview(action_id, session_id=session_id)
     if not changes:
+        # Same response for unknown AND foreign previews: no existence oracle.
         raise HTTPException(status_code=404, detail="Preview not found")
     res = []
     for c in changes:
@@ -130,19 +132,24 @@ def get_preview_route(action_id: str):
 
 
 @router.post("/previews/{action_id}/apply")
-async def apply_code_preview(action_id: str):
+async def apply_code_preview(action_id: str, request: Request):
+    session_id = _session_id(request)
     try:
-        res = apply_preview(action_id)
+        res = apply_preview(action_id, session_id=session_id)
     except Exception as exc:
         from runtime_utils import log
         log(f"[ActionsRoute] Apply preview error: {exc}", level="error")
         raise HTTPException(status_code=500, detail="Failed to apply preview.") from exc
+    if res == "Invalid preview ID":
+        raise HTTPException(status_code=404, detail="Preview not found")
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "preview_applied"})
     return {"message": res}
 
 
 @router.post("/previews/{action_id}/reject")
-async def reject_code_preview(action_id: str):
-    discard_preview(action_id)
+async def reject_code_preview(action_id: str, request: Request):
+    discard_preview(action_id, session_id=_session_id(request))
+    # Deliberately identical response whether or not the preview existed or
+    # belonged to this session: rejection must not be an existence oracle.
     await manager.broadcast_event("action_update", {"action_id": action_id, "status": "preview_rejected"})
     return {"message": "Preview rejected"}
