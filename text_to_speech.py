@@ -48,7 +48,8 @@ def speak(text: str) -> None:
     try:
         from speech_to_text import mark_speaking
     except Exception:
-        mark_speaking = lambda _: None
+        def mark_speaking(_state):
+            return None
 
     _stop_requested.clear()
     mark_speaking(True)

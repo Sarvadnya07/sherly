@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+import action_manager
 from backend.api.schemas.contracts import (
     FileNode,
     FileReadResponse,
@@ -88,10 +89,26 @@ def read_file(path: str):
 @router.post("/write")
 def write_file(req: FileWriteRequest):
     target = _get_safe_target(req.path)
+    # Conflict check: refuse to silently clobber an externally-modified file.
+    if target.exists() and target.is_file():
+        try:
+            current = target.read_text(encoding="utf-8", errors="replace")
+        except Exception as exc:
+            from runtime_utils import log
+            log(f"[FilesRoute] Failed to read file before write {req.path}: {exc}", level="error")
+            raise HTTPException(status_code=500, detail="Unable to verify current file state.") from exc
+        if req.expected_content is not None and current != req.expected_content:
+            raise HTTPException(status_code=409, detail="Conflict: file was modified since it was loaded. Reload and retry.")
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(req.content, encoding="utf-8")
+        # Route through the canonical undo/backup pipeline so direct editor
+        # writes are recoverable exactly like chat-driven patches.
+        msg = action_manager.write_file_safe(str(target), req.content)
+        if msg.startswith("Write failed"):
+            raise RuntimeError(msg)
         return {"message": f"Successfully wrote {req.path}"}
+    except HTTPException:
+        raise
     except Exception as exc:
         from runtime_utils import log
         log(f"[FilesRoute] Failed to write file {req.path}: {exc}", level="error")

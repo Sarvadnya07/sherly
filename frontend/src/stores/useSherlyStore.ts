@@ -426,7 +426,13 @@ export const useSherlyStore = create<SherlyState>((set, get) => ({
     if (!state.activeFilePath) return false;
 
     try {
-      await api.writeFile(state.activeFilePath, state.activeFileContent);
+      // Optimistic-concurrency guard: 409 if the file changed on disk since
+      // it was loaded (backend compares against expected_content).
+      await api.writeFile(
+        state.activeFilePath,
+        state.activeFileContent,
+        state.activeOriginalContent
+      );
       const updatedTabs = state.openTabs.map((t) =>
         t.path === state.activeFilePath ? { ...t, isDirty: false } : t
       );

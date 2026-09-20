@@ -41,7 +41,28 @@ jobs:
       - name: Run Ruff lint
         run: |
           pip install ruff
-          ruff check backend core sherly_core sherly_ai sherly_commands agents tools remote_api remote_agent tests
+          ruff check backend core sherly_core agents tools remote_api remote_agent tests *.py
+
+      - name: Package smoke test (wheel completeness)
+        run: |
+          pip install build
+          python -m build --wheel --outdir dist_ci .
+          python - << 'EOF'
+          import sys, zipfile, glob
+          wheel = glob.glob("dist_ci/*.whl")[0]
+          names = set(zipfile.ZipFile(wheel).namelist())
+          required = [
+              "action_manager.py", "command_router.py", "safety_guard.py",
+              "model_manager.py", "runtime_utils.py",
+              "backend/api/routes/files.py", "backend/api/routes/actions.py",
+              "backend/main.py", "tools/terminal_tools.py", "tools/executor.py",
+              "core/network_security.py", "remote_agent/agent.py",
+          ]
+          missing = [m for m in required if m not in names]
+          if missing:
+              sys.exit(f"PKG-001 wheel smoke check FAILED, missing: {missing}")
+          print("Wheel package smoke check passed:", wheel)
+          EOF
 
       - name: Run PyTest Test Suite
         run: |

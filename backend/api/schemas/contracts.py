@@ -100,6 +100,10 @@ class FileReadResponse(BaseModel):
 class FileWriteRequest(BaseModel):
     path: str = Field(..., min_length=1)
     content: str
+    # Optional optimistic-concurrency guard. If provided and it does not match
+    # the file on disk, the write is rejected with 409 instead of clobbering
+    # an externally modified file. None = skip conflict check (last-write-wins).
+    expected_content: str | None = None
 
 
 class TerminalRunRequest(BaseModel):

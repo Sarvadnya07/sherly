@@ -58,6 +58,9 @@ def evaluate_tool_policy(tool_name: str, arguments: dict[str, Any]) -> ToolRisk:
     if not tool:
         return ToolRisk.BLOCKED
 
+    # CODE-009: the spec's requires_approval flag is now authoritative for any
+    # tool not covered by an argument-aware rule below. Without this, the flag
+    # was written at registration and never enforced.
     # Argument-aware checks for terminal execution
     if tool_name == "terminal.execute":
         cmd = arguments.get("command", "")
@@ -74,6 +77,12 @@ def evaluate_tool_policy(tool_name: str, arguments: dict[str, Any]) -> ToolRisk:
         path = str(arguments.get("path", ""))
         if any(sensitive in path.lower() for sensitive in (".env", "id_rsa", "credentials", "secrets")):
             return ToolRisk.BLOCKED
+
+    # CODE-009: the spec's requires_approval flag is authoritative for tools
+    # not already escalated by an argument-aware rule above. Without this,
+    # the flag was written at registration and never enforced.
+    if tool.requires_approval:
+        return ToolRisk.CONFIRM
 
     return tool.risk
 

@@ -72,10 +72,10 @@ export const api = {
   // Files & Workspace
   getFileTree: () => fetchJson<FileNode>('/files/tree'),
   readFile: (path: string) => fetchJson<FileReadResponse>(`/files/read?path=${encodeURIComponent(path)}`),
-  writeFile: (path: string, content: string) =>
+  writeFile: (path: string, content: string, expectedContent?: string) =>
     fetchJson<{ message: string }>('/files/write', {
       method: 'POST',
-      body: JSON.stringify({ path, content }),
+      body: JSON.stringify({ path, content, expected_content: expectedContent ?? null }),
     }),
   runTerminal: (command: string) =>
     fetchJson<TerminalRunResponse>('/files/terminal/run', {

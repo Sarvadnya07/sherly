@@ -1,37 +1,52 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### Added
-- Multi-agent swarm architecture for complex scaffolding tasks.
-- Advanced visual UI debugger integration within PySide6 frontend.
-- Extended cloud provider fallback option (disabled by default).
-
-### Changed
-- Refactored `command_router.py` to support dynamic plugin-based intent resolution.
-
-## [1.15.0] - 2026-08-01
-
-### Added
-- Complete RAG (Retrieval-Augmented Generation) integration via ChromaDB for instantaneous project context loading.
-- Git-style multi-file patch preview system implemented in `sherly_ui`.
-- `undo` functionality for file modifications with atomic state backups.
-- Secret redaction layer in `safety_guard.py` to prevent key leaks to the model context.
-
-### Fixed
-- Fixed an issue where `faster-whisper` would drop the first second of audio on Windows.
-- Resolved memory leak in PySide6 UI during prolonged model execution.
-
-## [1.14.2] - 2026-06-15
-
-### Added
-- Initial release of the deterministic router prioritizing safe known intents over LLM generation.
-- Desktop UI (PySide6) with voice hotkey (`Ctrl + Shift + S`).
+## 2026-09-20 — Remediation pass (audit findings)
 
 ### Security
-- Implemented `shlex.split()` for all terminal commands, enforcing `shell=False`.
+- Browser agent: model-supplied starting URLs are now validated through the
+  canonical SSRF policy (`core/network_security.is_safe_url`) before
+  navigation; loopback/private/reserved/scheme/credential attacks fall back to
+  the default URL. (SEC-001)
+- `run_project` now enforces the same contract as `safe_exec`: chaining-operator
+  rejection, parsed-executable allowlist (prefix collisions such as
+  `pythonista` no longer match), and dangerous/confirm classification. (SEC-003)
+- Remote agent: undo requests over remote access are explicitly rejected (undo
+  has no remote path by design); loopback-only bind contract documented. (SEC-004)
+- Screen capture re-classified from SAFE to CONFIRM with approval required —
+  it can no longer be auto-executed by the tool loop. (SEC-009)
+- `requires_approval` on tool specs is now enforced by the policy engine
+  instead of being write-only state. (CODE-009)
+- Removed dead execution chain containing an ungated Windows shutdown command
+  (`sherly_core/intent_router.py`, `sherly_commands/`, `sherly_ai/`). (SEC-002)
+
+### Product reliability
+- Workspace editor saves now participate in the canonical backup/undo
+  pipeline: previous content is snapshotted, the write is logged as an
+  undoable action, and undo restores the original content. (PRODUCT-001)
+- Optimistic-concurrency guard on file writes: the editor sends the content it
+  loaded; the backend rejects the write with 409 if the file changed on disk
+  in the meantime, instead of silently clobbering external edits.
+
+### Packaging
+- Wheel now includes all 18 root-level production modules (`py-modules`) and
+  the previously omitted subpackages (`backend.api.*`, `plugins`, `remote_api`,
+  `remote_agent`, `sherly_ui.views`). `pip install` yields an importable
+  application. (PKG-001)
+- CI runs a wheel-completeness smoke test on every build.
+
+### Quality gates
+- CI ruff gate now covers all root modules; bandit pre-commit hook scans the
+  real layout instead of the nonexistent `src/`. (CODE-001, CODE-002)
+
+### Documentation
+- README test count corrected to the actual suite result (141 passing / 143
+  collected, wake-word caveat documented); mypy honestly labeled as
+  developer-side, not a CI gate. (DOC-001, DOC-003)
+- PERFORMANCE.md benchmark figures relabeled as design targets — no benchmark
+  harness exists to reproduce the previously published "measured" numbers.
+  (DOC-002)
+
+### Deferred (documented in docs/audits/REMEDIATION-STATUS-2026-09-20.md)
+- ARCH-001 session-scoped approvals (needs a session-identity design),
+  ARCH-002 consolidation (3 breakers / 2 queues / 3 memory stores / 2 TTS),
+  SEC-005 upload collision handling, SEC-008 workspace-root model.

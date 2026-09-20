@@ -17,7 +17,7 @@ repos:
       - id: bandit
         args:
           - -r
-          - src/
+          - .
           - --skip
           - B101,B404,B603  # Skip assert, subprocess (we use shlex/shell=False), shell calls
         files: ^(backend|core|sherly_|tools|agents|tests|remote_|plugins)/
