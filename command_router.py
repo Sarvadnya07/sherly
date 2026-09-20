@@ -429,8 +429,8 @@ def route_command(text: str, session_id: str = DEFAULT_SESSION_ID) -> str:
 
         try:
             from tools.preview import apply_preview, has_preview
-            if has_preview(action_id):
-                result = safe_execute(lambda: apply_preview(action_id), "Failed to apply preview.")
+            if has_preview(action_id, session_id=session_id):
+                result = safe_execute(lambda: apply_preview(action_id, session_id=session_id), "Failed to apply preview.")
                 if result == "Invalid preview ID":
                     raise ValueError(result)  # fall through to approve_action below
 
@@ -540,7 +540,7 @@ def route_command(text: str, session_id: str = DEFAULT_SESSION_ID) -> str:
 
     if "apply fix" in low:
         speak("Applying fix")
-        result = safe_execute(lambda: apply_last_fix(ask_model), "Failed to apply project fix.")
+        result = safe_execute(lambda: apply_last_fix(ask_model, session_id=session_id), "Failed to apply project fix.")
         speak("Re-running project")
         return _finalize_response(raw, result)
 

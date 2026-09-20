@@ -1,6 +1,6 @@
 import os
-import uuid
 
+from approval_service import DEFAULT_SESSION_ID
 from tools.error_fixer import generate_multi_fix
 from tools.executor import run_project
 from tools.preview import generate_multi_diff, save_preview
@@ -48,7 +48,7 @@ def fix_project(ask_model):
     )
 
 
-def apply_last_fix(ask_model):
+def apply_last_fix(ask_model, session_id: str = DEFAULT_SESSION_ID):
     command = LAST_FIX_CONTEXT.get("command")
     error = LAST_FIX_CONTEXT.get("error")
     target_files = LAST_FIX_CONTEXT.get("target_files", [])
@@ -104,10 +104,8 @@ def apply_last_fix(ask_model):
         return "I generated a fix, but it targets files I cannot locate safely."
 
     diff_output = generate_multi_diff(prepared_changes, confidence, reason)
-    action_id = str(uuid.uuid4())[:8]
-
-    save_preview(action_id, prepared_changes)
+    preview_id = save_preview(prepared_changes, session_id=session_id)
 
     return f"""{diff_output}
 
-Approve with: `approve {action_id}`"""
+Approve with: `approve {preview_id}`"""
